@@ -1,5 +1,5 @@
 
-import { Product, FooterPage } from './types';
+import { Product, FooterPage, HomeLayoutConfig } from './types';
 
 export const INITIAL_PRODUCTS: Product[] = [
   {
@@ -71,7 +71,7 @@ export const INITIAL_FOOTER_PAGES: FooterPage[] = [
   { slug: 'returns', title: 'Returns', category: 'Customer Services', content: '14-day premium return policy for all unworn artifacts in original packaging.' },
   { slug: 'faq', title: 'FAQ', category: 'Customer Services', content: 'Find answers to common questions about our boutique services here.' },
   { slug: 'my-account', title: 'My Account', category: 'Customer Services', content: 'Manage your personal archive and tracking information here.' },
-  
+
   // Company
   { slug: 'about-us', title: 'About Us', category: 'Company', content: 'Zarhrah Luxury is a premier fashion destination bridging London style and Lagos vibrance.' },
   { slug: 'careers', title: 'Careers', category: 'Company', content: 'Join our team of high-fashion curators and visionaries.' },
@@ -101,3 +101,11 @@ export const REVIEWS_STORAGE_KEY = 'ZARHRAH_REVIEWS';
 export const RESTOCK_REQUESTS_STORAGE_KEY = 'ZARHRAH_RESTOCK_REQUESTS';
 export const ANALYTICS_STORAGE_KEY = 'ZARHRAH_VIEW_LOGS';
 export const FOOTER_PAGES_STORAGE_KEY = 'ZARHRAH_FOOTER_PAGES';
+
+export const INITIAL_HOME_LAYOUT: HomeLayoutConfig = {
+  showCatalog: true,
+  sections: [
+    { id: 'sec-1', title: 'NEW ARRIVALS', type: 'grid', isVisible: true, productIds: [] },
+    { id: 'sec-2', title: 'BEST SELLERS', type: 'carousel', isVisible: true, productIds: [] }
+  ]
+};

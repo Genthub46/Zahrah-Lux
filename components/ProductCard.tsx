@@ -12,21 +12,21 @@ interface ProductCardProps {
   isWishlisted?: boolean;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ 
-  product, 
-  onAddToCart, 
-  onLogView, 
-  onToggleWishlist, 
-  isWishlisted 
+const ProductCard: React.FC<ProductCardProps> = ({
+  product,
+  onAddToCart,
+  onLogView,
+  onToggleWishlist,
+  isWishlisted
 }) => {
   const navigate = useNavigate();
   const isSoldOut = product.stock <= 0;
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="group cursor-pointer relative" 
+      className="group cursor-pointer relative"
       onClick={() => navigate(`/product/${product.id}`)}
     >
       <div className="aspect-[4/5] bg-[#F5F5F4] rounded-lg overflow-hidden flex items-center justify-center p-6 relative">
@@ -35,19 +35,19 @@ const ProductCard: React.FC<ProductCardProps> = ({
           alt={product.name}
           className={`max-h-full max-w-full object-contain transition-transform duration-700 group-hover:scale-105 ${isSoldOut ? 'grayscale' : ''}`}
         />
-        
+
         {/* Floating Heart Icon */}
         {onToggleWishlist && (
-          <button 
+          <button
             onClick={(e) => {
               e.stopPropagation();
               onToggleWishlist(product);
             }}
             className="absolute top-4 right-4 p-2.5 bg-white/80 backdrop-blur-sm rounded-full shadow-lg hover:scale-110 transition-transform z-10"
           >
-            <Heart 
-              size={16} 
-              className={`transition-colors ${isWishlisted ? 'text-red-500 fill-red-500' : 'text-stone-400'}`} 
+            <Heart
+              size={16}
+              className={`transition-colors ${isWishlisted ? 'text-red-500 fill-red-500' : 'text-stone-400'}`}
             />
           </button>
         )}
@@ -65,7 +65,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
           <span className="w-1 h-1 bg-stone-300 rounded-full" />
           <span className="text-[8px] font-bold text-stone-400 uppercase tracking-widest">{product.category}</span>
         </div>
-        
+
         <h3 className="text-sm font-bold text-stone-900 leading-tight tracking-tight">
           {product.name}
         </h3>
@@ -74,10 +74,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
         {product.colors && product.colors.length > 0 && (
           <div className="flex space-x-1.5 py-1">
             {product.colors.slice(0, 5).map((c, i) => (
-              <div 
-                key={i} 
-                className="w-2.5 h-2.5 rounded-full border border-stone-200 shadow-sm" 
-                style={{ backgroundColor: c.hex }} 
+              <div
+                key={i}
+                className="w-2.5 h-2.5 rounded-full border border-stone-200 shadow-sm"
+                style={{ backgroundColor: c.hex }}
                 title={c.name}
               />
             ))}
@@ -90,6 +90,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
         <p className="text-sm font-bold text-stone-900">
           N{product.price.toLocaleString()}
         </p>
+
+        {!isSoldOut && (
+          <p className="text-[8px] text-stone-400 font-bold uppercase tracking-widest mt-1">
+            {product.stock} Units Remaining
+          </p>
+        )}
       </div>
     </motion.div>
   );

@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { 
-  ArrowRight, ChevronLeft, ChevronRight, MessageCircle, 
-  ChevronDown, Quote, Star, ShieldCheck, X, Settings2, 
+import {
+  ArrowRight, ChevronLeft, ChevronRight, MessageCircle,
+  ChevronDown, Quote, Star, ShieldCheck, X, Settings2,
   Plus, Edit3, Save, Trash2, LayoutGrid, Search,
   Facebook, Instagram, Twitter, Music, FilterX
 } from 'lucide-react';
@@ -55,6 +55,13 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
 
   const filteredCatalog = useMemo(() => {
     return products.filter(p => {
+      // Show if visible OR if user is admin (optional, but usually admins want to see everything? 
+      // User request implied 'displayed on the homepage or not', implies for customers. 
+      // Let's stick to strict filter for now, or maybe only filter for customers? 
+      // The prompt says "ENABLE THE FUNCTION TO BE SHOWN WHETHER THE PRODUCT IS TO BE DISPLAYED ON TE HOMEPAGE OR NOT"
+      // So if I set it to false, it shouldn't show.
+      if (p.isVisible === false) return false;
+
       const matchesBrand = !brandFilter || p.brand.toLowerCase() === brandFilter.toLowerCase();
       const matchesTag = !tagFilter || p.tags.some(t => t.toLowerCase() === tagFilter.toLowerCase());
       return matchesBrand && matchesTag;
@@ -94,23 +101,23 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
           />
           <div className="absolute inset-0 bg-black/40 backdrop-blur-[0.5px]" />
         </div>
-        
-        <motion.div 
-          initial={{ opacity: 0, y: 40 }} 
-          animate={{ opacity: 1, y: 0 }} 
+
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
           className="relative z-10 text-center px-4 max-w-6xl flex flex-col items-center"
         >
-          <motion.span 
+          <motion.span
             // Fix: Changed 'tracking' to 'letterSpacing' as 'tracking' is not a valid CSS property for Framer Motion.
-            initial={{ opacity: 0, letterSpacing: '0.1em' }} 
-            animate={{ opacity: 1, letterSpacing: '0.6em' }} 
-            transition={{ delay: 0.6, duration: 1 }} 
+            initial={{ opacity: 0, letterSpacing: '0.1em' }}
+            animate={{ opacity: 1, letterSpacing: '0.6em' }}
+            transition={{ delay: 0.6, duration: 1 }}
             className="text-white font-bold text-[11px] uppercase block mb-8 tracking-[0.6em]"
           >
             LONDON • LAGOS • GLOBAL EXCELLENCE
           </motion.span>
-          
+
           <h1 className="flex flex-col mb-16 select-none">
             <span className="text-6xl md:text-[140px] text-white font-bold tracking-tight leading-none serif">
               Elite Style
@@ -120,8 +127,8 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
             </span>
           </h1>
 
-          <a 
-            href="#boutique" 
+          <a
+            href="#boutique"
             className="inline-flex items-center justify-between min-w-[320px] md:min-w-[440px] bg-white text-stone-900 px-10 md:px-14 py-6 md:py-8 text-[11px] font-black tracking-[0.4em] transition-all shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] hover:scale-[1.02] active:scale-[0.98] group"
           >
             <span className="uppercase">DISCOVER BOUTIQUE</span>
@@ -134,7 +141,7 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
       <div id="boutique" className="space-y-32 py-32">
         {layoutConfig.sections.filter(s => s.isVisible).map((section) => {
           const sectionProducts = products.filter(p => section.productIds.includes(p.id));
-          
+
           return (
             <section key={section.id} className="px-4 sm:px-6 lg:px-12 max-w-[1600px] mx-auto overflow-hidden">
               <div className="flex justify-between items-end mb-12">
@@ -144,7 +151,7 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
                   </h2>
                   <div className="w-full h-[3px] bg-stone-900" />
                 </div>
-                
+
                 <div className="flex items-center space-x-4">
                   {isAdmin && (
                     <button onClick={() => navigate('/admin')} className="hidden md:flex items-center space-x-3 text-[10px] font-bold uppercase tracking-widest text-stone-400 hover:text-stone-900 border-r border-stone-200 pr-6 mr-2">
@@ -182,9 +189,9 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
               <h2 className="text-6xl font-bold tracking-tighter uppercase serif italic">
                 {tagFilter ? `${tagFilter} Collection` : brandFilter ? `${brandFilter} Archive` : 'Boutique Archive'}
               </h2>
-              
+
               {(tagFilter || brandFilter) && (
-                <button 
+                <button
                   onClick={() => navigate('/')}
                   className="inline-flex items-center space-x-2 text-[10px] font-black gold-text uppercase tracking-widest border border-[#C5A059] px-6 py-2 rounded-full hover:bg-[#C5A059] hover:text-white transition-all"
                 >
@@ -193,15 +200,15 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
                 </button>
               )}
             </div>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-20">
               {filteredCatalog.map((product) => (
                 <ProductCard key={product.id} product={product} onAddToCart={onAddToCart} onLogView={onLogView} onToggleWishlist={onToggleWishlist} isWishlisted={isWishlisted(product.id)} />
               ))}
               {filteredCatalog.length === 0 && (
                 <div className="col-span-full py-32 text-center">
-                   <Logo size={60} className="mx-auto opacity-10 mb-8" />
-                   <p className="text-xl serif italic text-stone-300">No artifacts found matching this selection.</p>
+                  <Logo size={60} className="mx-auto opacity-10 mb-8" />
+                  <p className="text-xl serif italic text-stone-300">No artifacts found matching this selection.</p>
                 </div>
               )}
             </div>
@@ -255,7 +262,7 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
                   Receive updates on our latest products, releases and exclusive partnerships.
                 </p>
               </div>
-              
+
               <div className="flex space-x-8">
                 <label className="flex items-center space-x-3 cursor-pointer group">
                   <input type="radio" name="gender-footer" className="w-3.5 h-3.5 accent-white bg-transparent border-2 border-stone-800 rounded-full" />
@@ -268,9 +275,9 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
               </div>
 
               <div className="relative group max-w-sm">
-                <input 
-                  type="email" 
-                  placeholder="ENTER EMAIL" 
+                <input
+                  type="email"
+                  placeholder="ENTER EMAIL"
                   className="w-full bg-transparent border border-stone-800 px-8 py-5 text-[11px] font-black tracking-[0.3em] uppercase focus:outline-none focus:border-stone-500 transition-all rounded-sm placeholder:text-stone-700"
                 />
                 <button className="absolute right-6 top-1/2 -translate-y-1/2 text-stone-600 hover:text-white transition-all transform hover:scale-125">
@@ -290,9 +297,9 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
           <div className="mt-32 pt-12 border-t border-stone-900 flex flex-col md:flex-row justify-between items-center gap-8">
             <p className="text-[9px] text-stone-700 font-black uppercase tracking-[0.6em]">© 2024 Zarhrah Luxury • London • Lagos</p>
             <div className="flex space-x-12 opacity-30 grayscale brightness-150">
-               <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" className="h-4" alt="Paypal" />
-               <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" className="h-4" alt="Visa" />
-               <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" className="h-6" alt="Mastercard" />
+              <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" className="h-4" alt="Paypal" />
+              <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" className="h-4" alt="Visa" />
+              <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" className="h-6" alt="Mastercard" />
             </div>
           </div>
         </div>

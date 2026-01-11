@@ -1,0 +1,10 @@
+{
+  "projectId": "zahrah-boutique",
+  "appId": "1:463080028844:web:89dee11bbb24e2c46e7d09",
+  "storageBucket": "zahrah-boutique.firebasestorage.app",
+  "apiKey": "AIzaSyBAI9Tdd_NJAgBxr1f7YnM8t9ss9fKt6XE",
+  "authDomain": "zahrah-boutique.firebaseapp.com",
+  "messagingSenderId": "463080028844",
+  "projectNumber": "463080028844",
+  "version": "2"
+}

@@ -8,10 +8,10 @@ interface LogoProps {
 
 const Logo: React.FC<LogoProps> = ({ className = "", size = "100%" }) => {
   return (
-    <svg 
-      viewBox="0 0 200 200" 
-      fill="none" 
-      xmlns="http://www.w3.org/2000/svg" 
+    <svg
+      viewBox="0 0 200 200"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
       className={className}
       style={{ height: size, width: 'auto' }}
     >
@@ -25,18 +25,18 @@ const Logo: React.FC<LogoProps> = ({ className = "", size = "100%" }) => {
 
       {/* Outer Glow/Ring */}
       <circle cx="100" cy="110" r="65" stroke="url(#goldGradient)" strokeWidth="1" opacity="0.5" />
-      
+
       {/* Laurel Wreaths */}
       <g stroke="url(#goldGradient)" strokeWidth="1.5" strokeLinecap="round" opacity="0.8">
         {/* Left Wreath */}
         <path d="M60 145C45 130 45 90 60 75" fill="none" />
         {[75, 90, 105, 120, 135].map((y, i) => (
-          <path key={`l-${i}`} d={`M55 ${y} L45 ${y-5}`} />
+          <path key={`l-${i}`} d={`M55 ${y} L45 ${y - 5}`} />
         ))}
         {/* Right Wreath */}
         <path d="M140 145C155 130 155 90 140 75" fill="none" />
         {[75, 90, 105, 120, 135].map((y, i) => (
-          <path key={`r-${i}`} d={`M145 ${y} L155 ${y-5}`} />
+          <path key={`r-${i}`} d={`M145 ${y} L155 ${y - 5}`} />
         ))}
       </g>
 
@@ -53,11 +53,11 @@ const Logo: React.FC<LogoProps> = ({ className = "", size = "100%" }) => {
       <circle cx="100" cy="110" r="50" stroke="url(#goldGradient)" strokeWidth="1" />
 
       {/* ZL Monogram */}
-      <text 
-        x="100" 
-        y="125" 
-        textAnchor="middle" 
-        fill="url(#goldGradient)" 
+      <text
+        x="100"
+        y="125"
+        textAnchor="middle"
+        fill="url(#goldGradient)"
         style={{ fontSize: '42px', fontWeight: 'bold', fontFamily: "'Playfair Display', serif" }}
       >
         ZL
@@ -72,7 +72,7 @@ const Logo: React.FC<LogoProps> = ({ className = "", size = "100%" }) => {
       <text fill="url(#goldGradient)" style={{ fontSize: '8px', fontWeight: 'bold', letterSpacing: '2px', fontFamily: 'Inter' }}>
         <textPath href="#topArc" startOffset="50%" textAnchor="middle">ZARHRAH</textPath>
       </text>
-      
+
       <text fill="url(#goldGradient)" style={{ fontSize: '8px', fontWeight: 'bold', letterSpacing: '2px', fontFamily: 'Inter' }}>
         <textPath href="#bottomArc" startOffset="50%" textAnchor="middle">LUXURY</textPath>
       </text>

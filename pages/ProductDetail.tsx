@@ -2,13 +2,14 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Product, RestockRequest } from '../types';
-import { 
-  ArrowLeft, Share2, Check, ShoppingBag, Ban, 
+import {
+  ArrowLeft, Share2, Check, ShoppingBag, Ban,
   Mail, Bell, Truck, Globe, Award, Sparkles, Send,
   Plus, Minus, Heart, ChevronDown, ChevronUp, X, ChevronLeft, ChevronRight, Maximize2, AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 import ProductCard from '../components/ProductCard';
+import RestockModal from '../components/RestockModal';
 
 // Accordion Component for Product Information
 interface AccordionProps {
@@ -20,7 +21,7 @@ interface AccordionProps {
 
 const Accordion: React.FC<AccordionProps> = ({ title, children, isOpen, onToggle }) => (
   <div className="border-b border-stone-100">
-    <button 
+    <button
       onClick={onToggle}
       className="w-full py-6 flex justify-between items-center group"
     >
@@ -29,7 +30,7 @@ const Accordion: React.FC<AccordionProps> = ({ title, children, isOpen, onToggle
     </button>
     <AnimatePresence>
       {isOpen && (
-        <motion.div 
+        <motion.div
           initial={{ height: 0, opacity: 0 }}
           animate={{ height: 'auto', opacity: 1 }}
           exit={{ height: 0, opacity: 0 }}
@@ -51,10 +52,10 @@ interface ProductDetailProps {
   wishlist: Product[];
 }
 
-const ProductDetail: React.FC<ProductDetailProps> = ({ 
-  products, 
-  onAddToCart, 
-  onLogView, 
+const ProductDetail: React.FC<ProductDetailProps> = ({
+  products,
+  onAddToCart,
+  onLogView,
   onAddRestockRequest,
   onToggleWishlist,
   wishlist
@@ -69,7 +70,8 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
   const [copied, setCopied] = useState(false);
   const [restockEmail, setRestockEmail] = useState('');
   const [isRestockSubmitted, setIsRestockSubmitted] = useState(false);
-  
+  const [isRestockModalOpen, setIsRestockModalOpen] = useState(false);
+
   // Lightbox & Gesture State
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const dragX = useMotionValue(0);
@@ -152,7 +154,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
           {/* Gallery Sidebar - Desktop only */}
           <div className="lg:col-span-1 hidden lg:flex flex-col space-y-4 max-h-[80vh] overflow-y-auto no-scrollbar py-2 pr-2">
             {product.images.map((img, idx) => (
-              <button 
+              <button
                 key={idx}
                 onClick={() => setActiveImgIdx(idx)}
                 className={`w-full aspect-[3/4] rounded-xl overflow-hidden border-2 transition-all p-1 bg-stone-50 flex-shrink-0 ${activeImgIdx === idx ? 'border-[#C5A059] shadow-md scale-105' : 'border-transparent opacity-40 hover:opacity-80'}`}
@@ -165,7 +167,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
           {/* Main Visual Display Area */}
           <div className="lg:col-span-6 space-y-8">
             <div className="relative group">
-              <motion.div 
+              <motion.div
                 drag="x"
                 dragConstraints={{ left: 0, right: 0 }}
                 style={{ x: dragX }}
@@ -174,18 +176,18 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                 className="aspect-[4/5] bg-stone-50 rounded-[2.5rem] md:rounded-[4rem] overflow-hidden flex items-center justify-center p-8 cursor-zoom-in relative select-none touch-pan-y"
               >
                 <AnimatePresence mode="wait">
-                  <motion.img 
+                  <motion.img
                     key={activeImgIdx}
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 1.05 }}
                     transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                    src={product.images[activeImgIdx]} 
-                    alt={product.name} 
+                    src={product.images[activeImgIdx]}
+                    alt={product.name}
                     className={`max-h-full max-w-full object-contain pointer-events-none ${isSoldOut ? 'grayscale' : ''}`}
                   />
                 </AnimatePresence>
-                
+
                 {/* Visual Feedback Overlays */}
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex items-center justify-center pointer-events-none">
                   <Maximize2 size={32} className="text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-xl" />
@@ -199,13 +201,13 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                 {/* Navigation Arrows (Desktop Only) */}
                 {product.images.length > 1 && (
                   <>
-                    <button 
+                    <button
                       onClick={(e) => { e.stopPropagation(); handlePrevImage(); }}
                       className="absolute left-8 top-1/2 -translate-y-1/2 p-4 bg-white/90 backdrop-blur-lg rounded-full shadow-2xl text-stone-900 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white hidden lg:block"
                     >
                       <ChevronLeft size={24} />
                     </button>
-                    <button 
+                    <button
                       onClick={(e) => { e.stopPropagation(); handleNextImage(); }}
                       className="absolute right-8 top-1/2 -translate-y-1/2 p-4 bg-white/90 backdrop-blur-lg rounded-full shadow-2xl text-stone-900 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white hidden lg:block"
                     >
@@ -234,7 +236,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                 ))}
               </div>
             )}
-            
+
             <p className="text-center text-[9px] font-bold text-stone-400 uppercase tracking-widest md:hidden">Swipe to browse artifacts</p>
           </div>
 
@@ -267,7 +269,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                   </div>
                   <div className="flex flex-wrap gap-4">
                     {product.colors?.map((c) => (
-                      <button 
+                      <button
                         key={c.name}
                         onClick={() => setSelectedColor(c.name)}
                         className={`w-12 h-12 rounded-full border-2 p-1 transition-all flex items-center justify-center ${selectedColor === c.name ? 'border-stone-900 scale-110 shadow-lg' : 'border-transparent hover:border-stone-100'}`}
@@ -287,7 +289,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                   </div>
                   <div className="grid grid-cols-4 gap-3">
                     {product.sizes?.map((s) => (
-                      <button 
+                      <button
                         key={s}
                         onClick={() => setSelectedSize(s)}
                         className={`py-4 text-[10px] font-black uppercase tracking-widest border-2 transition-all rounded-2xl ${selectedSize === s ? 'border-stone-900 bg-stone-900 text-white shadow-xl' : 'border-stone-100 text-stone-400 hover:border-stone-300'}`}
@@ -302,32 +304,72 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
 
             {/* Interaction Suite */}
             <div className="space-y-6 pt-4">
-              <div className="flex items-center space-x-6">
-                <div className="flex items-center justify-between bg-stone-50 border border-stone-100 p-4 rounded-2xl w-40">
-                  <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="text-stone-400 hover:text-stone-900 p-2"><Minus size={16} /></button>
-                  <span className="text-sm font-black text-stone-900">{quantity}</span>
-                  <button onClick={() => setQuantity(q => q + 1)} className="text-stone-400 hover:text-stone-900 p-2"><Plus size={16} /></button>
+              <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-lg border-t border-stone-100 z-50 md:static md:p-0 md:bg-transparent md:border-none flex items-center space-x-4 md:space-x-6 safe-bottom">
+                {!isSoldOut && (
+                  <div className="flex items-center justify-between bg-stone-50 border border-stone-100 p-2 md:p-4 rounded-xl md:rounded-2xl w-32 md:w-40">
+                    <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="text-stone-400 hover:text-stone-900 p-2"><Minus size={14} /></button>
+                    <span className="text-sm font-black text-stone-900">{quantity}</span>
+                    <button
+                      onClick={() => setQuantity(q => Math.min(product.stock, q + 1))}
+                      disabled={quantity >= product.stock}
+                      className={`p-2 transition-colors ${quantity >= product.stock ? 'text-stone-200 cursor-not-allowed' : 'text-stone-400 hover:text-stone-900'}`}
+                    >
+                      <Plus size={14} />
+                    </button>
+                  </div>
+                )}
+
+                <div className="flex-1 relative group">
+                  <button
+                    onClick={() => {
+                      if (isSoldOut) {
+                        setIsRestockModalOpen(true);
+                      } else if (isSelectionComplete) {
+                        onAddToCart(product, quantity, selectedColor, selectedSize);
+                      }
+                    }}
+                    disabled={!isSoldOut && !isSelectionComplete}
+                    className={`w-full py-4 md:py-6 text-[10px] md:text-[11px] font-black tracking-[0.2em] md:tracking-[0.4em] uppercase rounded-xl md:rounded-2xl shadow-xl transition-all flex items-center justify-center space-x-3 md:space-x-4 ${isSoldOut
+                      ? 'bg-stone-900 text-white hover:scale-[1.02] shadow-2xl ring-2 md:ring-4 ring-stone-50'
+                      : isSelectionComplete
+                        ? 'bg-stone-900 text-white hover:scale-[1.02] active:scale-95'
+                        : 'bg-stone-50 text-stone-400 border border-stone-100 cursor-not-allowed'
+                      }`}
+                  >
+                    {isSoldOut ? <Bell size={16} /> : <ShoppingBag size={16} />}
+                    <span>{isSoldOut ? 'Notify Me' : 'Acquire'}</span>
+                  </button>
+
+                  {/* Hover Notice for incomplete selection */}
+                  {!isSoldOut && !isSelectionComplete && (
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 w-max px-4 py-2 bg-stone-900/90 backdrop-blur-sm text-white text-[9px] font-bold uppercase tracking-widest rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 pointer-events-none z-20 hidden md:block">
+                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-stone-900/90 rotate-45" />
+                      Please select {needsColor && !selectedColor && needsSize && !selectedSize ? 'Size & Color' : needsSize && !selectedSize ? 'Size' : 'Color'}
+                    </div>
+                  )}
                 </div>
-                
-                <button 
-                  onClick={() => !isSoldOut && isSelectionComplete && onAddToCart(product, quantity, selectedColor, selectedSize)}
-                  disabled={isSoldOut || !isSelectionComplete}
-                  className={`flex-1 py-6 text-[11px] font-black tracking-[0.4em] uppercase rounded-2xl shadow-xl transition-all flex items-center justify-center space-x-4 ${isSoldOut ? 'bg-stone-100 text-stone-300 cursor-not-allowed' : isSelectionComplete ? 'bg-stone-900 text-white hover:scale-[1.02] active:scale-95' : 'bg-stone-50 text-stone-400 border border-stone-100 cursor-not-allowed'}`}
-                >
-                  <ShoppingBag size={18} />
-                  <span>{isSoldOut ? 'Archive Full' : 'Acquire Artifact'}</span>
-                </button>
               </div>
 
+              {/* Mobile Spacer to prevent content overlap with sticky bar */}
+              <div className="h-24 md:hidden" />
+              {quantity >= product.stock && !isSoldOut && (
+                <p className="text-[9px] font-bold text-amber-600 uppercase tracking-widest text-center animate-pulse">Maximum studio stock reached</p>
+              )}
+              {!isSoldOut && (
+                <p className="text-[9px] text-stone-400 font-bold uppercase tracking-widest text-center">
+                  {product.stock} Units Remaining
+                </p>
+              )}
+
               <div className="flex space-x-4">
-                <button 
+                <button
                   onClick={() => onToggleWishlist(product)}
                   className={`flex-1 py-5 border-2 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center space-x-3 ${isWishlisted ? 'border-red-500 bg-red-50 text-red-500 shadow-lg' : 'border-stone-100 text-stone-900 hover:bg-stone-50'}`}
                 >
                   <Heart size={16} fill={isWishlisted ? "currentColor" : "none"} />
                   <span>{isWishlisted ? 'In Wishlist' : 'Add to Wishlist'}</span>
                 </button>
-                <button 
+                <button
                   onClick={handleShare}
                   className="px-8 py-5 border-2 border-stone-100 rounded-2xl text-stone-900 hover:bg-stone-50 transition-all"
                 >
@@ -338,28 +380,28 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
 
             {/* Accordion Suite */}
             <div className="pt-10 space-y-0">
-              <Accordion 
-                title="Sourcing & Authenticity" 
-                isOpen={activeSection === 'description'} 
+              <Accordion
+                title="Sourcing & Authenticity"
+                isOpen={activeSection === 'description'}
                 onToggle={() => setActiveSection(activeSection === 'description' ? null : 'description')}
               >
                 <div className="space-y-6">
                   <p className="text-stone-500 leading-relaxed font-light text-[15px]">{product.description}</p>
                   <div className="grid grid-cols-2 gap-8">
-                     <div className="space-y-4">
-                        <h4 className="text-[10px] font-black text-stone-900 uppercase tracking-widest flex items-center"><Sparkles size={12} className="mr-2 gold-text" /> Highlights</h4>
-                        <ul className="space-y-3">
-                          {product.features?.map((f, i) => (
-                            <li key={i} className="text-stone-400 text-xs flex items-start">
-                              <span className="mr-3 gold-text">•</span> {f}
-                            </li>
-                          ))}
-                        </ul>
-                     </div>
-                     <div className="space-y-4">
-                        <h4 className="text-[10px] font-black text-stone-900 uppercase tracking-widest flex items-center"><Truck size={12} className="mr-2 gold-text" /> Logistics</h4>
-                        <p className="text-stone-400 text-xs leading-relaxed">Global express delivery from our London or Lagos hubs. Standard delivery 2-5 business days.</p>
-                     </div>
+                    <div className="space-y-4">
+                      <h4 className="text-[10px] font-black text-stone-900 uppercase tracking-widest flex items-center"><Sparkles size={12} className="mr-2 gold-text" /> Highlights</h4>
+                      <ul className="space-y-3">
+                        {product.features?.map((f, i) => (
+                          <li key={i} className="text-stone-400 text-xs flex items-start">
+                            <span className="mr-3 gold-text">•</span> {f}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="space-y-4">
+                      <h4 className="text-[10px] font-black text-stone-900 uppercase tracking-widest flex items-center"><Truck size={12} className="mr-2 gold-text" /> Logistics</h4>
+                      <p className="text-stone-400 text-xs leading-relaxed">Global express delivery from our London or Lagos hubs. Standard delivery 2-5 business days.</p>
+                    </div>
                   </div>
                 </div>
               </Accordion>
@@ -370,11 +412,11 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
         {/* Similar Curations */}
         <section className="mt-40 pt-24 border-t border-stone-50">
           <div className="flex justify-between items-end mb-16">
-             <div>
-                <span className="text-[10px] font-black gold-text uppercase tracking-[0.6em] block mb-3">Discovery Suite</span>
-                <h2 className="text-4xl font-bold tracking-tight text-stone-900 serif italic">Curated Similarities</h2>
-             </div>
-             <Link to="/" className="text-[10px] font-black uppercase tracking-widest border-b-2 border-stone-900 pb-2">View Archive</Link>
+            <div>
+              <span className="text-[10px] font-black gold-text uppercase tracking-[0.6em] block mb-3">Discovery Suite</span>
+              <h2 className="text-4xl font-bold tracking-tight text-stone-900 serif italic">Curated Similarities</h2>
+            </div>
+            <Link to="/" className="text-[10px] font-black uppercase tracking-widest border-b-2 border-stone-900 pb-2">View Archive</Link>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-12">
             {relatedProducts.map(p => (
@@ -394,7 +436,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
             className="fixed inset-0 z-[20000] bg-white/90 backdrop-blur-3xl flex items-center justify-center p-4 md:p-12"
             onClick={() => setIsLightboxOpen(false)}
           >
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
@@ -403,11 +445,11 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
             >
               {/* Header UI */}
               <div className="absolute top-0 left-0 right-0 flex justify-between items-center p-8">
-                 <div className="flex flex-col">
-                    <span className="text-[10px] font-black gold-text uppercase tracking-[0.5em]">{product.brand}</span>
-                    <h2 className="text-xl font-bold serif italic text-stone-900">{product.name}</h2>
-                 </div>
-                 <button 
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black gold-text uppercase tracking-[0.5em]">{product.brand}</span>
+                  <h2 className="text-xl font-bold serif italic text-stone-900">{product.name}</h2>
+                </div>
+                <button
                   onClick={() => setIsLightboxOpen(false)}
                   className="p-4 bg-stone-900 text-white rounded-full shadow-2xl hover:scale-110 transition-transform"
                 >
@@ -417,21 +459,21 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
 
               {/* Interaction UI */}
               <div className="absolute top-1/2 left-8 -translate-y-1/2 hidden md:block">
-                 <button onClick={handlePrevImage} className="p-6 text-stone-300 hover:text-stone-900 transition-colors"><ChevronLeft size={48} strokeWidth={1} /></button>
+                <button onClick={handlePrevImage} className="p-6 text-stone-300 hover:text-stone-900 transition-colors"><ChevronLeft size={48} strokeWidth={1} /></button>
               </div>
               <div className="absolute top-1/2 right-8 -translate-y-1/2 hidden md:block">
-                 <button onClick={handleNextImage} className="p-6 text-stone-300 hover:text-stone-900 transition-colors"><ChevronRight size={48} strokeWidth={1} /></button>
+                <button onClick={handleNextImage} className="p-6 text-stone-300 hover:text-stone-900 transition-colors"><ChevronRight size={48} strokeWidth={1} /></button>
               </div>
 
               {/* Main Image View */}
-              <motion.div 
+              <motion.div
                 drag="x"
                 dragConstraints={{ left: 0, right: 0 }}
                 onDragEnd={onDragEnd}
                 className="w-full h-full flex items-center justify-center pointer-events-auto cursor-grab active:cursor-grabbing"
               >
                 <AnimatePresence mode="wait">
-                  <motion.img 
+                  <motion.img
                     key={activeImgIdx}
                     initial={{ opacity: 0, x: 40 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -446,24 +488,30 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
 
               {/* Bottom Filmstrip UI */}
               <div className="absolute bottom-12 flex flex-col items-center space-y-8">
-                 <div className="text-[10px] font-black text-stone-400 uppercase tracking-[0.6em]">
-                   {String(activeImgIdx + 1).padStart(2, '0')} — {String(product.images.length).padStart(2, '0')}
-                 </div>
-                 <div className="flex space-x-3">
-                    {product.images.map((_, idx) => (
-                      <button 
-                        key={idx} 
-                        onClick={() => setActiveImgIdx(idx)}
-                        className={`w-3 h-3 rounded-full border-2 transition-all ${activeImgIdx === idx ? 'border-[#C5A059] bg-[#C5A059] scale-125' : 'border-stone-200 hover:border-stone-400'}`}
-                      />
-                    ))}
-                 </div>
+                <div className="text-[10px] font-black text-stone-400 uppercase tracking-[0.6em]">
+                  {String(activeImgIdx + 1).padStart(2, '0')} — {String(product.images.length).padStart(2, '0')}
+                </div>
+                <div className="flex space-x-3">
+                  {product.images.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setActiveImgIdx(idx)}
+                      className={`w-3 h-3 rounded-full border-2 transition-all ${activeImgIdx === idx ? 'border-[#C5A059] bg-[#C5A059] scale-125' : 'border-stone-200 hover:border-stone-400'}`}
+                    />
+                  ))}
+                </div>
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+      <RestockModal
+        isOpen={isRestockModalOpen}
+        onClose={() => setIsRestockModalOpen(false)}
+        productName={product?.name || ''}
+        productId={product?.id || ''}
+      />
+    </div >
   );
 };
 

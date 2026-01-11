@@ -4,6 +4,7 @@ import { Trash2, ArrowLeft, ShieldCheck, CheckCircle2, AlertCircle, Loader2, Sta
 import { Link, useNavigate } from 'react-router-dom';
 import { CartItem, Order, Review } from '../types';
 import { REVIEWS_STORAGE_KEY } from '../constants';
+import { saveReview } from '../services/dbUtils';
 import { motion, AnimatePresence } from 'framer-motion';
 import Logo from '../components/Logo';
 
@@ -24,7 +25,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, onRemoveFromCart, onClearCart
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [touched, setTouched] = useState({ email: false, phone: false });
-  
+
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState('');
@@ -68,8 +69,8 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, onRemoveFromCart, onClearCart
       onClearCart();
     };
 
-    const PAYSTACK_KEY = 'pk_test_YOUR_KEY'; 
-    
+    const PAYSTACK_KEY = 'pk_test_YOUR_KEY';
+
     if (PAYSTACK_KEY === 'pk_test_YOUR_KEY') {
       setTimeout(() => {
         completeOrder();
@@ -77,14 +78,14 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, onRemoveFromCart, onClearCart
     } else {
       try {
         const handler = PaystackPop.setup({
-          key: PAYSTACK_KEY, 
+          key: PAYSTACK_KEY,
           email: email,
           amount: total * 100,
           currency: 'NGN',
-          callback: function(response: any) {
+          callback: function (response: any) {
             completeOrder();
           },
-          onClose: function() {
+          onClose: function () {
             setIsProcessing(false);
           }
         });
@@ -95,21 +96,22 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, onRemoveFromCart, onClearCart
     }
   };
 
-  const submitReview = (e: React.FormEvent) => {
+  const submitReview = async (e: React.FormEvent) => {
     e.preventDefault();
     if (rating === 0) return;
 
     const newReview: Review = {
+      // Removing ID to let Firestore generate it if desired, or keep as is.
+      // saveReview handles ID generation if missing.
       id: `rev-${Date.now()}`,
       rating,
       comment,
-      customerName: name,
+      customerName: name || 'Anonymous',
       date: new Date().toISOString()
     };
 
-    const existing = JSON.parse(localStorage.getItem(REVIEWS_STORAGE_KEY) || '[]');
-    localStorage.setItem(REVIEWS_STORAGE_KEY, JSON.stringify([newReview, ...existing]));
-    
+    await saveReview(newReview);
+
     setReviewSubmitted(true);
     setTimeout(() => {
       navigate('/');
@@ -121,7 +123,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, onRemoveFromCart, onClearCart
       <div className="pt-32 pb-24 px-4 max-w-2xl mx-auto text-center animate-in fade-in zoom-in duration-500">
         <AnimatePresence mode="wait">
           {!reviewSubmitted ? (
-            <motion.div 
+            <motion.div
               key="review-form"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -148,9 +150,9 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, onRemoveFromCart, onClearCart
                         onClick={() => setRating(star)}
                         className="transition-transform hover:scale-125 focus:outline-none"
                       >
-                        <Star 
-                          size={32} 
-                          fill={star <= (hoverRating || rating) ? "#C5A059" : "none"} 
+                        <Star
+                          size={32}
+                          fill={star <= (hoverRating || rating) ? "#C5A059" : "none"}
                           className={star <= (hoverRating || rating) ? "text-[#C5A059]" : "text-stone-200"}
                         />
                       </button>
@@ -188,7 +190,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, onRemoveFromCart, onClearCart
               </form>
             </motion.div>
           ) : (
-            <motion.div 
+            <motion.div
               key="review-thanks"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -223,7 +225,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, onRemoveFromCart, onClearCart
       <div className="grid lg:grid-cols-12 gap-16">
         <div className="lg:col-span-7">
           <h2 className="text-3xl font-bold mb-10 tracking-tight uppercase tracking-[0.1em]">Your Selection</h2>
-          
+
           {cart.length === 0 ? (
             <div className="bg-stone-100 p-16 text-center rounded-sm border border-stone-200">
               <p className="text-stone-500 italic mb-8 font-serif">Your shopping bag is empty.</p>
@@ -248,7 +250,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, onRemoveFromCart, onClearCart
                       <div className="text-xs text-stone-400 tracking-widest uppercase">
                         Units: <span className="text-stone-900 font-bold ml-2">{item.quantity}</span>
                       </div>
-                      <button 
+                      <button
                         onClick={() => onRemoveFromCart(item.id)}
                         className="text-stone-300 hover:text-red-500 transition-colors p-2"
                         title="Remove Item"
@@ -266,7 +268,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, onRemoveFromCart, onClearCart
         <div className="lg:col-span-5">
           <div className="bg-stone-50 p-10 rounded-sm sticky top-32 border border-stone-100 shadow-sm">
             <h3 className="text-xl font-bold mb-10 tracking-tight uppercase tracking-[0.1em]">Checkout Details</h3>
-            
+
             <div className="space-y-4 mb-10">
               <div>
                 <input

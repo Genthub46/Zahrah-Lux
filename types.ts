@@ -14,6 +14,7 @@ export interface Product {
   features?: string[];
   composition?: string[];
   specifications?: string[];
+  isVisible?: boolean;
 }
 
 export interface CartItem extends Product {
@@ -46,7 +47,10 @@ export interface RestockRequest {
   id: string;
   productId: string;
   customerEmail: string;
+  customerName: string;
+  customerWhatsapp: string;
   date: string;
+  status?: 'Pending' | 'Notified';
 }
 
 export interface ViewLog {
@@ -72,4 +76,9 @@ export interface FooterPage {
   title: string;
   content: string;
   category: 'Customer Services' | 'Company' | 'Categories' | 'Policies';
+}
+
+export interface Brand {
+  id: string;
+  name: string;
 }

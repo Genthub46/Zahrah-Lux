@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zarhrah Luxury | Premium Boutique</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
     <script src="https://js.paystack.co/v1/inline.js"></script>
     <style>
         :root {
@@ -14,6 +17,7 @@
             --obsidian: #0c0a09;
             --cream: #fdfdfd;
         }
+
         body {
             font-family: 'Inter', sans-serif;
             scroll-behavior: smooth;
@@ -23,7 +27,7 @@
             margin: 0;
             overflow-x: hidden;
         }
-        
+
         /* Subtle Noise Texture */
         body::before {
             content: "";
@@ -38,21 +42,43 @@
             z-index: 9999;
         }
 
-        h1, h2, h3, .serif {
+        h1,
+        h2,
+        h3,
+        .serif {
             font-family: 'Playfair Display', serif;
         }
-        .gold-text { color: var(--gold); }
-        .gold-bg { background-color: var(--gold); }
-        
+
+        .gold-text {
+            color: var(--gold);
+        }
+
+        .gold-bg {
+            background-color: var(--gold);
+        }
+
         ::selection {
             background: var(--gold);
             color: white;
         }
 
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #fff; }
-        ::-webkit-scrollbar-thumb { background: #eee; border-radius: 10px; transition: background 0.3s; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #fff;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #eee;
+            border-radius: 10px;
+            transition: background 0.3s;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--gold);
+        }
 
         .glass-nav {
             background: rgba(255, 255, 255, 0.85);
@@ -61,9 +87,15 @@
         }
 
         @keyframes kenburns {
-            0% { transform: scale(1) translateY(0); }
-            100% { transform: scale(1.1) translateY(-2%); }
+            0% {
+                transform: scale(1) translateY(0);
+            }
+
+            100% {
+                transform: scale(1.1) translateY(-2%);
+            }
         }
+
         .animate-kenburns {
             animation: kenburns 20s ease infinite alternate;
         }
@@ -87,8 +119,10 @@
 }
 </script>
 </head>
+
 <body>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
 </body>
+
 </html>
