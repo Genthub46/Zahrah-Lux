@@ -8,5 +8,15 @@ export default defineConfig({
     'process.env': {
       API_KEY: JSON.stringify(process.env.VITE_API_KEY || '')
     }
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          ui: ['framer-motion', 'lucide-react']
+        }
+      }
+    }
   }
 });

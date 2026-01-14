@@ -1,0 +1,47 @@
+ZARHRAH LUXURY - CLIENT MANUAL
+
+HOW TO ACCESS THE ADMIN PANEL
+-----------------------------
+1. Go to the website URL.
+2. Append `?admin=true` to the URL (e.g., `zahrah-boutique.web.app/?admin=true`).
+3. Enter the secret passcode when prompted.
+
+(Note: Ensure you keep the passcode secure.)
+
+MANAGING PRODUCTS
+-----------------
+1. Once logged in as Admin, you will see the "Products" tab.
+2. **Add Product**: Fill in the form at the top (Name, Brand, Price, etc.).
+   - Images: Upload image via the "Add Image" button.
+   - Variations: Add colors and sizes.
+   - Click "Create Product".
+3. **Edit Product**: Find the product in the list and click "Edit".
+4. **Delete Product**: Click the Trash icon next to a product to remove it.
+
+MANAGING ORDERS
+---------------
+1. Switch to the "Orders" tab.
+2. You will see a list of all customer orders.
+3. Click "View Details" to see shipping address and items.
+4. Update Status: You can change status from "Pending" to "Shipped" or "Delivered".
+
+VIEWING ANALYTICS
+-----------------
+1. Switch to the "Analytics" tab.
+2. View "Total Period Yield" to see total revenue.
+3. See "Most Viewed Products" to understand customer interest.
+
+NEWSLETTER
+----------
+1. Customer emails captured via the footer "Join the inner circle" form are saved to the database.
+2. Ask your developer to export this list for your marketing campaigns.
+
+CUSTOMER WISHLIST & CART
+------------------------
+- Customers can save items to Wishlist (Heart icon).
+- Cart items are saved even if they leave and come back.
+- When they log in, their Guest Cart merges with their Account Cart.
+
+SUPPORT
+-------
+For any technical issues, contact your developer.

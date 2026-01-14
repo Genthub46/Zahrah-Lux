@@ -132,6 +132,17 @@ export const exportOrdersToPDF = async (orders: Order[]) => {
     doc.text('EXECUTIVE ORDER MANIFEST', 45, 26);
     doc.text(`Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 45, 32);
 
+    // --- Total Yield (Top Right) ---
+    const totalYield = orders.reduce((sum, order) => sum + order.total, 0);
+
+    doc.setFontSize(10);
+    doc.setTextColor(150); // Stone-500 equivalent for label
+    doc.text('TOTAL PERIOD YIELD', 196, 20, { align: 'right' });
+
+    doc.setFontSize(16);
+    doc.setTextColor(28, 25, 23); // Stone-900 for value
+    doc.text(`N${totalYield.toLocaleString()}`, 196, 27, { align: 'right' });
+
     // --- Prepare Table Data (Fetch Images) ---
     const tableData = await Promise.all(orders.map(async (order) => {
         // Attempt to get first product image

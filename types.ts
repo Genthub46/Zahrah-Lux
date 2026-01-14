@@ -6,10 +6,10 @@ export interface Product {
   price: number;
   images: string[];
   description: string;
-  category: 'Apparel' | 'Footwear' | 'Accessories' | 'Beauty' | 'Travel' | 'Watches' | 'Perfumes' | 'Bags';
+  category: 'Apparel' | 'Footwear' | 'Accessories' | 'Beauty' | 'Travel' | 'Watches' | 'Perfumes' | 'Bags' | 'Other';
   stock: number;
   tags: string[];
-  colors?: { name: string; hex: string }[];
+  colors?: { name: string; hex: string; image?: string }[];
   sizes?: string[];
   features?: string[];
   composition?: string[];
@@ -33,6 +33,9 @@ export interface Order {
   total: number;
   date: string;
   status: 'Pending' | 'Shipped' | 'Delivered';
+  paymentMethod?: 'Paystack' | 'COD';
+  paymentStatus?: 'Paid' | 'Pending' | 'Failed';
+  paymentReference?: string;
 }
 
 export interface Review {
@@ -46,9 +49,10 @@ export interface Review {
 export interface RestockRequest {
   id: string;
   productId: string;
-  customerEmail: string;
   customerName: string;
-  customerWhatsapp: string;
+  notificationChannel: 'email' | 'whatsapp';
+  customerEmail?: string;
+  customerWhatsapp?: string;
   date: string;
   status?: 'Pending' | 'Notified';
 }

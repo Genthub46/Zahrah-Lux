@@ -10,7 +10,8 @@ import {
     writeBatch,
     getDocs,
     query,
-    where
+    where,
+    getDoc
 } from "firebase/firestore";
 import { Product, Order, ViewLog, RestockRequest, FooterPage, HomeLayoutConfig, Review } from "../types";
 
@@ -23,6 +24,7 @@ const PAGES_COL = "pages";
 const BRANDS_COL = "brands";
 const REVIEWS_COL = "reviews";
 const CONFIG_COL = "siteConfig";
+const USERS_COL = "users";
 
 // --- Subscriptions ---
 export const subscribeToBrands = (callback: (data: any[]) => void) => {
@@ -34,6 +36,8 @@ export const subscribeToBrands = (callback: (data: any[]) => void) => {
 export const subscribeToProducts = (callback: (data: Product[]) => void) => {
     return onSnapshot(collection(db, PRODUCTS_COL), (snapshot) => {
         const products = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Product));
+        // Sort by ID descending (Newest First, assuming p-TIMESTAMP format)
+        products.sort((a, b) => b.id.localeCompare(a.id));
         callback(products);
     });
 };
@@ -78,10 +82,10 @@ export const subscribeToLayout = (callback: (data: HomeLayoutConfig | null) => v
 };
 
 // --- Operations ---
-export const saveProduct = async (product: Product) => {
-    // Use setDoc to strictly set the ID, effectively "Upsert"
+export const saveProduct = async (product: Partial<Product> & { id: string }) => {
+    // Use setDoc with merge: true for safer partial updates
     const docRef = doc(db, PRODUCTS_COL, product.id);
-    await setDoc(docRef, product);
+    await setDoc(docRef, product, { merge: true });
 };
 
 export const updateProduct = async (id: string, data: Partial<Product>) => {
@@ -102,8 +106,8 @@ export const saveOrder = async (order: Order) => {
     }
 };
 
-export const logView = async (productId: string) => {
-    await addDoc(collection(db, LOGS_COL), { productId, timestamp: Date.now() });
+export const logView = async (productId: string, userId?: string) => {
+    await addDoc(collection(db, LOGS_COL), { productId, userId: userId || null, timestamp: Date.now() });
 };
 
 export const addRestockRequest = async (req: RestockRequest) => {
@@ -172,10 +176,29 @@ export const deleteReview = async (id: string) => {
     await deleteDoc(doc(db, REVIEWS_COL, id));
 };
 
-export const saveLayoutConfig = async (config: HomeLayoutConfig) => {
-    await setDoc(doc(db, CONFIG_COL, "homeLayout"), config);
+export const saveLayoutConfig = async (config: Partial<HomeLayoutConfig>) => {
+    await setDoc(doc(db, CONFIG_COL, "homeLayout"), config, { merge: true });
 };
 
+// --- Categories ---
+const CATEGORIES_COL = "categories";
+
+export const subscribeToCategories = (callback: (data: { id: string; name: string }[]) => void) => {
+    return onSnapshot(collection(db, CATEGORIES_COL), (snapshot) => {
+        const categories = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as { id: string; name: string }));
+        callback(categories.sort((a, b) => a.name.localeCompare(b.name)));
+    });
+};
+
+export const saveCategory = async (name: string) => {
+    await addDoc(collection(db, CATEGORIES_COL), { name });
+};
+
+export const deleteCategory = async (id: string) => {
+    await deleteDoc(doc(db, CATEGORIES_COL, id));
+};
+
+// --- Brands ---
 export const saveBrand = async (name: string) => {
     await addDoc(collection(db, BRANDS_COL), { name });
 };
@@ -199,9 +222,63 @@ export const seedInitialData = async (products: Product[], config: HomeLayoutCon
         batch.set(ref, p);
     });
 
+    // Seed Default Categories
+    const defaultCategories = ['Apparel', 'Accessories', 'Footwear', 'Shirts', 'Pants', 'Other'];
+    defaultCategories.forEach(c => {
+        const ref = doc(collection(db, CATEGORIES_COL)); // Auto-ID
+        batch.set(ref, { name: c });
+    });
+
     const configRef = doc(db, CONFIG_COL, "homeLayout");
     batch.set(configRef, config);
 
     await batch.commit();
     console.log("Seeding complete.");
+};
+
+// --- User Data Persistence ---
+export const saveUserData = async (userId: string, data: { cart?: any[], wishlist?: any[] }) => {
+    if (!userId) return;
+    const userRef = doc(db, USERS_COL, userId);
+    await setDoc(userRef, data, { merge: true });
+};
+
+export const getUserData = async (userId: string) => {
+    if (!userId) return null;
+    const docRef = doc(db, USERS_COL, userId);
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+        return snap.data() as { cart?: any[], wishlist?: any[] };
+    }
+    return null;
+};
+
+export const subscribeToUserData = (userId: string, callback: (data: { cart: any[], wishlist: any[] } | null) => void) => {
+    if (!userId) return () => { };
+    return onSnapshot(doc(db, USERS_COL, userId), (doc) => {
+        if (doc.exists()) {
+            const data = doc.data();
+            callback({ cart: data.cart || [], wishlist: data.wishlist || [] });
+        } else {
+            callback(null);
+        }
+    });
+};
+
+// --- Newsletter ---
+const NEWSLETTER_COL = "newsletter";
+
+export const subscribeToNewsletter = async (email: string) => {
+    // Check if already exists to avoid duplicates
+    const q = query(collection(db, NEWSLETTER_COL), where("email", "==", email));
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+        return; // Already subscribed
+    }
+
+    await addDoc(collection(db, NEWSLETTER_COL), {
+        email,
+        date: new Date().toISOString()
+    });
 };

@@ -8,14 +8,14 @@ import { saveReview } from '../services/dbUtils';
 import { motion, AnimatePresence } from 'framer-motion';
 import Logo from '../components/Logo';
 
+import { usePaystackPayment } from 'react-paystack';
+
 interface CheckoutProps {
   cart: CartItem[];
   onRemoveFromCart: (id: string) => void;
   onClearCart: () => void;
   onOrderPlaced: (order: Order) => void;
 }
-
-declare const PaystackPop: any;
 
 const Checkout: React.FC<CheckoutProps> = ({ cart, onRemoveFromCart, onClearCart, onOrderPlaced }) => {
   const [email, setEmail] = useState('');
@@ -33,11 +33,49 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, onRemoveFromCart, onClearCart
 
   const navigate = useNavigate();
 
+  // Calculate Total First
   const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
   const isEmailValid = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email), [email]);
   const isPhoneValid = useMemo(() => /^[0-9+]{10,15}$/.test(phone.replace(/\s/g, '')), [phone]);
   const isFormValid = name.trim() !== '' && address.trim() !== '' && isEmailValid && isPhoneValid;
+
+  // Paystack Configuration
+  const paystackConfig = {
+    // @ts-ignore
+    reference: (new Date()).getTime().toString(),
+    email: email,
+    amount: total * 100, // Amount is in kobo
+    publicKey: (import.meta as any).env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_PLACEHOLDER_KEY',
+  };
+
+  const onSuccess = (reference: any) => {
+    // Implementation for whatever you want to do with reference and after success call.
+    const newOrder: Order = {
+      id: `ORD-${Date.now()}`,
+      customerName: name,
+      customerEmail: email,
+      customerPhone: phone,
+      customerAddress: address,
+      items: [...cart],
+      total: total,
+      date: new Date().toISOString(),
+      status: 'Pending',
+      paymentMethod: 'Paystack',
+      paymentStatus: 'Paid',
+      paymentReference: reference.reference
+    };
+    onOrderPlaced(newOrder);
+    setPaymentSuccess(true);
+    onClearCart();
+    setIsProcessing(false);
+  };
+
+  const onClose = () => {
+    setIsProcessing(false);
+  }
+
+  const initializePayment = usePaystackPayment(paystackConfig);
 
   const handlePaystackPayment = () => {
     if (!isFormValid) {
@@ -51,71 +89,32 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, onRemoveFromCart, onClearCart
     }
 
     setIsProcessing(true);
-
-    const completeOrder = () => {
-      const newOrder: Order = {
-        id: `ORD-${Date.now()}`,
-        customerName: name,
-        customerEmail: email,
-        customerPhone: phone,
-        customerAddress: address,
-        items: [...cart],
-        total: total,
-        date: new Date().toISOString(),
-        status: 'Pending'
-      };
-      onOrderPlaced(newOrder);
-      setPaymentSuccess(true);
-      onClearCart();
-    };
-
-    const PAYSTACK_KEY = 'pk_test_YOUR_KEY';
-
-    if (PAYSTACK_KEY === 'pk_test_YOUR_KEY') {
-      setTimeout(() => {
-        completeOrder();
-      }, 2500);
-    } else {
-      try {
-        const handler = PaystackPop.setup({
-          key: PAYSTACK_KEY,
-          email: email,
-          amount: total * 100,
-          currency: 'NGN',
-          callback: function (response: any) {
-            completeOrder();
-          },
-          onClose: function () {
-            setIsProcessing(false);
-          }
-        });
-        handler.openIframe();
-      } catch (e) {
-        setTimeout(completeOrder, 1500);
-      }
-    }
+    initializePayment({ onSuccess, onClose });
   };
 
   const submitReview = async (e: React.FormEvent) => {
     e.preventDefault();
     if (rating === 0) return;
 
-    const newReview: Review = {
-      // Removing ID to let Firestore generate it if desired, or keep as is.
-      // saveReview handles ID generation if missing.
-      id: `rev-${Date.now()}`,
-      rating,
-      comment,
-      customerName: name || 'Anonymous',
-      date: new Date().toISOString()
-    };
-
-    await saveReview(newReview);
-
-    setReviewSubmitted(true);
-    setTimeout(() => {
-      navigate('/');
-    }, 2000);
+    try {
+      const newReview: Review = {
+        // Removing ID to let Firestore generate it if desired, or keep as is.
+        // saveReview handles ID generation if missing.
+        id: `rev-${Date.now()}`,
+        rating,
+        comment,
+        customerName: name || 'Anonymous',
+        date: new Date().toISOString()
+      };
+      await saveReview(newReview);
+      setReviewSubmitted(true);
+      setTimeout(() => {
+        navigate('/');
+      }, 2000);
+    } catch (error) {
+      console.error("Error submitting review:", error);
+      alert("Failed to submit review. Please try again.");
+    }
   };
 
   if (paymentSuccess) {

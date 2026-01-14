@@ -1,5 +1,8 @@
 
 import { Product, FooterPage, HomeLayoutConfig } from './types';
+export const ADMIN_EMAILS = [
+  'admin@zahrah.com'
+];
 
 export const INITIAL_PRODUCTS: Product[] = [
   {

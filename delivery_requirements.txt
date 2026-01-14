@@ -1,0 +1,54 @@
+# Delivery Service Requirements
+
+To automatically send Emails and WhatsApp messages, you need to set up external delivery services and a secure backend environment. Frontend-only applications cannot securely send these messages.
+
+## 1. Backend Environment (Required for All)
+Since you cannot expose API keys in your React (Frontend) code, you need a server environment.
+*   **Recommendation**: **Firebase Cloud Functions** (easiest integration since you already use Firebase).
+    *   *Prerequisite*: Firebase project must be on the **Blaze Plan** (Pay-as-you-go). The Spark (Free) plan does not allow external API calls (to SendGrid, WhatsApp, etc.).
+
+---
+
+## 2. Email Delivery
+To send transactional emails (Restock Alerts, Order Confirmations).
+
+### Recommended Service: SendGrid (Twilio)
+*   **Account**: Sign up for a free SendGrid account.
+*   **API Key**: Generate a server-side API Key.
+*   **Sender Authentication**: Verify your domain (e.g., `zahrah.com`) so emails don't go to spam.
+*   **What you need to gather**:
+    *   `SENDGRID_API_KEY`
+    *   `VERIFIED_SENDER_EMAIL` (e.g., `notifications@zahrah.com`)
+
+---
+
+## 3. WhatsApp Delivery
+To send automated WhatsApp messages.
+
+### Service: WhatsApp Business API (via Meta)
+*   **Account**: Meta for Developers account.
+*   **Business Account**: Create a WhatsApp Business Portfolio.
+*   **Phone Number**: A phone number *not* currently used on the WhatsApp mobile app (or you must delete the account on the app to migrate it to the API).
+*   **Templates**: You cannot send free-form messages to users who haven't messaged you first. You must create "Templates" for restock alerts:
+    *   *Example*: "Hi {{1}}, good news! {{2}} is back in stock. Tap here to view: {{3}}"
+    *   These must be approved by Meta (usually takes a few minutes).
+*   **What you need to gather**:
+    *   `WHATSAPP_PHONE_NUMBER_ID`
+    *   `WHATSAPP_BUSINESS_ACCOUNT_ID`
+    *   `SYSTEM_USER_ACCESS_TOKEN` (Permanent token)
+
+---
+
+## 4. Push Notification Delivery
+To send the "In-App" notifications background messages.
+
+### Service: Firebase Cloud Messaging (FCM)
+*   **Already Configured**: You have the frontend setup.
+*   **Backend Requirement**: The Cloud Function needs to use the `firebase-admin` SDK to send the message to the stored `fcmToken`.
+*   **Configuration**: No extra external service needed, just the backend logic.
+
+## Summary Checklist
+- [ ] Upgrade Firebase to **Blaze Plan**.
+- [ ] Enable **Cloud Functions** in Firebase Console.
+- [ ] **Email**: Sign up for SendGrid -> Get API Key -> Verify Sender.
+- [ ] **WhatsApp**: Set up Meta Developer App -> Add WhatsApp Product -> Get Token & Phone ID -> Create Template.

@@ -10,6 +10,7 @@ import {
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 import ProductCard from '../components/ProductCard';
 import RestockModal from '../components/RestockModal';
+import { getOptimizedImageUrl } from '../utils/imageOptimizer';
 
 // Accordion Component for Product Information
 interface AccordionProps {
@@ -45,6 +46,7 @@ const Accordion: React.FC<AccordionProps> = ({ title, children, isOpen, onToggle
 
 interface ProductDetailProps {
   products: Product[];
+  user?: any; // Using any for brevity, or imported User type
   onAddToCart: (product: Product, quantity?: number, color?: string, size?: string) => void;
   onLogView: (id: string) => void;
   onAddRestockRequest: (request: RestockRequest) => void;
@@ -54,6 +56,7 @@ interface ProductDetailProps {
 
 const ProductDetail: React.FC<ProductDetailProps> = ({
   products,
+  user,
   onAddToCart,
   onLogView,
   onAddRestockRequest,
@@ -71,6 +74,14 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
   const [restockEmail, setRestockEmail] = useState('');
   const [isRestockSubmitted, setIsRestockSubmitted] = useState(false);
   const [isRestockModalOpen, setIsRestockModalOpen] = useState(false);
+  const [showNotification, setShowNotification] = useState(false);
+
+  useEffect(() => {
+    if (showNotification) {
+      const timer = setTimeout(() => setShowNotification(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showNotification]);
 
   // Lightbox & Gesture State
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
@@ -136,21 +147,21 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
   };
 
   const relatedProducts = products
-    .filter(p => p.id !== product.id && p.brand === product.brand)
+    .filter(p => p.id !== product.id && p.category === product.category)
     .slice(0, 4);
 
   return (
-    <div className="pt-24 pb-24 bg-white min-h-screen">
+    <div className="pt-4 pb-32 md:pt-24 md:pb-24 bg-white min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Breadcrumb / Back */}
-        <div className="mb-12">
-          <Link to="/" className="inline-flex items-center space-x-2 text-[10px] font-black uppercase tracking-[0.4em] text-stone-400 hover:text-stone-900 transition-colors">
+        <div className="hidden md:block mb-12">
+          <Link to="/" className="inline-flex items-center space-x-2 text-xs font-black uppercase tracking-[0.4em] text-stone-400 hover:text-stone-900 transition-colors">
             <ArrowLeft size={12} />
             <span>Return to Boutique</span>
           </Link>
         </div>
 
-        <div className="grid lg:grid-cols-12 gap-12 lg:gap-20">
+        <div className="grid lg:grid-cols-12 gap-6 lg:gap-16">
           {/* Gallery Sidebar - Desktop only */}
           <div className="lg:col-span-1 hidden lg:flex flex-col space-y-4 max-h-[80vh] overflow-y-auto no-scrollbar py-2 pr-2">
             {product.images.map((img, idx) => (
@@ -159,13 +170,13 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                 onClick={() => setActiveImgIdx(idx)}
                 className={`w-full aspect-[3/4] rounded-xl overflow-hidden border-2 transition-all p-1 bg-stone-50 flex-shrink-0 ${activeImgIdx === idx ? 'border-[#C5A059] shadow-md scale-105' : 'border-transparent opacity-40 hover:opacity-80'}`}
               >
-                <img src={img} className="w-full h-full object-contain" alt={`Thumbnail ${idx}`} />
+                <img src={getOptimizedImageUrl(img)} width="150" height="200" className="w-full h-full object-contain" alt={`Thumbnail ${idx}`} />
               </button>
             ))}
           </div>
 
           {/* Main Visual Display Area */}
-          <div className="lg:col-span-6 space-y-8">
+          <div className="lg:col-span-6 space-y-4 md:space-y-8">
             <div className="relative group">
               <motion.div
                 drag="x"
@@ -173,7 +184,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                 style={{ x: dragX }}
                 onDragEnd={onDragEnd}
                 onClick={() => setIsLightboxOpen(true)}
-                className="aspect-[4/5] bg-stone-50 rounded-[2.5rem] md:rounded-[4rem] overflow-hidden flex items-center justify-center p-8 cursor-zoom-in relative select-none touch-pan-y"
+                className="aspect-[4/5] bg-stone-50 rounded-[2.5rem] md:rounded-[4rem] overflow-hidden flex items-center justify-center p-0 md:p-8 cursor-zoom-in relative select-none touch-pan-y"
               >
                 <AnimatePresence mode="wait">
                   <motion.img
@@ -182,8 +193,10 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 1.05 }}
                     transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                    src={product.images[activeImgIdx]}
+                    src={getOptimizedImageUrl(product.images[activeImgIdx])}
                     alt={product.name}
+                    width="600"
+                    height="750"
                     className={`max-h-full max-w-full object-contain pointer-events-none ${isSoldOut ? 'grayscale' : ''}`}
                   />
                 </AnimatePresence>
@@ -194,7 +207,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                 </div>
 
                 {/* Progress Indicator (Badge) */}
-                <div className="absolute bottom-8 right-10 px-4 py-1.5 bg-white/60 backdrop-blur-md rounded-full border border-white/40 text-[9px] font-black tracking-widest text-stone-900 shadow-sm">
+                <div className="absolute bottom-8 right-10 px-4 py-1.5 bg-white/60 backdrop-blur-md rounded-full border border-white/40 text-xs font-black tracking-widest text-stone-900 shadow-sm">
                   {String(activeImgIdx + 1).padStart(2, '0')} / {String(product.images.length).padStart(2, '0')}
                 </div>
 
@@ -237,21 +250,21 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
               </div>
             )}
 
-            <p className="text-center text-[9px] font-bold text-stone-400 uppercase tracking-widest md:hidden">Swipe to browse artifacts</p>
+            <p className="text-center text-[10px] font-bold text-stone-400 uppercase tracking-widest md:hidden">Swipe to browse artifacts</p>
           </div>
 
           {/* Product Commercial Area */}
-          <div className="lg:col-span-5 space-y-8">
-            <div className="space-y-4">
+          <div className="lg:col-span-5 space-y-4 md:space-y-5">
+            <div className="space-y-3 md:space-y-4">
               <div className="flex items-center space-x-3">
-                <span className="text-[10px] font-black gold-text uppercase tracking-[0.5em]">{product.brand}</span>
+                <span className="text-xs font-black gold-text uppercase tracking-[0.5em]">{product.brand}</span>
                 <span className="w-1 h-1 bg-stone-300 rounded-full" />
-                <span className="text-[10px] text-stone-400 font-bold uppercase tracking-[0.3em]">{product.category}</span>
+                <span className="text-xs text-stone-400 font-bold uppercase tracking-[0.3em]">{product.category}</span>
               </div>
-              <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-stone-900 leading-[1.1] serif italic">
+              <h1 className="text-3xl md:text-6xl font-bold tracking-tight text-stone-900 leading-[1.1] serif italic">
                 {product.name}
               </h1>
-              <div className="flex items-baseline space-x-3">
+              <div className="flex flex-col md:flex-row md:items-baseline md:space-x-3 space-y-1 md:space-y-0">
                 <p className="text-3xl font-black text-stone-900">
                   ₦{product.price.toLocaleString()}
                 </p>
@@ -260,47 +273,55 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
             </div>
 
             {/* Selections */}
-            <div className="space-y-10 py-10 border-y border-stone-50">
-              {needsColor && (
-                <div className="space-y-5">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-stone-400">Artifact Colour Palette</span>
-                    {selectedColor && <span className="text-[9px] font-black gold-text uppercase tracking-widest">{selectedColor}</span>}
+            {(needsColor || needsSize) && (
+              <div className="space-y-5 py-5 md:py-6 md:space-y-6 border-y border-stone-50">
+                {needsColor && (
+                  <div className="space-y-4 md:space-y-5">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-black uppercase tracking-widest text-stone-400">Artifact Colour Palette</span>
+                      {selectedColor && <span className="text-[10px] font-black gold-text uppercase tracking-widest">{selectedColor}</span>}
+                    </div>
+                    <div className="flex flex-wrap gap-4">
+                      {product.colors?.map((c) => (
+                        <button
+                          key={c.name}
+                          onClick={() => {
+                            setSelectedColor(c.name);
+                            if (c.image) {
+                              const imgIdx = product.images.indexOf(c.image);
+                              if (imgIdx !== -1) setActiveImgIdx(imgIdx);
+                            }
+                          }}
+                          className={`w-12 h-12 rounded-full border-2 p-1 transition-all flex items-center justify-center ${selectedColor === c.name ? 'border-stone-900 scale-110 shadow-lg' : 'border-transparent hover:border-stone-100'}`}
+                        >
+                          <div className="w-full h-full rounded-full border border-stone-100" style={{ backgroundColor: c.hex }} title={c.name} />
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <div className="flex flex-wrap gap-4">
-                    {product.colors?.map((c) => (
-                      <button
-                        key={c.name}
-                        onClick={() => setSelectedColor(c.name)}
-                        className={`w-12 h-12 rounded-full border-2 p-1 transition-all flex items-center justify-center ${selectedColor === c.name ? 'border-stone-900 scale-110 shadow-lg' : 'border-transparent hover:border-stone-100'}`}
-                      >
-                        <div className="w-full h-full rounded-full border border-stone-100" style={{ backgroundColor: c.hex }} title={c.name} />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+                )}
 
-              {needsSize && (
-                <div className="space-y-5">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-stone-400">Dimensions / Sizing</span>
-                    <button className="text-[9px] font-black text-[#C5A059] border-b border-[#C5A059] uppercase tracking-widest">Sizing Guide</button>
+                {needsSize && (
+                  <div className="space-y-4 md:space-y-5">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-black uppercase tracking-widest text-stone-400">Dimensions / Sizing</span>
+                      <button className="text-[10px] font-black text-[#C5A059] border-b border-[#C5A059] uppercase tracking-widest">Sizing Guide</button>
+                    </div>
+                    <div className="flex flex-wrap gap-3">
+                      {product.sizes?.map((s) => (
+                        <button
+                          key={s}
+                          onClick={() => setSelectedSize(s)}
+                          className={`min-w-[4rem] px-4 py-4 text-[10px] font-black uppercase tracking-widest border-2 transition-all rounded-2xl flex-grow-0 text-center ${selectedSize === s ? 'border-stone-900 bg-stone-900 text-white shadow-xl' : 'border-stone-100 text-stone-400 hover:border-stone-300'}`}
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <div className="grid grid-cols-4 gap-3">
-                    {product.sizes?.map((s) => (
-                      <button
-                        key={s}
-                        onClick={() => setSelectedSize(s)}
-                        className={`py-4 text-[10px] font-black uppercase tracking-widest border-2 transition-all rounded-2xl ${selectedSize === s ? 'border-stone-900 bg-stone-900 text-white shadow-xl' : 'border-stone-100 text-stone-400 hover:border-stone-300'}`}
-                      >
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
 
             {/* Interaction Suite */}
             <div className="space-y-6 pt-4">
@@ -324,20 +345,20 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                     onClick={() => {
                       if (isSoldOut) {
                         setIsRestockModalOpen(true);
-                      } else if (isSelectionComplete) {
+                      } else if (!isSelectionComplete) {
+                        setShowNotification(true);
+                      } else {
                         onAddToCart(product, quantity, selectedColor, selectedSize);
                       }
                     }}
-                    disabled={!isSoldOut && !isSelectionComplete}
-                    className={`w-full py-4 md:py-6 text-[10px] md:text-[11px] font-black tracking-[0.2em] md:tracking-[0.4em] uppercase rounded-xl md:rounded-2xl shadow-xl transition-all flex items-center justify-center space-x-3 md:space-x-4 ${isSoldOut
+                    // disabled={!isSoldOut && !isSelectionComplete} // Logic moved to onClick for notification
+                    className={`w-full py-4 md:py-6 text-xs md:text-sm font-black tracking-[0.2em] md:tracking-[0.4em] uppercase rounded-xl md:rounded-2xl shadow-xl transition-all flex items-center justify-center space-x-3 md:space-x-4 ${isSoldOut
                       ? 'bg-stone-900 text-white hover:scale-[1.02] shadow-2xl ring-2 md:ring-4 ring-stone-50'
-                      : isSelectionComplete
-                        ? 'bg-stone-900 text-white hover:scale-[1.02] active:scale-95'
-                        : 'bg-stone-50 text-stone-400 border border-stone-100 cursor-not-allowed'
+                      : 'bg-stone-900 text-white hover:scale-[1.02] active:scale-95'
                       }`}
                   >
                     {isSoldOut ? <Bell size={16} /> : <ShoppingBag size={16} />}
-                    <span>{isSoldOut ? 'Notify Me' : 'Acquire'}</span>
+                    <span>{isSoldOut ? 'Notify Me' : 'Add to Cart'}</span>
                   </button>
 
                   {/* Hover Notice for incomplete selection */}
@@ -350,8 +371,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                 </div>
               </div>
 
-              {/* Mobile Spacer to prevent content overlap with sticky bar */}
-              <div className="h-24 md:hidden" />
+              {/* Spacer removed as per design request */}
               {quantity >= product.stock && !isSoldOut && (
                 <p className="text-[9px] font-bold text-amber-600 uppercase tracking-widest text-center animate-pulse">Maximum studio stock reached</p>
               )}
@@ -364,7 +384,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
               <div className="flex space-x-4">
                 <button
                   onClick={() => onToggleWishlist(product)}
-                  className={`flex-1 py-5 border-2 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center space-x-3 ${isWishlisted ? 'border-red-500 bg-red-50 text-red-500 shadow-lg' : 'border-stone-100 text-stone-900 hover:bg-stone-50'}`}
+                  className={`flex-1 py-5 border-2 rounded-2xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center space-x-3 ${isWishlisted ? 'border-red-500 bg-red-50 text-red-500 shadow-lg' : 'border-stone-100 text-stone-900 hover:bg-stone-50'}`}
                 >
                   <Heart size={16} fill={isWishlisted ? "currentColor" : "none"} />
                   <span>{isWishlisted ? 'In Wishlist' : 'Add to Wishlist'}</span>
@@ -386,10 +406,16 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                 onToggle={() => setActiveSection(activeSection === 'description' ? null : 'description')}
               >
                 <div className="space-y-6">
+                  {product.brand && (
+                    <div className="flex items-center gap-2 pb-2 border-b border-stone-50">
+                      <span className="text-xs font-black text-[#C5A059] uppercase tracking-widest">Brand Authority</span>
+                      <span className="text-xs font-bold text-stone-900 uppercase tracking-widest">{product.brand}</span>
+                    </div>
+                  )}
                   <p className="text-stone-500 leading-relaxed font-light text-[15px]">{product.description}</p>
                   <div className="grid grid-cols-2 gap-8">
                     <div className="space-y-4">
-                      <h4 className="text-[10px] font-black text-stone-900 uppercase tracking-widest flex items-center"><Sparkles size={12} className="mr-2 gold-text" /> Highlights</h4>
+                      <h4 className="text-xs font-black text-stone-900 uppercase tracking-widest flex items-center"><Sparkles size={12} className="mr-2 gold-text" /> Highlights</h4>
                       <ul className="space-y-3">
                         {product.features?.map((f, i) => (
                           <li key={i} className="text-stone-400 text-xs flex items-start">
@@ -400,7 +426,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                     </div>
                     <div className="space-y-4">
                       <h4 className="text-[10px] font-black text-stone-900 uppercase tracking-widest flex items-center"><Truck size={12} className="mr-2 gold-text" /> Logistics</h4>
-                      <p className="text-stone-400 text-xs leading-relaxed">Global express delivery from our London or Lagos hubs. Standard delivery 2-5 business days.</p>
+                      <p className="text-stone-400 text-xs leading-relaxed">Global express delivery from our Lagos hub. Standard delivery 2-5 business days.</p>
                     </div>
                   </div>
                 </div>
@@ -410,13 +436,13 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
         </div>
 
         {/* Similar Curations */}
-        <section className="mt-40 pt-24 border-t border-stone-50">
+        <section className="mt-20 pt-12 border-t border-stone-50">
           <div className="flex justify-between items-end mb-16">
             <div>
-              <span className="text-[10px] font-black gold-text uppercase tracking-[0.6em] block mb-3">Discovery Suite</span>
+              <span className="text-xs font-black gold-text uppercase tracking-[0.6em] block mb-3">Discovery Suite</span>
               <h2 className="text-4xl font-bold tracking-tight text-stone-900 serif italic">Curated Similarities</h2>
             </div>
-            <Link to="/" className="text-[10px] font-black uppercase tracking-widest border-b-2 border-stone-900 pb-2">View Archive</Link>
+            <Link to="/" className="text-xs font-black uppercase tracking-widest border-b-2 border-stone-900 pb-2">View Archive</Link>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-12">
             {relatedProducts.map(p => (
@@ -479,7 +505,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -40 }}
                     transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                    src={product.images[activeImgIdx]}
+                    src={getOptimizedImageUrl(product.images[activeImgIdx])}
                     alt={product.name}
                     className="max-w-full max-h-[70vh] object-contain drop-shadow-[0_20px_60px_rgba(0,0,0,0.1)] pointer-events-none"
                   />
@@ -510,7 +536,21 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
         onClose={() => setIsRestockModalOpen(false)}
         productName={product?.name || ''}
         productId={product?.id || ''}
+        user={user}
       />
+      {/* Notification Toast */}
+      <AnimatePresence>
+        {showNotification && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 bg-stone-900 text-white text-[10px] font-bold uppercase tracking-widest rounded-full shadow-2xl whitespace-nowrap"
+          >
+            Please select {needsColor && !selectedColor && needsSize && !selectedSize ? 'Size & Color' : needsSize && !selectedSize ? 'Size' : 'Color'}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div >
   );
 };
