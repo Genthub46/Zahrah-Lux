@@ -107,8 +107,31 @@ export const FOOTER_PAGES_STORAGE_KEY = 'ZARHRAH_FOOTER_PAGES';
 
 export const INITIAL_HOME_LAYOUT: HomeLayoutConfig = {
   showCatalog: true,
+  showHero: true,
+  showFeatures: true,
+  showBoutique: true,
+  boutiqueBannerImage: "https://images.unsplash.com/photo-1569388330292-7de71879fb1f?q=80&w=2527&auto=format&fit=crop",
+  showManor: true,
+  manorProductIds: ['ash-1'],
+  showStyling: true,
+  stylingProductIds: ['ash-5'],
+  showBundles: true,
+  bundlesProductIds: ['ash-6'],
+  showLifestyle: true,
   sections: [
-    { id: 'sec-1', title: 'NEW ARRIVALS', type: 'grid', isVisible: true, productIds: [] },
-    { id: 'sec-2', title: 'BEST SELLERS', type: 'carousel', isVisible: true, productIds: [] }
+    {
+      id: 'sec-new-arrivals',
+      title: 'New Arrivals',
+      type: 'carousel',
+      productIds: [], // Dynamic
+      isVisible: true
+    },
+    {
+      id: 'sec-trending',
+      title: 'Trending Now',
+      type: 'carousel',
+      productIds: [],
+      isVisible: true
+    }
   ]
 };

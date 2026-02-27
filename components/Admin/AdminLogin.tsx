@@ -38,7 +38,7 @@ const AdminLogin: React.FC = () => {
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, ease: "outCirc" }}
+                transition={{ duration: 0.5, ease: "circOut" }}
                 className="max-w-md w-full relative z-10"
             >
                 <div className="bg-[#141211]/90 backdrop-blur-xl p-12 border border-stone-800 shadow-2xl rounded-3xl flex flex-col items-center">

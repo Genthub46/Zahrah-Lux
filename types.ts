@@ -73,6 +73,18 @@ export interface SectionConfig {
 export interface HomeLayoutConfig {
   sections: SectionConfig[];
   showCatalog: boolean;
+  // Static Section Visibility & Configuration
+  showHero?: boolean;
+  showFeatures?: boolean;
+  showBoutique?: boolean;
+  boutiqueBannerImage?: string;
+  showManor?: boolean;
+  manorProductIds?: string[];
+  showStyling?: boolean;
+  stylingProductIds?: string[];
+  showBundles?: boolean;
+  bundlesProductIds?: string[];
+  showLifestyle?: boolean;
 }
 
 export interface FooterPage {

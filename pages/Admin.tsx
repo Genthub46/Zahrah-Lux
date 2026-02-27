@@ -67,6 +67,7 @@ const Admin: React.FC<AdminProps> = ({
 
   // UI State
   const [activeTab, setActiveTab] = useState('orders');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // --- Subscriptions ---
   useEffect(() => {
@@ -109,8 +110,12 @@ const Admin: React.FC<AdminProps> = ({
   }, [navigate]);
 
   const handleRepairDatabase = () => {
+    if (!window.confirm("CAUTION: This will RESET all products, orders, and layout settings to their initial defaults. Are you sure you want to proceed?")) {
+      return;
+    }
+
     seedInitialData(INITIAL_PRODUCTS, INITIAL_HOME_LAYOUT, INITIAL_FOOTER_PAGES)
-      .then(() => alert("Database Repaired!"))
+      .then(() => alert("Database Repaired Successfully!"))
       .catch(err => {
         console.error(err);
         alert("Database Repair Failed.");
@@ -158,10 +163,23 @@ const Admin: React.FC<AdminProps> = ({
   return (
     <div className="min-h-screen bg-[#FDFDFD] flex flex-col lg:flex-row font-sans selection:bg-[#C5A059] selection:text-white">
 
-      <AdminMobileHeader activeTab={activeTab} setActiveTab={setActiveTab} tabs={tabs} />
-      <AdminSidebar activeTab={activeTab} setActiveTab={setActiveTab} tabs={tabs} onLogout={handleLogout} onRepairDatabase={handleRepairDatabase} />
+      <AdminMobileHeader
+        activeTab={activeTab}
+        onMenuClick={() => setIsSidebarOpen(true)}
+        userEmail={currentUser?.email || ''}
+      />
 
-      <main className="flex-1 lg:ml-72 p-6 lg:p-20 pt-32 lg:pt-32">
+      <AdminSidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        tabs={tabs}
+        onLogout={handleLogout}
+        onRepairDatabase={handleRepairDatabase}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+      />
+
+      <main className="flex-1 lg:ml-72 p-6 lg:p-20 pt-[100px] lg:pt-32">
         <header className="mb-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 animate-in slide-in-from-top-4 duration-700">
           <div>
             <h1 className="text-4xl md:text-6xl font-black text-stone-900 tracking-tighter uppercase mb-2">

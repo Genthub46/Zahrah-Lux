@@ -11,6 +11,20 @@ import Logo from '../components/Logo';
 import WhatsAppBot from '../components/WhatsAppBot';
 import { subscribeToNewsletter } from '../services/dbUtils';
 import { motion } from 'framer-motion';
+import CuratedPicks from '../components/HomeSections/CuratedPicks';
+
+// Lazy Load Lower Sections
+const BoutiqueBanner = React.lazy(() => import('../components/HomeSections/BoutiqueBanner'));
+const ManorCollection = React.lazy(() => import('../components/HomeSections/ManorCollection'));
+const StylingIdeas = React.lazy(() => import('../components/HomeSections/StylingIdeas'));
+const BundlesDeals = React.lazy(() => import('../components/HomeSections/BundlesDeals'));
+const LifestyleShowcase = React.lazy(() => import('../components/HomeSections/LifestyleShowcase'));
+
+const SectionLoader = () => (
+  <div className="w-full h-96 flex items-center justify-center bg-stone-50">
+    <div className="w-8 h-8 border-2 border-stone-300 border-t-[#C5A059] rounded-full animate-spin" />
+  </div>
+);
 
 const NewsletterForm = () => {
   const [email, setEmail] = useState('');
@@ -134,66 +148,72 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
   return (
     <div className="pt-0 bg-[#FCFCFC] selection:bg-[#C5A059] selection:text-white">
       {/* Hero Section */}
-      <section className="relative h-screen flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <motion.div
-            initial={{ scale: 1.1 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 20, ease: "linear", repeat: Infinity, repeatType: "reverse" }}
-            className="w-full h-full"
-          >
-            <img
-              src="https://images.unsplash.com/photo-1549037173-e3b717902c57?auto=format&fit=crop&w=1920&q=80"
-              alt="ZARA UK Luxury"
-              className="w-full h-full object-cover"
-            />
-          </motion.div>
-          <div className="absolute inset-0 bg-black/30" />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/60" />
-        </div>
+      {(layoutConfig.showHero ?? true) && (
+        <section className="relative h-screen flex items-center justify-center overflow-hidden">
+          <div className="absolute inset-0 z-0">
+            <motion.div
+              initial={{ scale: 1.1 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 20, ease: "linear", repeat: Infinity, repeatType: "reverse" }}
+              className="w-full h-full"
+            >
+              <img
+                src="https://images.unsplash.com/photo-1549037173-e3b717902c57?auto=format&fit=crop&w=1920&q=80"
+                alt="ZARA UK Luxury"
+                className="w-full h-full object-cover"
+              />
+            </motion.div>
+            <div className="absolute inset-0 bg-black/30" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/60" />
+          </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-          className="relative z-10 text-center px-6 max-w-7xl flex flex-col items-center"
-        >
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.8 }}
-            className="flex flex-col items-center mb-6"
+            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+            className="relative z-10 text-center px-6 max-w-7xl flex flex-col items-center"
           >
-            <span className="w-px h-16 bg-gradient-to-b from-transparent to-[#C5A059] mb-6"></span>
-            <span className="text-[#C5A059] font-bold text-xs md:text-sm uppercase tracking-[0.4em]">
-              London • Lagos • Global
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.8 }}
+              className="flex flex-col items-center mb-6"
+            >
+              <span className="w-px h-16 bg-gradient-to-b from-transparent to-[#C5A059] mb-6"></span>
+              <span className="text-[#C5A059] font-bold text-xs md:text-sm uppercase tracking-[0.4em]">
+                London • Lagos • Global
+              </span>
+            </motion.div>
+
+            <span className="text-5xl md:text-[80px] lg:text-[140px] text-white font-serif font-medium tracking-tight leading-[0.9] mix-blend-overlay opacity-90">
+              Elite Status
             </span>
+            <span className="text-4xl md:text-[60px] lg:text-[100px] text-white font-serif italic font-light leading-none -mt-2 md:-mt-4 opacity-90">
+              Curated Daily
+            </span>
+
+            <motion.a
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8 }}
+              href="#boutique"
+              className="group relative inline-flex flex-col items-center justify-center gap-4 text-white hover:text-[#C5A059] transition-colors duration-500"
+            >
+              <span className="text-xs font-black uppercase tracking-[0.3em]">Enter Boutique</span>
+              <div className="w-12 h-12 rounded-full border border-white/30 flex items-center justify-center group-hover:border-[#C5A059] group-hover:bg-[#C5A059]/10 transition-all duration-500">
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </motion.a>
           </motion.div>
+        </section>
+      )}
 
-          <span className="text-5xl md:text-[80px] lg:text-[140px] text-white font-serif font-medium tracking-tight leading-[0.9] mix-blend-overlay opacity-90">
-            Elite Status
-          </span>
-          <span className="text-4xl md:text-[60px] lg:text-[100px] text-white font-serif italic font-light leading-none -mt-2 md:-mt-4 opacity-90">
-            Curated Daily
-          </span>
 
-          <motion.a
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8 }}
-            href="#boutique"
-            className="group relative inline-flex flex-col items-center justify-center gap-4 text-white hover:text-[#C5A059] transition-colors duration-500"
-          >
-            <span className="text-xs font-black uppercase tracking-[0.3em]">Enter Boutique</span>
-            <div className="w-12 h-12 rounded-full border border-white/30 flex items-center justify-center group-hover:border-[#C5A059] group-hover:bg-[#C5A059]/10 transition-all duration-500">
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </div>
-          </motion.a>
-        </motion.div>
-      </section>
+
+
 
       {/* Dynamic Sections Architect */}
-      <div id="boutique" className="space-y-12 md:space-y-24 py-12 md:py-24">
+      <div id="collection-start" className="space-y-12 md:space-y-24 py-12 md:py-24">
         {layoutConfig.sections.filter(s => s.isVisible).map((section, idx) => {
           let sectionProducts: Product[] = [];
 
@@ -207,124 +227,189 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
           }
 
           return (
-            <motion.section
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.8 }}
-              key={section.id}
-              className="relative"
-            >
-              <div className="px-4 sm:px-6 lg:px-12 max-w-[1800px] mx-auto">
-                {/* Enhanced Section Header */}
-                <div className="flex flex-col md:flex-row justify-between items-end mb-6 md:mb-12 gap-4 md:gap-8 relative z-10">
-                  <div className="max-w-xl text-right md:text-left">
-                    <div className="hidden md:flex items-center gap-3 mb-3">
-                      <span className="h-px w-8 bg-stone-400"></span>
-                      <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-stone-400">Collection 0{idx + 1}</span>
-                    </div>
-                    <h2 className="text-xl md:text-3xl font-serif text-stone-900 leading-tight">
-                      <span className="block font-medium tracking-tight mb-1">{section.title}</span>
-                      <span className="hidden md:block italic font-light text-stone-400 text-base">Explore the latest arrivals</span>
-                    </h2>
-                  </div>
-
-                  <div className="flex items-center gap-6">
-                    {isAdmin && (
-                      <button onClick={() => navigate('/admin')} className="hidden md:flex items-center space-x-2 text-[9px] font-black uppercase tracking-widest text-[#C5A059] border border-[#C5A059] px-4 py-2 rounded-full hover:bg-[#C5A059] hover:text-white transition-all">
-                        <LayoutGrid size={12} />
-                        <span>Edit Section</span>
-                      </button>
-                    )}
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => scrollSection(section.id, 'left')}
-                        className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-stone-200 bg-white flex items-center justify-center text-stone-500 hover:bg-stone-900 hover:text-white hover:border-stone-900 transition-all duration-300"
-                      >
-                        <ChevronLeft size={16} />
-                      </button>
-                      <button
-                        onClick={() => scrollSection(section.id, 'right')}
-                        className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-stone-200 bg-white flex items-center justify-center text-stone-500 hover:bg-stone-900 hover:text-white hover:border-stone-900 transition-all duration-300"
-                      >
-                        <ChevronRight size={16} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div
-                  id={`scroll-${section.id}`}
-                  className="flex space-x-3 md:space-x-10 overflow-x-auto no-scrollbar scroll-smooth pb-8 md:pb-12 px-1 snap-x snap-mandatory"
-                >
-                  {sectionProducts.length === 0 ? (
-                    <div className="w-full py-20 text-center opacity-40">
-                      <div className="text-4xl font-serif italic text-stone-300 mb-4">Coming Soon</div>
-                      <p className="text-xs uppercase tracking-widest text-stone-400">This collection is currently being curated</p>
-                    </div>
-                  ) : (
-                    sectionProducts.map((product) => (
-                      <div key={product.id} className="w-[160px] md:w-[400px] flex-shrink-0 snap-start">
-                        <ProductCard
-                          product={product}
-                          onAddToCart={onAddToCart}
-                          onLogView={onLogView}
-                          onToggleWishlist={onToggleWishlist}
-                          isWishlisted={isWishlisted(product.id)}
-                        />
+            <React.Fragment key={section.id}>
+              <motion.section
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ duration: 0.8 }}
+                className="relative"
+              >
+                <div className="px-4 sm:px-6 lg:px-12 max-w-[1800px] mx-auto">
+                  {/* Enhanced Section Header */}
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 md:mb-12 gap-4 md:gap-8 relative z-10">
+                    <div className="max-w-xl text-left">
+                      <div className="hidden md:flex items-center gap-3 mb-3">
+                        <span className="h-px w-8 bg-stone-400"></span>
+                        <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-stone-400">Collection 0{idx + 1}</span>
                       </div>
-                    ))
-                  )}
+                      <h2 className="text-lg md:text-2xl font-serif text-stone-900 leading-tight">
+                        <span className="block font-medium tracking-tight mb-1">{section.title}</span>
+                        <span className="hidden md:block italic font-light text-stone-400 text-base">Explore the latest arrivals</span>
+                      </h2>
+                    </div>
+
+                    <div className="flex items-center gap-6">
+                      {isAdmin && (
+                        <button onClick={() => navigate('/admin')} className="hidden md:flex items-center space-x-2 text-[9px] font-black uppercase tracking-widest text-[#C5A059] border border-[#C5A059] px-4 py-2 rounded-full hover:bg-[#C5A059] hover:text-white transition-all">
+                          <LayoutGrid size={12} />
+                          <span>Edit Section</span>
+                        </button>
+                      )}
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => scrollSection(section.id, 'left')}
+                          aria-label="Scroll left"
+                          className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-stone-200 bg-white flex items-center justify-center text-stone-500 hover:bg-stone-900 hover:text-white hover:border-stone-900 transition-all duration-300"
+                        >
+                          <ChevronLeft size={16} />
+                        </button>
+                        <button
+                          onClick={() => scrollSection(section.id, 'right')}
+                          aria-label="Scroll right"
+                          className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-stone-200 bg-white flex items-center justify-center text-stone-500 hover:bg-stone-900 hover:text-white hover:border-stone-900 transition-all duration-300"
+                        >
+                          <ChevronRight size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    id={`scroll-${section.id}`}
+                    className="flex space-x-3 md:space-x-10 overflow-x-auto no-scrollbar scroll-smooth pb-8 md:pb-12 px-1 snap-x snap-mandatory"
+                  >
+                    {sectionProducts.length === 0 ? (
+                      <div className="w-full py-20 text-center opacity-40">
+                        <div className="text-4xl font-serif italic text-stone-300 mb-4">Coming Soon</div>
+                        <p className="text-xs uppercase tracking-widest text-stone-400">This collection is currently being curated</p>
+                      </div>
+                    ) : (
+                      sectionProducts.map((product) => (
+                        <div key={product.id} className="w-[160px] md:w-[400px] flex-shrink-0 snap-start">
+                          <ProductCard
+                            product={product}
+                            onAddToCart={onAddToCart}
+                            onLogView={onLogView}
+                            onToggleWishlist={onToggleWishlist}
+                            isWishlisted={isWishlisted(product.id)}
+                          />
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
-              </div>
-            </motion.section>
+              </motion.section>
+              {section.title.toUpperCase() === 'NEW ARRIVALS' && (
+                <CuratedPicks
+                  products={products}
+                  onAddToCart={onAddToCart}
+                  onLogView={onLogView}
+                  onToggleWishlist={onToggleWishlist}
+                  isWishlisted={isWishlisted}
+                />
+              )}
+            </React.Fragment>
           );
         })}
 
-        {/* Catalog Section */}
-        {layoutConfig.showCatalog && (
-          <section id="catalog" className="py-20 md:py-32 bg-stone-900 text-white relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#C5A059] rounded-full blur-[200px] opacity-10 translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
 
-            <div className="px-4 sm:px-6 lg:px-12 max-w-[1800px] mx-auto relative z-10">
-              <div className="flex flex-col items-center text-center mb-12 space-y-4 md:space-y-6">
-                <span className="text-[#C5A059] font-bold text-[10px] uppercase tracking-[0.6em] border border-[#C5A059] px-4 py-2 rounded-full hover:bg-[#C5A059] hover:text-stone-900 transition-colors cursor-default">
-                  The Archive
-                </span>
-                <h2 className="text-4xl md:text-8xl font-serif font-medium tracking-tight">
-                  {tagFilter ? `${tagFilter} Collection` : brandFilter ? `${brandFilter}` : 'Full Inventory'}
-                </h2>
-                <p className="text-stone-400 max-w-xl font-serif italic text-sm md:text-xl px-4">
-                  Explore the complete collection of curated luxury artifacts available for immediate acquisition.
-                </p>
 
-                {(tagFilter || brandFilter) && (
-                  <button
-                    onClick={() => navigate('/')}
-                    className="mt-6 md:mt-8 inline-flex items-center space-x-3 text-[10px] font-black uppercase tracking-widest text-white hover:text-[#C5A059] transition-all group"
-                  >
-                    <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-[#C5A059] group-hover:text-stone-900 transition-colors">
-                      <FilterX size={12} />
-                    </div>
-                    <span>Clear Active Filters</span>
-                  </button>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-x-3 gap-y-8 md:gap-x-8 md:gap-y-16">
-                {filteredCatalog.map((product) => (
-                  <ProductCard key={product.id} product={product} onAddToCart={onAddToCart} onLogView={onLogView} onToggleWishlist={onToggleWishlist} isWishlisted={isWishlisted(product.id)} dark />
-                ))}
-                {filteredCatalog.length === 0 && (
-                  <div className="col-span-full py-40 text-center opacity-40">
-                    <Logo size={80} className="mx-auto mb-8 invert" />
-                    <p className="text-2xl font-serif italic">No artifacts match your specific criteria.</p>
+        {/* Signature Features Section */}
+        {(layoutConfig.showFeatures ?? true) && (
+          <section className="py-24 bg-stone-50 border-y border-stone-200">
+            <div className="max-w-7xl mx-auto px-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center divide-y md:divide-y-0 md:divide-x divide-stone-200">
+                <div className="px-4 py-8 md:py-0">
+                  <div className="w-16 h-16 mx-auto bg-white rounded-full flex items-center justify-center mb-6 shadow-sm text-[#C5A059]">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.38 3.4a1.6 1.6 0 0 0-2.22 0l-1.62 1.62a8 8 0 1 1-4.08 4.08l1.62-1.62a1.6 1.6 0 0 0 0-2.22l-1.28-1.28a1.6 1.6 0 0 0-2.22 0l-1.28 1.28a1.6 1.6 0 0 0 0 2.22l.72.72a7.89 7.89 0 0 0 0 11.2 7.18 7.18 0 0 0 10.15 0 7.89 7.89 0 0 0 0-11.2l-.72-.72a1.6 1.6 0 0 0-2.22 0L20.38 3.4z" /></svg>
                   </div>
-                )}
+                  <h3 className="text-xl font-serif mb-3">Bespoke Tailoring</h3>
+                  <p className="text-sm text-stone-500 leading-relaxed font-light">
+                    Every garment is adjusted to your precise measurements by our master tailors in London before dispatch.
+                  </p>
+                </div>
+
+                <div className="px-4 py-8 md:py-0">
+                  <div className="w-16 h-16 mx-auto bg-white rounded-full flex items-center justify-center mb-6 shadow-sm text-[#C5A059]">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" /><path d="M2 12h20" /></svg>
+                  </div>
+                  <h3 className="text-xl font-serif mb-3">Global Concierge</h3>
+                  <p className="text-sm text-stone-500 leading-relaxed font-light">
+                    Personalized styling advice and priority sourcing for our exclusive clientele across 3 continents.
+                  </p>
+                </div>
+
+                <div className="px-4 py-8 md:py-0">
+                  <div className="w-16 h-16 mx-auto bg-white rounded-full flex items-center justify-center mb-6 shadow-sm text-[#C5A059]">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
+                  </div>
+                  <h3 className="text-xl font-serif mb-3">Authentic Luxury</h3>
+                  <p className="text-sm text-stone-500 leading-relaxed font-light">
+                    Each piece comes with a certificate of authenticity and a provenance blockchain entry.
+                  </p>
+                </div>
               </div>
             </div>
           </section>
         )}
+
+        {/* Boutique Banner as Archive Replacement */}
+        {(layoutConfig.showBoutique ?? true) && (
+          <React.Suspense fallback={<SectionLoader />}>
+            <BoutiqueBanner image={layoutConfig.boutiqueBannerImage} />
+          </React.Suspense>
+        )}
+
+        {/* Manor Collection Section */}
+        {(layoutConfig.showManor ?? true) && (
+          <React.Suspense fallback={<SectionLoader />}>
+            <ManorCollection
+              products={products}
+              onAddToCart={onAddToCart}
+              onLogView={onLogView}
+              onToggleWishlist={onToggleWishlist}
+              isWishlisted={isWishlisted}
+              selectedProductIds={layoutConfig.manorProductIds}
+            />
+          </React.Suspense>
+        )}
+
+        {/* Styling Ideas Section */}
+        {(layoutConfig.showStyling ?? true) && (
+          <React.Suspense fallback={<SectionLoader />}>
+            <StylingIdeas
+              products={products}
+              onAddToCart={onAddToCart}
+              onLogView={onLogView}
+              onToggleWishlist={onToggleWishlist}
+              isWishlisted={isWishlisted}
+              selectedProductIds={layoutConfig.stylingProductIds}
+            />
+          </React.Suspense>
+        )}
+
+        {/* Bundles Deals Section */}
+        {(layoutConfig.showBundles ?? true) && (
+          <React.Suspense fallback={<SectionLoader />}>
+            <BundlesDeals
+              products={products}
+              onAddToCart={onAddToCart}
+              onLogView={onLogView}
+              onToggleWishlist={onToggleWishlist}
+              isWishlisted={isWishlisted}
+              selectedProductIds={layoutConfig.bundlesProductIds}
+            />
+          </React.Suspense>
+        )}
+
+        {/* Lifestyle Showcase Section */}
+        {(layoutConfig.showLifestyle ?? true) && (
+          <React.Suspense fallback={<SectionLoader />}>
+            <LifestyleShowcase />
+          </React.Suspense>
+        )}
+
       </div>
 
       <footer className="bg-black pt-32 pb-16 text-white px-6 md:px-12 border-t border-stone-800/50">
@@ -332,13 +417,9 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
           {/* Logo Section */}
           <div className="mb-24 flex flex-col md:flex-row justify-between items-start md:items-center gap-10">
             <div>
-              <Logo size={100} className="text-white brightness-200" />
-              <p className="mt-6 text-xs uppercase tracking-[0.3em] text-stone-500 font-bold max-w-sm leading-relaxed">
-                Start where you are. Use what you have.<br />Do what you can.
-              </p>
+              <Logo size={80} className="text-white brightness-200" />
             </div>
             <div className="flex flex-col items-end">
-              <h4 className="text-2xl font-serif italic text-white mb-2">Join the inner circle</h4>
               <NewsletterForm />
             </div>
           </div>
@@ -405,4 +486,3 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
 };
 
 export default Home;
-

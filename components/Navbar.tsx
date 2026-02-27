@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ShoppingBag, Menu, X, Shield, ChevronDown, LogOut, ChevronRight, Heart, User as UserIcon } from 'lucide-react';
+import { ShoppingBag, Menu, X, Heart, User as UserIcon, ChevronDown, ChevronRight, LogOut } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Logo from './Logo';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User } from 'firebase/auth';
 import { auth } from '../services/firebaseConfig';
 import { signOut } from 'firebase/auth';
+import { subscribeToBrands } from '../services/dbUtils';
 import { ADMIN_EMAILS } from '../constants';
 
 interface NavbarProps {
@@ -15,13 +16,45 @@ interface NavbarProps {
   user: User | null;
 }
 
+const MENU_HIERARCHY = {
+  Men: [
+    { label: 'All', path: '/?tag=men' },
+    {
+      label: 'Clothing',
+      subItems: [
+        { label: 'T-shirts', path: '/?tag=men&category=t-shirts' },
+        { label: 'Shirts', path: '/?tag=men&category=shirts' },
+        { label: 'Pants', path: '/?tag=men&category=pants' },
+        { label: 'Shorts', path: '/?tag=men&category=shorts' },
+        { label: 'Jackets', path: '/?tag=men&category=jackets' },
+        { label: 'Vests', path: '/?tag=men&category=vests' },
+      ]
+    },
+    { label: 'Jersey', path: '/?tag=men&category=jersey' },
+    { label: 'Accessories', path: '/?tag=men&category=accessories' },
+    { label: 'Slides', path: '/?tag=men&category=slides' },
+  ],
+  Women: [
+    { label: 'All', path: '/?tag=women' },
+    { label: 'Tops', path: '/?tag=women&category=tops' },
+    { label: 'Bottoms', path: '/?tag=women&category=bottoms' },
+    { label: 'Dresses', path: '/?tag=women&category=dresses' },
+    { label: 'Jerseys', path: '/?tag=women&category=jerseys' },
+    { label: 'Accessories', path: '/?tag=women&category=accessories' },
+    { label: 'Swimwear', path: '/?tag=women&category=swimwear' },
+    { label: 'Jackets', path: '/?tag=women&category=jackets' },
+    { label: 'Slides', path: '/?tag=women&category=slides' },
+  ]
+};
+
 const Navbar: React.FC<NavbarProps> = ({ cartCount, wishlistCount, user }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isBrandsOpen, setIsBrandsOpen] = useState(false);
+  const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const [brands, setBrands] = useState<{ id: string; name: string }[]>([]);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const accountDropdownRef = useRef<HTMLDivElement>(null);
+
+  const navRef = useRef<HTMLElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -29,20 +62,28 @@ const Navbar: React.FC<NavbarProps> = ({ cartCount, wishlistCount, user }) => {
   const isAdminUser = user?.email && ADMIN_EMAILS.includes(user.email);
 
   useEffect(() => {
-    const handleScroll = () => {
-      const scrolled = window.scrollY > 20;
-      if (scrolled !== isScrolled) setIsScrolled(scrolled);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [isScrolled]);
+  }, []);
+
+  useEffect(() => {
+    const unsub = subscribeToBrands((data) => {
+      setBrands(data.sort((a, b) => a.name.localeCompare(b.name)));
+    });
+    return () => unsub();
+  }, []);
+
+  useEffect(() => {
+    // Close menus on route change
+    setIsOpen(false);
+    setActiveMenu(null);
+  }, [location.pathname, location.search]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsBrandsOpen(false);
-      }
-      if (accountDropdownRef.current && !accountDropdownRef.current.contains(event.target as Node)) {
+      if (navRef.current && !navRef.current.contains(event.target as Node)) {
+        setActiveMenu(null);
         setIsAccountOpen(false);
       }
     };
@@ -50,171 +91,221 @@ const Navbar: React.FC<NavbarProps> = ({ cartCount, wishlistCount, user }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
-    e.preventDefault();
-    if (location.pathname !== '/') {
-      navigate('/');
-      setTimeout(() => {
-        const el = document.getElementById(id);
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
-    } else {
-      const el = document.getElementById(id);
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    }
-    setIsOpen(false);
-  };
-
-  const navigateToFilter = (type: 'brand' | 'category' | 'tag', value: string) => {
-    setIsBrandsOpen(false);
-    setIsOpen(false);
-    navigate(`/?${type}=${value.toLowerCase()}`);
-    setTimeout(() => {
-      const productsEl = document.getElementById('bundles') || document.getElementById('catalog');
-      productsEl?.scrollIntoView({ behavior: 'smooth' });
-    }, 150);
-  };
-
   const handleSignOut = async () => {
     await signOut(auth);
     navigate('/');
   };
 
-  const navItemClasses = (isScrolled || location.pathname !== '/' ? 'text-stone-900' : 'text-white') + ' text-[9px] font-bold tracking-[0.4em] transition-all uppercase hover:gold-text flex items-center cursor-pointer';
+  const handleLinkClick = (path: string) => {
+    navigate(path);
+    setActiveMenu(null);
+    setIsOpen(false);
+  };
 
-  // Logic for solid background on product pages when scrolled
-  const backgroundClass = (isScrolled || isAdmin || location.pathname === '/login' || location.pathname === '/signup')
-    ? 'bg-white shadow-md py-3'
-    : 'bg-transparent py-8';
-
-  // Helper to force dark text on white background pages
   const isDarkText = isScrolled || isAdmin || location.pathname !== '/';
+  const bgClass = isScrolled || isAdmin || location.pathname !== '/'
+    ? 'bg-white/80 backdrop-blur-md shadow-sm border-b border-stone-100 py-2'
+    : 'bg-transparent py-4';
+
+  const linkClass = `text-[10px] font-bold tracking-[0.2em] uppercase transition-all duration-300 relative group cursor-pointer ${isDarkText ? 'text-stone-900 hover:text-[#C5A059]' : 'text-white hover:text-[#C5A059]'
+    }`;
+
+  if (isAdmin) return null;
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-[10000] transition-all duration-500 ${backgroundClass}`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center">
-          <div className="flex-shrink-0 flex items-center">
+    <nav ref={navRef} className={`fixed top-0 left-0 right-0 z-[10000] transition-all duration-500 ${bgClass}`}>
+      <div className="max-w-[1800px] mx-auto px-6 lg:px-12">
+        <div className="flex justify-between items-center h-14">
+
+          {/* Logo - Moved to Left */}
+          <div className="flex-shrink-0 flex items-center gap-4">
             <Link to="/" className="flex items-center group">
-              <Logo size={isScrolled || isAdmin ? 40 : 65} className="transition-all duration-500 group-hover:scale-105" />
-              <div className="ml-3 flex flex-col justify-center leading-none">
-                <span className={`text-sm font-bold tracking-[0.3em] transition-colors duration-500 ${isDarkText ? 'text-stone-900' : 'text-white'}`}>ZARHRAH</span>
-                <span className="text-[10px] gold-text font-bold tracking-[0.2em] opacity-80 uppercase">London • Lagos</span>
+              <Logo size={isScrolled ? 32 : 40} className={`transition-all duration-500 ${isDarkText ? 'text-stone-900' : 'text-white'}`} />
+              <div className={`flex flex-col ml-3 ${isDarkText ? 'text-stone-900' : 'text-white'}`}>
+                <span className="text-lg font-bold tracking-[0.2em] font-serif leading-none mb-1">ZARHRAH</span>
+                <span className="text-[8px] font-bold tracking-[0.4em] uppercase opacity-70">Luxury Collections</span>
               </div>
             </Link>
           </div>
 
-          <div className="hidden lg:flex items-center space-x-12">
+          {/* Desktop Navigation - Center */}
+          <div className="hidden lg:flex items-center justify-center space-x-12 flex-1 absolute left-1/2 -translate-x-1/2">
             {!isAdmin && (
               <>
-                <Link to="/" className={navItemClasses}>Home</Link>
-                <div className="relative" ref={dropdownRef}>
-                  <button onMouseEnter={() => setIsBrandsOpen(true)} onClick={() => setIsBrandsOpen(!isBrandsOpen)} className={navItemClasses}>
-                    <span>Categories</span>
-                    <ChevronDown size={10} className={`ml-2 transition-transform duration-300 ${isBrandsOpen ? 'rotate-180' : ''}`} />
+                {/* Men Dropdown */}
+                <div className="relative" onMouseEnter={() => setActiveMenu('Men')} onMouseLeave={() => setActiveMenu(null)}>
+                  <button className={`${linkClass} flex items-center`}>
+                    Men
                   </button>
                   <AnimatePresence>
-                    {isBrandsOpen && (
-                      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} onMouseLeave={() => setIsBrandsOpen(false)} className="absolute top-full left-0 mt-4 w-56 bg-white border border-stone-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-2xl overflow-hidden py-4 z-[9999]">
-                        {[
-                          { label: 'Shirts', type: 'category', value: 'Shirts' },
-                          { label: 'Apparels', type: 'category', value: 'Apparel' },
-                          { label: 'Pants', type: 'category', value: 'Pants' },
-                          { label: 'Accessories', type: 'category', value: 'Accessories' }
-                        ].map((item) => (
-                          <button key={item.label} onClick={() => navigateToFilter(item.type as any, item.value)} className="w-full text-left px-8 py-4 text-[9px] font-bold tracking-[0.3em] uppercase text-stone-500 hover:text-stone-900 hover:bg-stone-50 transition-all border-l-2 border-transparent hover:border-[#C5A059] cursor-pointer">{item.label}</button>
-                        ))}
+                    {activeMenu === 'Men' && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        className="absolute top-full left-1/2 -translate-x-1/2 pt-8"
+                      >
+                        <div className="bg-white/95 backdrop-blur-xl border border-stone-100 shadow-2xl shadow-stone-200/50 p-8 min-w-[400px] grid grid-cols-2 gap-12 rounded-sm">
+                          {MENU_HIERARCHY.Men.map((item: any, idx) => (
+                            <div key={idx} className="space-y-4">
+                              {item.subItems ? (
+                                <div className="space-y-4">
+                                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#C5A059] border-b border-stone-100 pb-2">{item.label}</p>
+                                  <ul className="space-y-2">
+                                    {item.subItems.map((sub: any) => (
+                                      <li key={sub.label}>
+                                        <button onClick={() => handleLinkClick(sub.path)} className="text-sm font-serif text-stone-500 hover:text-stone-900 hover:translate-x-1 transition-all text-left w-full block py-1">
+                                          {sub.label}
+                                        </button>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              ) : (
+                                <button onClick={() => handleLinkClick(item.path)} className="text-[11px] font-bold uppercase tracking-[0.2em] text-stone-900 hover:text-[#C5A059] transition-colors text-left w-full border-b border-stone-100 pb-2">
+                                  {item.label}
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
                 </div>
-                <a href="#accessories" onClick={(e) => handleNavClick(e, 'catalog')} className={navItemClasses}>Boutique</a>
-                <a href="#contact" onClick={(e) => handleNavClick(e, 'contact')} className={navItemClasses}>Contact</a>
+
+                {/* Women Dropdown */}
+                <div className="relative" onMouseEnter={() => setActiveMenu('Women')} onMouseLeave={() => setActiveMenu(null)}>
+                  <button className={`${linkClass} flex items-center`}>
+                    Women
+                  </button>
+                  <AnimatePresence>
+                    {activeMenu === 'Women' && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        className="absolute top-full left-1/2 -translate-x-1/2 pt-8"
+                      >
+                        <div className="bg-white/95 backdrop-blur-xl border border-stone-100 shadow-2xl shadow-stone-200/50 p-8 min-w-[250px] space-y-2 rounded-sm">
+                          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#C5A059] mb-4 text-center">Collection</p>
+                          {MENU_HIERARCHY.Women.map((item: any) => (
+                            <button key={item.label} onClick={() => handleLinkClick(item.path)} className="block w-full text-center text-sm font-serif text-stone-500 hover:text-stone-900 hover:scale-105 transition-all py-1.5">
+                              {item.label}
+                            </button>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* Brands Dropdown */}
+                <div className="relative" onMouseEnter={() => setActiveMenu('Brands')} onMouseLeave={() => setActiveMenu(null)}>
+                  <button className={`${linkClass} flex items-center`}>
+                    Categories
+                  </button>
+                  <AnimatePresence>
+                    {activeMenu === 'Brands' && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        className="absolute top-full left-1/2 -translate-x-1/2 pt-8"
+                      >
+                        <div className="bg-white/95 backdrop-blur-xl border border-stone-100 shadow-2xl shadow-stone-200/50 p-8 min-w-[300px] max-h-[60vh] overflow-y-auto rounded-sm scrollbar-thin scrollbar-thumb-stone-200 scrollbar-track-transparent">
+                          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#C5A059] mb-6 border-b border-stone-100 pb-2">Our Brands</p>
+                          <div className="grid grid-cols-1 gap-1">
+                            {brands.map((brand) => (
+                              <button key={brand.id} onClick={() => handleLinkClick(`/?brand=${brand.name.toLowerCase()}`)} className="text-sm font-serif text-stone-500 hover:text-stone-900 hover:pl-2 transition-all text-left truncate py-1.5 border-b border-stone-50 last:border-0 hover:bg-stone-50 px-2 rounded-sm">
+                                {brand.name}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                <Link to="/lookbook" className={linkClass}>Lookbook</Link>
               </>
             )}
 
             {isAdmin && (
-              <div className="flex items-center space-x-12">
-                <Link to="/" className={navItemClasses}>Public Boutique</Link>
-                <span className="text-[10px] font-bold uppercase tracking-[0.5em] text-[#C5A059]">Admin Control</span>
-              </div>
-            )}
-
-            <div className={`h-4 w-px bg-stone-200 mx-2 ${!isDarkText ? 'opacity-20' : ''}`} />
-
-            {!isAdmin ? (
               <div className="flex items-center space-x-8">
-                <Link to="/wishlist" className="relative group p-2 cursor-pointer">
-                  <Heart className={`w-5 h-5 transition-colors duration-500 ${isDarkText ? 'text-stone-900' : 'text-white'} group-hover:text-red-500`} />
-                  {wishlistCount > 0 && (
-                    <span className="absolute top-0 right-0 bg-red-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full shadow-lg scale-110">
-                      {wishlistCount}
-                    </span>
-                  )}
-                </Link>
-
-                <Link to="/checkout" className="relative group p-2 cursor-pointer">
-                  <ShoppingBag className={`w-5 h-5 transition-colors duration-500 ${isDarkText ? 'text-stone-900' : 'text-white'} group-hover:gold-text`} />
-                  {cartCount > 0 && (
-                    <span className="absolute top-0 right-0 gold-bg text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full shadow-lg scale-110">
-                      {cartCount}
-                    </span>
-                  )}
-                </Link>
-
-                <div className="relative" ref={accountDropdownRef}>
-                  {!user ? (
-                    <div className="flex items-center space-x-4">
-                      <Link to="/login" className={`text-xs font-bold tracking-[0.2em] uppercase hover:gold-text ${isDarkText ? 'text-stone-900' : 'text-white'}`}>Log In</Link>
-                      <Link to="/signup" className="text-xs font-bold tracking-[0.2em] uppercase bg-[#C5A059] text-white px-4 py-2 hover:bg-[#b08d4b] transition-colors">Sign Up</Link>
-                    </div>
-                  ) : (
-                    <button onClick={() => setIsAccountOpen(!isAccountOpen)} className={`text-[9px] font-bold tracking-[0.2em] uppercase flex items-center hover:gold-text ${isDarkText ? 'text-stone-900' : 'text-white'}`}>
-                      <UserIcon size={14} className="mr-2" />
-                      {user.displayName || 'Account'}
-                    </button>
-                  )}
-
-                  <AnimatePresence>
-                    {isAccountOpen && user && (
-                      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute top-full right-0 mt-4 w-48 bg-white border border-stone-100 shadow-xl rounded-sm overflow-hidden py-2 z-[9999]">
-                        <div className="px-6 py-3 border-b border-stone-50">
-                          <p className="text-[10px] text-stone-900 font-bold">{user.displayName || (isAdminUser ? 'Admin' : 'Customer')}</p>
-                          <p className="text-[9px] text-stone-400 truncate">{user.email}</p>
-                        </div>
-                        <button onClick={handleSignOut} className="w-full text-left px-6 py-3 text-[10px] font-bold tracking-[0.2em] uppercase text-red-400 hover:text-red-500 hover:bg-red-50 transition-colors flex items-center">
-                          <LogOut size={12} className="mr-2" /> Sign Out
-                        </button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
+                <Link to="/" className={linkClass}>Public Boutique</Link>
+                <span className="text-[9px] font-black uppercase tracking-[0.4em] text-[#C5A059]">Admin Panel</span>
               </div>
-            ) : (
-              <button
-                onClick={handleSignOut}
-                className="text-[9px] font-bold tracking-[0.4em] transition-all uppercase flex items-center text-red-400 hover:text-red-600"
-              >
-                <LogOut size={11} className="mr-2" /> Sign Out
-              </button>
             )}
           </div>
 
-          <div className="lg:hidden flex items-center space-x-6">
+          {/* Right Navigation (Actions) */}
+          <div className="hidden lg:flex items-center justify-end space-x-10 flex-shrink-0">
+            <div className={`h-4 w-px bg-stone-300 mx-2 ${!isDarkText ? 'opacity-30' : 'opacity-100'}`} />
+
+            <Link to="/wishlist" className="relative group">
+              <Heart strokeWidth={1.5} size={20} className={`transition-colors duration-300 ${isDarkText ? 'text-stone-900 group-hover:text-red-500' : 'text-white group-hover:text-red-400'}`} />
+              {wishlistCount > 0 && (
+                <span className="absolute -top-1 -right-2 w-4 h-4 bg-red-500 text-white text-[8px] font-bold flex items-center justify-center rounded-full">
+                  {wishlistCount}
+                </span>
+              )}
+            </Link>
+
             {!isAdmin && (
-              <div className="flex items-center space-x-4">
-                <Link to="/wishlist" className="relative group cursor-pointer">
-                  <Heart className={`w-6 h-6 ${isDarkText ? 'text-stone-900' : 'text-white'}`} />
-                  {wishlistCount > 0 && <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-lg">{wishlistCount}</span>}
-                </Link>
-                <Link to="/checkout" className="relative group cursor-pointer">
-                  <ShoppingBag className={`w-6 h-6 ${isDarkText ? 'text-stone-900' : 'text-white'}`} />
-                  {cartCount > 0 && <span className="absolute -top-2 -right-2 gold-bg text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-lg">{cartCount}</span>}
-                </Link>
-              </div>
+              <Link to="/checkout" className="relative group">
+                <ShoppingBag strokeWidth={1.5} size={20} className={`transition-colors duration-300 ${isDarkText ? 'text-stone-900 group-hover:text-[#C5A059]' : 'text-white group-hover:text-[#C5A059]'}`} />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-2 w-4 h-4 bg-[#C5A059] text-white text-[8px] font-bold flex items-center justify-center rounded-full">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
             )}
-            <button onClick={() => setIsOpen(!isOpen)} className={`${isDarkText ? 'text-stone-900' : 'text-white'} cursor-pointer`}>
-              {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+
+            <div className="relative" ref={node => { if (node) navRef.current = node }}>
+              {!user ? (
+                <button onClick={() => navigate('/login')} className={`text-[10px] font-bold tracking-[0.2em] uppercase ${isDarkText ? 'text-stone-900' : 'text-white'}`}>
+                  Log In
+                </button>
+              ) : (
+                <button onClick={() => setIsAccountOpen(!isAccountOpen)} className={`flex items-center ${isDarkText ? 'text-stone-900' : 'text-white'}`}>
+                  <UserIcon size={20} strokeWidth={1.5} />
+                </button>
+              )}
+
+              <AnimatePresence>
+                {isAccountOpen && user && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute top-full right-0 mt-6 w-56 bg-white border border-stone-100 shadow-xl p-0 rounded-sm overflow-hidden"
+                  >
+                    <div className="px-6 py-4 border-b border-stone-50 bg-stone-50/50">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-stone-900 truncate">{user.displayName || 'Member'}</p>
+                      <p className="text-[9px] text-stone-400 truncate mt-1">{user.email}</p>
+                    </div>
+                    <button onClick={handleSignOut} className="w-full text-left px-6 py-4 text-[9px] font-bold tracking-[0.2em] uppercase text-red-400 hover:bg-stone-50 transition-colors flex items-center gap-3">
+                      <LogOut size={12} /> Sign Out
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+
+          {/* Mobile Menu Toggle */}
+          <div className="lg:hidden flex items-center gap-6">
+            {!isAdmin && (
+              <Link to="/checkout" className="relative">
+                <ShoppingBag size={20} strokeWidth={1.5} className={isDarkText ? 'text-stone-900' : 'text-white'} />
+                {cartCount > 0 && <span className="absolute -top-1 -right-1 w-3 h-3 bg-[#C5A059] rounded-full" />}
+              </Link>
+            )}
+            <button onClick={() => setIsOpen(true)} className={isDarkText ? 'text-stone-900' : 'text-white'}>
+              <Menu size={24} strokeWidth={1} />
             </button>
           </div>
         </div>
@@ -223,143 +314,132 @@ const Navbar: React.FC<NavbarProps> = ({ cartCount, wishlistCount, user }) => {
       {/* Mobile Drawer */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-[11000] lg:hidden bg-stone-900/40 backdrop-blur-sm"
-            onClick={() => setIsOpen(false)}
-          >
+          <>
+            {/* Backdrop */}
             <motion.div
-              initial={{ x: '100%' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[11000] bg-black/60 backdrop-blur-sm lg:hidden"
+              onClick={() => setIsOpen(false)}
+            />
+            {/* Drawer */}
+            <motion.div
+              initial={{ x: '-100%' }}
               animate={{ x: 0 }}
-              exit={{ x: '100%' }}
+              exit={{ x: '-100%' }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="absolute right-0 top-0 bottom-0 w-full max-w-sm bg-white shadow-2xl overflow-y-auto px-8 py-12"
-              onClick={(e: React.MouseEvent) => e.stopPropagation()}
+              className="fixed top-0 left-0 bottom-0 w-[85vw] max-w-sm bg-white z-[11001] shadow-2xl flex flex-col"
+              onClick={e => e.stopPropagation()}
             >
-              <div className="flex flex-col h-full">
-                {/* Header */}
-                <div className="flex justify-between items-center mb-12">
-                  <button onClick={() => setIsOpen(false)} className="p-2 -ml-2 text-stone-900 hover:text-[#C5A059] transition-colors rounded-full hover:bg-stone-50">
-                    <X size={24} strokeWidth={1} />
-                  </button>
-                  <div className="text-center flex items-center justify-center">
-                    <Logo size={40} className="mr-3" />
-                    <div className="flex flex-col leading-none text-left">
-                      <span className="text-sm font-black tracking-[0.3em] uppercase text-stone-900">ZARHRAH</span>
-                      <span className="text-[10px] gold-text font-bold tracking-[0.2em] uppercase">London • Lagos</span>
-                    </div>
-                  </div>
-                  <div className="w-8" />
-                </div>
-
-                <motion.div
-                  initial="hidden"
-                  animate="visible"
-                  variants={{
-                    hidden: { opacity: 0 },
-                    visible: {
-                      opacity: 1,
-                      transition: {
-                        staggerChildren: 0.1,
-                        delayChildren: 0.2
-                      }
-                    }
-                  }}
-                  className="flex flex-col space-y-8 px-4"
+              {/* Header */}
+              <div className="p-8 flex justify-between items-center border-b border-stone-100">
+                <span className="text-xs font-black uppercase tracking-[0.2em] text-stone-900">Of Menu</span>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="p-2 -mr-2 text-stone-400 hover:text-stone-900 hover:bg-stone-50 rounded-full transition-colors"
                 >
-
-                  {/* Main Navigation */}
-                  <motion.div variants={{ hidden: { y: 20, opacity: 0 }, visible: { y: 0, opacity: 1 } }} className="space-y-6 text-center">
-                    <Link to="/" onClick={() => setIsOpen(false)} className="block text-xl font-bold tracking-[0.2em] uppercase text-stone-900 hover:text-[#C5A059] transition-colors">Home</Link>
-                    <a href="#accessories" onClick={(e) => handleNavClick(e, 'catalog')} className="block text-xl font-bold tracking-[0.2em] uppercase text-stone-900 hover:text-[#C5A059] transition-colors">Boutique</a>
-                  </motion.div>
-
-                  {/* Categories - Drawer */}
-                  {!isAdmin && (
-                    <motion.div variants={{ hidden: { y: 20, opacity: 0 }, visible: { y: 0, opacity: 1 } }} className="border-t border-stone-100 pt-8">
-                      <button
-                        onClick={() => setIsBrandsOpen(!isBrandsOpen)}
-                        className="w-full flex items-center justify-center space-x-2 text-[10px] font-bold tracking-[0.3em] text-stone-400 uppercase mb-4 hover:text-stone-600 transition-colors group"
-                      >
-                        <span className="group-hover:tracking-[0.4em] transition-all duration-300">Collections</span>
-                        <ChevronDown size={12} className={`transition-transform duration-300 ${isBrandsOpen ? 'rotate-180' : ''}`} />
-                      </button>
-
-                      <AnimatePresence>
-                        {isBrandsOpen && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            className="overflow-hidden"
-                          >
-                            <div className="space-y-3 flex flex-col items-center pb-6">
-                              {[
-                                { label: 'Shirts', type: 'category', value: 'Shirts' },
-                                { label: 'Apparels', type: 'category', value: 'Apparel' },
-                                { label: 'Pants', type: 'category', value: 'Pants' },
-                                { label: 'Accessories', type: 'category', value: 'Accessories' }
-                              ].map((item) => (
-                                <button key={item.label} onClick={() => navigateToFilter(item.type as any, item.value)} className="text-sm font-serif text-stone-600 hover:text-stone-900 transition-colors">
-                                  {item.label}
-                                </button>
-                              ))}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </motion.div>
-                  )}
-
-                  {/* User Section */}
-                  <motion.div variants={{ hidden: { y: 20, opacity: 0 }, visible: { y: 0, opacity: 1 } }} className="pt-8 border-t border-stone-100 flex flex-col items-center space-y-6">
-                    {!user ? (
-                      <div className="flex flex-col items-center space-y-4">
-                        <Link to="/login" onClick={() => setIsOpen(false)} className="text-xs font-bold tracking-[0.2em] uppercase text-stone-900 hover:text-[#C5A059] transition-colors">Log In</Link>
-                        <Link to="/signup" onClick={() => setIsOpen(false)} className="text-xs font-bold tracking-[0.2em] uppercase text-stone-400 hover:text-stone-900 transition-colors">Sign Up</Link>
-                      </div>
-                    ) : (
-                      <div className="text-center">
-                        <p className="text-base font-serif text-stone-900 mb-1">Welcome, {user.displayName}</p>
-                        <button onClick={() => { handleSignOut(); setIsOpen(false); }} className="text-[8px] font-bold tracking-[0.2em] uppercase text-red-400 hover:text-red-500 mt-2">
-                          Sign Out
-                        </button>
-                      </div>
-                    )}
-                  </motion.div>
-
-                  {/* Action Links */}
-                  <motion.div variants={{ hidden: { y: 20, opacity: 0 }, visible: { y: 0, opacity: 1 } }} className="pt-8 flex justify-center space-x-12">
-                    <Link to="/wishlist" onClick={() => setIsOpen(false)} className="flex flex-col items-center text-stone-300 hover:text-stone-900 transition-colors group">
-                      <Heart size={22} strokeWidth={1} className="group-hover:scale-110 transition-transform duration-300" />
-                      <span className="text-[8px] font-bold tracking-[0.2em] uppercase mt-3">Wishlist ({wishlistCount})</span>
-                    </Link>
-                    {!isAdmin && (
-                      <Link to="/checkout" onClick={() => setIsOpen(false)} className="flex flex-col items-center text-stone-300 hover:text-[#C5A059] transition-colors group">
-                        <ShoppingBag size={22} strokeWidth={1} className="group-hover:scale-110 transition-transform duration-300" />
-                        <span className="text-[8px] font-bold tracking-[0.2em] uppercase mt-3">Bag ({cartCount})</span>
-                      </Link>
-                    )}
-                  </motion.div>
-
-                  {/* Admin Link (Subtle) */}
-                  <motion.div variants={{ hidden: { y: 20, opacity: 0 }, visible: { y: 0, opacity: 1 } }} className="pt-4 text-center">
-                    <Link to="/admin" onClick={() => setIsOpen(false)} className="text-[7px] font-bold tracking-[0.2em] uppercase text-stone-200 hover:text-stone-400 transition-colors">
-                      Admin Portal
-                    </Link>
-                  </motion.div>
-
-                </motion.div>
-
-                <div className="mt-auto pb-8">
-                  <p className="text-[10px] text-stone-300 font-bold tracking-[0.4em] uppercase text-center">London • Lagos</p>
-                </div>
+                  <X size={20} strokeWidth={1.5} />
+                </button>
               </div>
+
+              {/* Menu Items */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-2">
+
+                {/* Home */}
+                <button
+                  onClick={() => handleLinkClick('/')}
+                  className="flex items-center space-x-4 w-full px-6 py-4 rounded-xl text-[10px] font-bold tracking-widest uppercase text-stone-400 hover:bg-stone-50 hover:text-stone-900 transition-all group"
+                >
+                  <div className="bg-stone-50 p-2 rounded-lg group-hover:bg-white group-hover:shadow-sm transition-all">
+                    <Logo size={16} className="text-stone-400 group-hover:text-[#C5A059]" />
+                  </div>
+                  <span>Home</span>
+                </button>
+
+                {/* Collections Group */}
+                <div className="px-6 pt-4 pb-2">
+                  <p className="text-[8px] font-black uppercase tracking-widest text-stone-300">Collections</p>
+                </div>
+
+                <button
+                  onClick={() => handleLinkClick('/?tag=men')}
+                  className="flex items-center space-x-4 w-full px-6 py-4 rounded-xl text-[10px] font-bold tracking-widest uppercase text-stone-400 hover:bg-stone-50 hover:text-stone-900 transition-all group"
+                >
+                  <div className="bg-stone-50 p-2 rounded-lg group-hover:bg-white group-hover:shadow-sm transition-all">
+                    <div className="w-4 h-4 rounded-full border border-stone-300 group-hover:border-[#C5A059]" />
+                  </div>
+                  <span>Men</span>
+                </button>
+
+                <button
+                  onClick={() => handleLinkClick('/?tag=women')}
+                  className="flex items-center space-x-4 w-full px-6 py-4 rounded-xl text-[10px] font-bold tracking-widest uppercase text-stone-400 hover:bg-stone-50 hover:text-stone-900 transition-all group"
+                >
+                  <div className="bg-stone-50 p-2 rounded-lg group-hover:bg-white group-hover:shadow-sm transition-all">
+                    <div className="w-4 h-4 rounded-full border border-stone-300 group-hover:border-[#C5A059]" />
+                  </div>
+                  <span>Women</span>
+                </button>
+
+                <button
+                  onClick={() => handleLinkClick('/lookbook')}
+                  className="flex items-center space-x-4 w-full px-6 py-4 rounded-xl text-[10px] font-bold tracking-widest uppercase text-stone-400 hover:bg-stone-50 hover:text-stone-900 transition-all group"
+                >
+                  <div className="bg-stone-50 p-2 rounded-lg group-hover:bg-white group-hover:shadow-sm transition-all">
+                    <div className="w-4 h-4 rounded-full border border-stone-300 group-hover:border-[#C5A059]" />
+                  </div>
+                  <span>Lookbook</span>
+                </button>
+
+                <div className="my-4 h-px bg-stone-50 mx-4" />
+
+                {/* Account Actions */}
+                {!user ? (
+                  <>
+                    <button
+                      onClick={() => handleLinkClick('/login')}
+                      className="flex items-center space-x-4 w-full px-6 py-4 rounded-xl text-[10px] font-bold tracking-widest uppercase text-stone-400 hover:bg-stone-50 hover:text-stone-900 transition-all group"
+                    >
+                      <div className="bg-stone-50 p-2 rounded-lg group-hover:bg-white group-hover:shadow-sm transition-all">
+                        <UserIcon size={16} className="text-stone-300 group-hover:text-stone-900" />
+                      </div>
+                      <span>Log In</span>
+                    </button>
+                    <button
+                      onClick={() => handleLinkClick('/signup')}
+                      className="flex items-center space-x-4 w-full px-6 py-4 rounded-xl text-[10px] font-bold tracking-widest uppercase text-[#C5A059] bg-[#C5A059]/5 hover:bg-[#C5A059] hover:text-white transition-all group"
+                    >
+                      <div className="bg-white p-2 rounded-lg group-hover:bg-white/20 transition-all">
+                        <UserIcon size={16} className="text-[#C5A059] group-hover:text-white" />
+                      </div>
+                      <span>Sign Up</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <div className="px-6 py-2">
+                      <p className="text-[8px] font-black uppercase tracking-widest text-stone-300">Signed In As</p>
+                      <p className="text-[10px] font-bold text-stone-900 mt-1 truncate">{user.email}</p>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Footer */}
+              {user && (
+                <div className="p-6 border-t border-stone-100 bg-stone-50/50">
+                  <button
+                    onClick={() => { handleSignOut(); setIsOpen(false); }}
+                    className="w-full flex items-center justify-center space-x-2 px-6 py-4 rounded-xl border border-stone-200 bg-white text-[10px] font-bold tracking-widest uppercase text-red-500 hover:bg-red-50 hover:border-red-100 transition-all"
+                  >
+                    <LogOut size={14} />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              )}
             </motion.div>
-          </motion.div>
+          </>
         )}
       </AnimatePresence>
     </nav>

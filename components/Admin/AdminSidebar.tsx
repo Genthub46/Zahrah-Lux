@@ -1,6 +1,7 @@
 import React from 'react';
-import { LogOut, Activity, LayoutGrid } from 'lucide-react';
+import { LogOut, Activity, X } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface Tab {
     id: string;
@@ -14,6 +15,8 @@ interface AdminSidebarProps {
     tabs: Tab[];
     onLogout: () => void;
     onRepairDatabase: () => void;
+    isOpen?: boolean;
+    onClose?: () => void;
 }
 
 const AdminSidebar: React.FC<AdminSidebarProps> = ({
@@ -21,10 +24,13 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     setActiveTab,
     tabs,
     onLogout,
-    onRepairDatabase
+    onRepairDatabase,
+    isOpen = false,
+    onClose
 }) => {
-    return (
-        <aside className="hidden lg:flex w-72 bg-white/80 backdrop-blur-md border-r border-stone-100 fixed h-full flex-col z-[100] pt-40">
+    // Desktop Sidebar (Always visible on lg screens)
+    const DesktopSidebar = (
+        <aside className="hidden lg:flex w-72 bg-white/80 backdrop-blur-md border-r border-stone-100 fixed h-full flex-col z-[100] pt-32">
             <div className="p-6">
                 <nav className="space-y-2">
                     {tabs.map((tab) => (
@@ -73,6 +79,68 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 </button>
             </div>
         </aside>
+    );
+
+    // Mobile Overlay Sidebar
+    return (
+        <>
+            {DesktopSidebar}
+
+            <AnimatePresence>
+                {isOpen && (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={onClose}
+                            className="fixed inset-0 bg-black/60 z-[200] lg:hidden backdrop-blur-sm"
+                        />
+                        <motion.aside
+                            initial={{ x: "-100%" }}
+                            animate={{ x: 0 }}
+                            exit={{ x: "-100%" }}
+                            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                            className="fixed top-0 left-0 bottom-0 w-[280px] bg-white z-[210] lg:hidden flex flex-col shadow-2xl"
+                        >
+                            <div className="p-6 flex justify-between items-center border-b border-stone-100">
+                                <span className="text-xs font-black uppercase tracking-widest text-stone-900">Menu</span>
+                                <button onClick={onClose} className="p-2 hover:bg-stone-100 rounded-full">
+                                    <X size={20} className="text-stone-500" />
+                                </button>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                                {tabs.map((tab) => (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => { setActiveTab(tab.id); onClose?.(); }}
+                                        className={`flex items-center space-x-4 w-full px-6 py-4 rounded-xl text-[10px] font-bold tracking-widest uppercase transition-all duration-300 group
+                                        ${activeTab === tab.id
+                                                ? 'bg-stone-900 text-white shadow-lg shadow-stone-900/10'
+                                                : 'text-stone-400 hover:text-stone-900 hover:bg-stone-50'
+                                            }`}
+                                    >
+                                        <tab.icon size={16} className={`${activeTab === tab.id ? 'text-[#C5A059]' : 'text-stone-300 group-hover:text-stone-900'} transition-colors`} />
+                                        <span>{tab.label}</span>
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div className="p-6 border-t border-stone-100 bg-stone-50">
+                                <button
+                                    onClick={onLogout}
+                                    className="w-full px-4 py-3 text-[10px] font-bold tracking-widest uppercase text-red-500 bg-white border border-stone-200 hover:bg-red-50 rounded-xl flex items-center justify-center space-x-3 transition-all"
+                                >
+                                    <LogOut size={16} />
+                                    <span>Sign Out</span>
+                                </button>
+                            </div>
+                        </motion.aside>
+                    </>
+                )}
+            </AnimatePresence>
+        </>
     );
 };
 

@@ -178,8 +178,8 @@ const OrdersTab: React.FC<OrdersTabProps> = ({ orders }) => {
                     </div>
                 </div>
 
-                {/* Table/List */}
-                <div className="overflow-x-auto">
+                {/* Table (Desktop) */}
+                <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead className="bg-stone-50/50 text-[9px] font-black uppercase text-stone-400 tracking-[0.3em] border-b border-stone-100">
                             <tr>

@@ -1,38 +1,40 @@
 import React from 'react';
-import { LucideIcon } from 'lucide-react';
-
-interface Tab {
-    id: string;
-    label: string;
-    icon: LucideIcon;
-}
+import { Menu, User, ShieldCheck } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import Logo from '../Logo';
 
 interface AdminMobileHeaderProps {
     activeTab: string;
-    setActiveTab: (tab: string) => void;
-    tabs: Tab[];
+    onMenuClick: () => void;
+    userEmail?: string;
 }
 
-const AdminMobileHeader: React.FC<AdminMobileHeaderProps> = ({ activeTab, setActiveTab, tabs }) => {
+const AdminMobileHeader: React.FC<AdminMobileHeaderProps> = ({ activeTab, onMenuClick, userEmail }) => {
     return (
-        <div className="lg:hidden fixed top-[70px] left-0 right-0 z-[40] bg-white/90 backdrop-blur-md border-b border-stone-200 shadow-sm overflow-x-auto no-scrollbar py-2">
-            <div className="flex px-4 space-x-2 min-w-max">
-                {tabs.map((tab) => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`flex-shrink-0 flex items-center space-x-3 px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all box-border border
-              ${activeTab === tab.id
-                                ? 'bg-stone-900 text-white border-stone-900 shadow-lg'
-                                : 'text-stone-400 bg-white border-stone-100'
-                            }`}
-                    >
-                        <tab.icon size={12} className={activeTab === tab.id ? 'text-[#C5A059]' : ''} />
-                        <span>{tab.label}</span>
-                    </button>
-                ))}
+        <header className="lg:hidden fixed top-0 left-0 right-0 z-[50] bg-white/95 backdrop-blur-xl border-b border-stone-200 h-[70px] px-6 flex items-center justify-between shadow-sm">
+            <div className="flex items-center gap-4">
+                <button
+                    onClick={onMenuClick}
+                    className="p-2 -ml-2 hover:bg-stone-100 rounded-full text-stone-800 transition-colors"
+                >
+                    <Menu size={24} strokeWidth={1.5} />
+                </button>
+                <div className="h-6 w-px bg-stone-200" />
+                <Link to="/">
+                    <Logo size={24} className="text-stone-900" />
+                </Link>
             </div>
-        </div>
+
+            <div className="flex items-center gap-2">
+                <div className="flex flex-col items-end mr-2">
+                    <span className="text-[8px] font-black uppercase tracking-widest text-stone-400">Admin</span>
+                    <span className="text-[10px] font-bold text-stone-800 hidden sm:block">{userEmail?.split('@')[0]}</span>
+                </div>
+                <div className="w-8 h-8 rounded-full bg-stone-900 flex items-center justify-center text-[#C5A059]">
+                    <ShieldCheck size={14} />
+                </div>
+            </div>
+        </header>
     );
 };
 

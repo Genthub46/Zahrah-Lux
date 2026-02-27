@@ -12,10 +12,12 @@ import {
   FOOTER_PAGES_STORAGE_KEY,
   INITIAL_PRODUCTS as initialProducts,
   INITIAL_FOOTER_PAGES as footerPages,
-  INITIAL_HOME_LAYOUT as initialLayoutConfig
+  INITIAL_HOME_LAYOUT as initialLayoutConfig,
+  ADMIN_EMAILS
 } from './constants';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
+import ErrorBoundary from './components/ErrorBoundary';
 // Lazy load pages for performance
 const Admin = React.lazy(() => import('./pages/Admin'));
 const ProductDetail = React.lazy(() => import('./pages/ProductDetail'));
@@ -25,6 +27,7 @@ const Login = React.lazy(() => import('./pages/Login'));
 const Signup = React.lazy(() => import('./pages/Signup'));
 const ForgotPassword = React.lazy(() => import('./pages/ForgotPassword'));
 const InfoPage = React.lazy(() => import('./pages/InfoPage'));
+const Lookbook = React.lazy(() => import('./pages/Lookbook'));
 
 // Helper to wrap lazy components with Suspense
 const SuspenseWrapper = ({ children }: { children: React.ReactNode }) => (
@@ -232,7 +235,7 @@ const App: React.FC = () => {
     }
 
     // Auto-Grant Admin Role
-    if (user.email === 'admin@zahrah.com') {
+    if (user.email && ADMIN_EMAILS.includes(user.email)) {
       const expiry = Date.now() + (24 * 60 * 60 * 1000); // 24 hours
       const session = { authenticated: true, expiry };
       localStorage.setItem('ZARHRAH_ADMIN_SESSION', JSON.stringify(session));
@@ -361,21 +364,23 @@ const App: React.FC = () => {
                 />
               }
             />
-            <Route
-              path="/admin"
+            <Route path="/admin"
               element={
                 <React.Suspense fallback={<div className="min-h-screen bg-stone-50 flex items-center justify-center text-stone-400 text-xs uppercase tracking-widest">Loading Executive Panel...</div>}>
-                  <Admin
-                    products={products}
-                    layoutConfig={layoutConfig}
-                    footerPages={footerPages}
-                    setProducts={setProducts}
-                    setLayoutConfig={setLayoutConfig}
-                    setFooterPages={setFooterPages}
-                  />
+                  <ErrorBoundary>
+                    <Admin
+                      products={products}
+                      layoutConfig={layoutConfig}
+                      footerPages={footerPages}
+                      setProducts={setProducts}
+                      setLayoutConfig={setLayoutConfig}
+                      setFooterPages={setFooterPages}
+                    />
+                  </ErrorBoundary>
                 </React.Suspense>
               }
             />
+            <Route path="/lookbook" element={<SuspenseWrapper><Lookbook /></SuspenseWrapper>} />
           </Routes>
         </main>
 

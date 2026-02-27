@@ -1,6 +1,6 @@
 import React from 'react';
 import { Product } from '../types';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Heart } from 'lucide-react';
 
@@ -40,102 +40,92 @@ const ProductCard: React.FC<ProductCardProps> = ({
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="group/card cursor-pointer relative"
-      onClick={() => navigate(`/product/${product.id}`)}
+    <Link
+      to={`/product/${product.id}`}
+      className="group/card cursor-pointer relative block"
     >
       <div
-        className={`aspect-[4/5] rounded-lg overflow-hidden flex items-center justify-center p-6 relative ${dark ? 'bg-stone-800' : 'bg-[#F5F5F4]'}`}
+        className={`aspect-[4/5] rounded-sm overflow-hidden flex items-center justify-center p-6 relative ${dark ? 'bg-stone-800' : 'bg-[#F9F9F8]'}`}
       >
         <img
           src={getOptimizedImageUrl(product.images[currentImageIndex] || product.images[0])}
           alt={product.name}
           width="500"
           height="625"
-          className={`max-h-full max-w-full object-contain transition-transform duration-700 group-hover/card:scale-105 ${isSoldOut ? 'grayscale' : ''}`}
+          loading="lazy"
+          className={`max-h-full max-w-full object-contain transition-transform duration-[1.2s] ease-out group-hover/card:scale-105 ${isSoldOut ? 'grayscale opacity-60' : ''}`}
         />
 
-        {/* Manual Image Swap Button */}
+        {/* Manual Image Swap Button - Minimalist */}
         {hasMultipleImages && (
-          <button
-            onClick={toggleImage}
-            className="absolute bottom-4 right-4 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm shadow-md flex items-center justify-center text-stone-600 hover:text-stone-900 hover:scale-110 transition-all z-20"
-            title="Switch View"
-          >
-            <div className="flex gap-0.5">
-              <div className={`w-1.5 h-1.5 rounded-full ${currentImageIndex === 0 ? 'bg-stone-800' : 'bg-stone-300'}`} />
-              <div className={`w-1.5 h-1.5 rounded-full ${currentImageIndex === 1 ? 'bg-stone-800' : 'bg-stone-300'}`} />
-            </div>
-          </button>
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 opacity-0 group-hover/card:opacity-100 transition-opacity duration-500 z-20">
+            {product.images.slice(0, 3).map((_, idx) => (
+              <button
+                key={idx}
+                onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(idx); }}
+                className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${currentImageIndex === idx ? 'bg-stone-800 scale-125' : 'bg-stone-300 hover:bg-stone-500'}`}
+              />
+            ))}
+          </div>
         )}
 
-        {/* Floating Heart Icon */}
+        {/* Floating Heart Icon - Premium Minimal */}
         {onToggleWishlist && (
           <button
             onClick={(e) => {
               e.stopPropagation();
               onToggleWishlist(product);
             }}
-            className="group/btn absolute top-4 right-4 p-2.5 bg-white/80 backdrop-blur-sm rounded-full shadow-lg hover:scale-110 transition-transform z-10"
+            className="group/btn absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/90 transition-all z-10"
           >
             <Heart
-              size={16}
-              className={`transition-colors ${isWishlisted ? 'text-red-500 fill-red-500' : 'text-stone-400'}`}
+              size={18}
+              strokeWidth={1.5}
+              className={`transition-colors duration-300 ${isWishlisted ? 'text-[#C5A059] fill-[#C5A059]' : 'text-stone-400 hover:text-stone-900'}`}
             />
-            <span className="absolute right-full top-1/2 -translate-y-1/2 mr-2 px-2 py-1 bg-stone-900 text-white text-[10px] font-bold uppercase tracking-widest rounded opacity-0 group-hover/btn:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-              {isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
-            </span>
           </button>
         )}
 
         {isSoldOut && (
-          <div className="absolute top-4 left-4">
-            <span className="bg-stone-900 text-white px-3 py-1 text-[9px] font-bold tracking-widest uppercase rounded">Sold Out</span>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
+            <div className="px-4 py-2 border border-stone-900 bg-white/90 backdrop-blur-sm text-stone-900 text-[10px] font-bold uppercase tracking-[0.2em]">
+              Sold Out
+            </div>
           </div>
         )}
       </div>
 
-      <div className="mt-5 space-y-1.5 px-1">
-        <div className="flex items-center space-x-2">
-          <span className="text-[10px] font-black gold-text uppercase tracking-[0.3em]">{product.brand}</span>
-          <span className="w-1 h-1 bg-stone-300 rounded-full" />
-          <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">{product.category}</span>
+      <div className="mt-4 px-1 text-center md:text-left">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-1 mb-1">
+          <span className="text-[10px] font-bold text-stone-500 uppercase tracking-[0.2em]">{product.brand}</span>
+          {product.colors && product.colors.length > 0 && (
+            <div className="flex justify-center md:justify-end gap-1">
+              {product.colors.slice(0, 3).map((c, i) => (
+                <div key={i} className={`w-2 h-2 rounded-full border ${dark ? 'border-stone-600' : 'border-stone-200'}`} style={{ backgroundColor: c.hex }} />
+              ))}
+              {product.colors.length > 3 && <span className="text-[9px] text-stone-400">+</span>}
+            </div>
+          )}
         </div>
 
-        <h3 className={`text-sm font-bold leading-tight tracking-tight ${dark ? 'text-white' : 'text-stone-900'}`}>
+        <h3
+          className={`text-base font-serif leading-snug tracking-wide group-hover/card:text-[#C5A059] transition-colors duration-300 ${dark ? 'text-white' : 'text-stone-900'}`}
+        >
           {product.name}
         </h3>
 
-        {/* Color Swatches - Reflectable on the Card */}
-        {product.colors && product.colors.length > 0 && (
-          <div className="flex space-x-1.5 py-1">
-            {product.colors.slice(0, 5).map((c, i) => (
-              <div
-                key={i}
-                className={`w-2.5 h-2.5 rounded-full border shadow-sm ${dark ? 'border-stone-600' : 'border-stone-200'}`}
-                style={{ backgroundColor: c.hex }}
-                title={c.name}
-              />
-            ))}
-            {product.colors.length > 5 && (
-              <span className="text-[8px] text-stone-400 font-bold">+{product.colors.length - 5}</span>
-            )}
-          </div>
-        )}
-
-        <p className={`text-sm font-bold ${dark ? 'text-stone-300' : 'text-stone-900'}`}>
-          N{product.price.toLocaleString()}
-        </p>
-
-        {!isSoldOut && (
-          <p className="text-[10px] text-stone-400 font-bold uppercase tracking-widest mt-1">
-            {product.stock} Units Remaining
+        <div className="mt-2 flex items-center justify-center md:justify-start gap-3">
+          <p className={`text-sm font-medium tracking-wide ${dark ? 'text-stone-300' : 'text-stone-900'}`}>
+            ₦{product.price.toLocaleString()}
           </p>
-        )}
+          {!isSoldOut && product.stock < 5 && (
+            <span className="text-[9px] text-[#C5A059] font-bold uppercase tracking-wider">
+              Low Stock
+            </span>
+          )}
+        </div>
       </div>
-    </motion.div>
+    </Link>
   );
 };
 
