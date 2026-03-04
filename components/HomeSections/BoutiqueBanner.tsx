@@ -7,7 +7,7 @@ interface BoutiqueBannerProps {
     image?: string;
 }
 
-const BoutiqueBanner: React.FC<BoutiqueBannerProps> = ({ image }) => {
+const BoutiqueBanner: React.FC<BoutiqueBannerProps & { title?: string }> = ({ image, title }) => {
     const scrollToCollection = () => {
         const el = document.getElementById('collection-start');
         if (el) {
@@ -38,7 +38,7 @@ const BoutiqueBanner: React.FC<BoutiqueBannerProps> = ({ image }) => {
                     transition={{ duration: 0.8 }}
                     className="text-3xl md:text-5xl font-black uppercase tracking-[0.1em] mb-6 drop-shadow-lg"
                 >
-                    Zarhrah Manor
+                    {title || "Zarhrah Manor"}
                 </motion.h2>
 
                 <motion.button

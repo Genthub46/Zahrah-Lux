@@ -1,7 +1,8 @@
 import React from 'react';
-import { LogOut, Activity, X } from 'lucide-react';
-import { LucideIcon } from 'lucide-react';
+import { LogOut, Activity, X, LucideIcon, Store, FileText, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import Logo from '../Logo';
 
 interface Tab {
     id: string;
@@ -30,7 +31,10 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
 }) => {
     // Desktop Sidebar (Always visible on lg screens)
     const DesktopSidebar = (
-        <aside className="hidden lg:flex w-72 bg-white/80 backdrop-blur-md border-r border-stone-100 fixed h-full flex-col z-[100] pt-32">
+        <aside className="hidden lg:flex w-72 bg-white/80 backdrop-blur-md border-r border-stone-100 fixed h-full flex-col z-[100]">
+            <Link to="/" className="h-32 flex items-center justify-center border-b border-stone-100 hover:bg-stone-50 transition-colors">
+                <Logo size={80} className="text-stone-900" />
+            </Link>
             <div className="p-6">
                 <nav className="space-y-2">
                     {tabs.map((tab) => (
@@ -57,6 +61,14 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 <div className="mb-6 px-4">
                     <p className="text-[9px] font-black text-stone-300 uppercase tracking-widest mb-2">System Controls</p>
                 </div>
+
+                <Link
+                    to="/"
+                    className="w-full px-4 py-3 text-[10px] font-bold tracking-widest uppercase text-stone-500 hover:text-stone-900 hover:bg-stone-50 rounded-xl flex items-center space-x-3 transition-all group"
+                >
+                    <Store size={16} className="text-stone-300 group-hover:text-stone-900 transition-colors" />
+                    <span>Return to Boutique</span>
+                </Link>
 
                 <button
                     onClick={() => {
@@ -127,7 +139,14 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                                 ))}
                             </div>
 
-                            <div className="p-6 border-t border-stone-100 bg-stone-50">
+                            <div className="p-6 border-t border-stone-100 bg-stone-50 space-y-3">
+                                <Link
+                                    to="/"
+                                    className="w-full px-4 py-3 text-[10px] font-bold tracking-widest uppercase text-stone-500 bg-white border border-stone-200 hover:text-stone-900 hover:bg-stone-50 rounded-xl flex items-center justify-center space-x-3 transition-all"
+                                >
+                                    <Store size={16} />
+                                    <span>Return to Boutique</span>
+                                </Link>
                                 <button
                                     onClick={onLogout}
                                     className="w-full px-4 py-3 text-[10px] font-bold tracking-widest uppercase text-red-500 bg-white border border-stone-200 hover:bg-red-50 rounded-xl flex items-center justify-center space-x-3 transition-all"

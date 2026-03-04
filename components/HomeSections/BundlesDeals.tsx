@@ -28,8 +28,7 @@ const BundlesDeals: React.FC<BundlesDealsProps> = ({
 
     // Mocking specific products for this section
     // In a real app, you might filter by a 'bundle' tag or 'sale' category
-    // Mocking specific products for this section
-    // In a real app, you might filter by a 'bundle' tag or 'sale' category
+
     const bundleProducts = selectedProductIds && selectedProductIds.length > 0
         ? products.filter(p => selectedProductIds.includes(p.id))
         : products

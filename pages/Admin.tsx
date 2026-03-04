@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Package, ShoppingCart, BarChart3, BellRing, LayoutGrid, FileText, Lock
+  Package, ShoppingCart, BarChart3, BellRing, LayoutGrid, FileText, Lock, Users, DollarSign
 } from 'lucide-react';
-import { Product, Order, ViewLog, RestockRequest, HomeLayoutConfig, FooterPage, Brand, Review } from '../types';
+import { Product, Order, ViewLog, RestockRequest, HomeLayoutConfig, FooterPage, Brand, Review, UserProfile } from '../types';
 import { auth } from '../services/firebaseConfig';
 import { signOut, onAuthStateChanged } from 'firebase/auth';
 import {
@@ -14,11 +14,16 @@ import {
   subscribeToRequests,
   subscribeToPages,
   subscribeToBrands,
-  subscribeToReviews
+  subscribeToReviews,
+  subscribeToUsers
 } from '../services/dbUtils';
-import { INITIAL_PRODUCTS, INITIAL_FOOTER_PAGES, INITIAL_HOME_LAYOUT, ADMIN_EMAILS } from '../constants';
+import { INITIAL_PRODUCTS, INITIAL_FOOTER_PAGES, INITIAL_HOME_LAYOUT } from '../constants';
+import { isAdminEmail, getAdminRole } from '../services/adminPermissions';
+import { useToast } from '../contexts/ToastContext';
+import { useSessionTimeout } from '../hooks/useSessionTimeout';
 
 import { motion, AnimatePresence } from 'framer-motion';
+import { Clock } from 'lucide-react';
 
 // Sub-components
 import AdminLogin from '../components/Admin/AdminLogin';
@@ -29,7 +34,12 @@ import OrdersTab from '../components/Admin/OrdersTab';
 import RequestsTab from '../components/Admin/RequestsTab';
 import LayoutTab from '../components/Admin/LayoutTab';
 import PagesTab from '../components/Admin/PagesTab';
+import ActivityLogTab from '../components/Admin/ActivityLogTab';
+import CustomersTab from '../components/Admin/CustomersTab';
 import AnalyticsDashboard from '../components/Analytics/AnalyticsDashboard';
+import DashboardTab from '../components/Admin/DashboardTab';
+import PricingTab from '../components/Admin/PricingTab';
+import { updateProduct } from '../services/dbUtils';
 
 interface AdminProps {
   products: Product[];
@@ -49,6 +59,7 @@ const Admin: React.FC<AdminProps> = ({
   setProducts: setPropsProducts,
 }) => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   // Core State
   const [products, setProducts] = useState<Product[]>(initialProducts);
@@ -56,6 +67,7 @@ const Admin: React.FC<AdminProps> = ({
   const [viewLogs, setViewLogs] = useState<ViewLog[]>([]);
   const [restockRequests, setRestockRequests] = useState<RestockRequest[]>([]);
   const [footerPages, setFooterPages] = useState<FooterPage[]>(initialFooterPages);
+  const [users, setUsers] = useState<UserProfile[]>([]);
 
   // Extra Data
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -66,8 +78,21 @@ const Admin: React.FC<AdminProps> = ({
   const [isAuthChecking, setIsAuthChecking] = useState(true);
 
   // UI State
-  const [activeTab, setActiveTab] = useState('orders');
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Session Timeout
+  const { isWarningVisible, remainingSeconds, extendSession } = useSessionTimeout({
+    timeoutMinutes: 15,
+    warningMinutes: 1,
+    enabled: isLoggedIn,
+    onTimeout: () => {
+      signOut(auth).then(() => {
+        setIsLoggedIn(false);
+        navigate('/');
+      });
+    },
+  });
 
   // --- Subscriptions ---
   useEffect(() => {
@@ -86,6 +111,7 @@ const Admin: React.FC<AdminProps> = ({
     const unsubLogs = subscribeToLogs(setViewLogs);
     const unsubRequests = subscribeToRequests(setRestockRequests);
     const unsubPages = subscribeToPages(setFooterPages);
+    const unsubUsers = subscribeToUsers((data) => setUsers(data as UserProfile[]));
     const unsubBrands = subscribeToBrands((data) => {
       setBrands(data.sort((a, b) => a.name.localeCompare(b.name)));
     });
@@ -97,6 +123,7 @@ const Admin: React.FC<AdminProps> = ({
       unsubLogs();
       unsubRequests();
       unsubPages();
+      unsubUsers();
       unsubBrands();
       unsubReviews();
     };
@@ -115,20 +142,24 @@ const Admin: React.FC<AdminProps> = ({
     }
 
     seedInitialData(INITIAL_PRODUCTS, INITIAL_HOME_LAYOUT, INITIAL_FOOTER_PAGES)
-      .then(() => alert("Database Repaired Successfully!"))
+      .then(() => showToast("Database Repaired Successfully!", { type: 'success' }))
       .catch(err => {
         console.error(err);
-        alert("Database Repair Failed.");
+        showToast("Database Repair Failed.", { type: 'error' });
       });
   };
 
   const tabs = [
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutGrid },
     { id: 'products', label: 'Products', icon: Package },
+    { id: 'customers', label: 'Customers', icon: Users },
     { id: 'orders', label: 'Orders', icon: ShoppingCart },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+    { id: 'pricing', label: 'Pricing AI', icon: DollarSign }, // New Tab
     { id: 'requests', label: 'Waitlist', icon: BellRing },
     { id: 'pages', label: 'Boutique Pages', icon: FileText },
-    { id: 'layout', label: 'Home Layout', icon: LayoutGrid }
+    { id: 'layout', label: 'Home Layout', icon: LayoutGrid },
+    { id: 'activity', label: 'Activity Log', icon: FileText }
   ];
 
   if (isAuthChecking) {
@@ -140,7 +171,8 @@ const Admin: React.FC<AdminProps> = ({
   }
 
   const currentUser = auth.currentUser;
-  const isAuthorized = currentUser && currentUser.email && ADMIN_EMAILS.includes(currentUser.email);
+  const adminRole = currentUser ? getAdminRole(currentUser.email) : null;
+  const isAuthorized = !!adminRole;
 
   if (!isAuthorized) {
     return (
@@ -163,6 +195,56 @@ const Admin: React.FC<AdminProps> = ({
   return (
     <div className="min-h-screen bg-[#FDFDFD] flex flex-col lg:flex-row font-sans selection:bg-[#C5A059] selection:text-white">
 
+      {/* Session Timeout Warning Modal */}
+      <AnimatePresence>
+        {isWarningVisible && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl"
+            >
+              <div className="flex items-center justify-center mb-6">
+                <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center">
+                  <Clock size={32} className="text-amber-600" />
+                </div>
+              </div>
+              <h2 className="text-xl font-black text-center uppercase tracking-widest text-stone-900 mb-2">
+                Session Expiring
+              </h2>
+              <p className="text-center text-stone-500 text-sm mb-6">
+                Your session will expire in <span className="font-bold text-amber-600">{remainingSeconds}</span> seconds due to inactivity.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    signOut(auth).then(() => {
+                      setIsLoggedIn(false);
+                      navigate('/');
+                    });
+                  }}
+                  className="flex-1 px-4 py-3 border border-stone-200 rounded-xl text-xs font-bold uppercase tracking-widest text-stone-600 hover:bg-stone-50 transition-colors"
+                >
+                  Logout Now
+                </button>
+                <button
+                  onClick={extendSession}
+                  className="flex-1 px-4 py-3 bg-[#C5A059] rounded-xl text-xs font-bold uppercase tracking-widest text-white hover:bg-[#b8944e] transition-colors"
+                >
+                  Stay Logged In
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <AdminMobileHeader
         activeTab={activeTab}
         onMenuClick={() => setIsSidebarOpen(true)}
@@ -182,7 +264,7 @@ const Admin: React.FC<AdminProps> = ({
       <main className="flex-1 lg:ml-72 p-6 lg:p-20 pt-[100px] lg:pt-32">
         <header className="mb-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 animate-in slide-in-from-top-4 duration-700">
           <div>
-            <h1 className="text-4xl md:text-6xl font-black text-stone-900 tracking-tighter uppercase mb-2">
+            <h1 className="text-4xl md:text-6xl font-serif font-black text-stone-900 tracking-tighter uppercase mb-2">
               {tabs.find(t => t.id === activeTab)?.label}
             </h1>
             <div className="flex items-center space-x-3">
@@ -200,8 +282,22 @@ const Admin: React.FC<AdminProps> = ({
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.3 }}
           >
+            {activeTab === 'dashboard' && (
+              <DashboardTab
+                orders={orders}
+                products={products}
+                users={users}
+                onNavigate={setActiveTab}
+                role={adminRole}
+              />
+            )}
+
             {activeTab === 'products' && (
-              <ProductsTab products={products} brands={brands} />
+              <ProductsTab products={products} brands={brands} orders={orders} />
+            )}
+
+            {activeTab === 'customers' && (
+              <CustomersTab users={users} orders={orders} />
             )}
 
             {activeTab === 'orders' && (
@@ -210,6 +306,17 @@ const Admin: React.FC<AdminProps> = ({
 
             {activeTab === 'analytics' && (
               <AnalyticsDashboard orders={orders} viewLogs={viewLogs} products={products} />
+            )}
+
+            {activeTab === 'pricing' && (
+              <PricingTab
+                products={products}
+                orders={orders}
+                onUpdatePrice={async (id, price) => {
+                  await updateProduct(id, { price });
+                  showToast(`Price updated to ₦${price.toLocaleString()}`, { type: 'success' });
+                }}
+              />
             )}
 
             {activeTab === 'requests' && (
@@ -222,6 +329,10 @@ const Admin: React.FC<AdminProps> = ({
 
             {activeTab === 'pages' && (
               <PagesTab footerPages={footerPages} />
+            )}
+
+            {activeTab === 'activity' && (
+              <ActivityLogTab />
             )}
           </motion.div>
         </AnimatePresence>

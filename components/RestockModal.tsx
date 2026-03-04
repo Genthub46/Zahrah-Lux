@@ -141,7 +141,7 @@ const RestockModal: React.FC<RestockModalProps> = ({ isOpen, onClose, productNam
                                     {/* If User is Logged In, we hide Name Input or prefill/disable it */}
                                     {/* User asked to "no need to ask for email and name again" */}
                                     {/* To be safe, we can hide them or show them as readonly text */}
-                                    {!user && (
+                                    {(!user || !user.displayName) && (
                                         <div>
                                             <input
                                                 type="text"
@@ -156,8 +156,8 @@ const RestockModal: React.FC<RestockModalProps> = ({ isOpen, onClose, productNam
 
                                     {preference === 'email' && (
                                         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
-                                            {user ? (
-                                                <p className="text-xs text-stone-500 px-1">Using email: <strong className="text-stone-900">{email}</strong></p>
+                                            {(user && user.email) ? (
+                                                <p className="text-xs text-stone-500 px-1">Using email: <strong className="text-stone-900">{user.email}</strong></p>
                                             ) : (
                                                 <input
                                                     type="email"

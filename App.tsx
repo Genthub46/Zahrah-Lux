@@ -13,7 +13,6 @@ import {
   INITIAL_PRODUCTS as initialProducts,
   INITIAL_FOOTER_PAGES as footerPages,
   INITIAL_HOME_LAYOUT as initialLayoutConfig,
-  ADMIN_EMAILS
 } from './constants';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
@@ -28,6 +27,8 @@ const Signup = React.lazy(() => import('./pages/Signup'));
 const ForgotPassword = React.lazy(() => import('./pages/ForgotPassword'));
 const InfoPage = React.lazy(() => import('./pages/InfoPage'));
 const Lookbook = React.lazy(() => import('./pages/Lookbook'));
+const Orders = React.lazy(() => import('./pages/Orders'));
+const PrivacyPolicy = React.lazy(() => import('./pages/PrivacyPolicy'));
 
 // Helper to wrap lazy components with Suspense
 const SuspenseWrapper = ({ children }: { children: React.ReactNode }) => (
@@ -44,6 +45,7 @@ const SuspenseWrapper = ({ children }: { children: React.ReactNode }) => (
 );
 
 import WhatsAppBot from './components/WhatsAppBot';
+import CookieConsent from './components/CookieConsent';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from './services/firebaseConfig';
 
@@ -66,7 +68,13 @@ import {
   getUserData
 } from './services/dbUtils';
 
+import { ToastProvider } from './contexts/ToastContext';
+import { isAdminEmail } from './services/adminPermissions';
+
 const App: React.FC = () => {
+  // ... existing state/effects ...
+  // (leaving internal logic unchanged as we just wrap the return)
+
   // Use local storage for Cart and Wishlist ONLY (Client-side persistence)
   const [cart, setCart] = useState<CartItem[]>(() => {
     const saved = localStorage.getItem(APP_STORAGE_KEY);
@@ -117,7 +125,10 @@ const App: React.FC = () => {
         setUser(null);
         // Only clear if we were previously logged in (Logout Action)
         // This prevents wiping Guest cart on initial load/refresh.
+        // Also removed clear logic for now to check if it helps keep cart
+        // But reverting to original safety:
         if (wasLoggedIn.current) {
+          // We might want to keep cart for UX? No, clear for privacy.
           setCart([]);
           setWishlist([]);
           localStorage.removeItem(APP_STORAGE_KEY);
@@ -235,7 +246,7 @@ const App: React.FC = () => {
     }
 
     // Auto-Grant Admin Role
-    if (user.email && ADMIN_EMAILS.includes(user.email)) {
+    if (user.email && isAdminEmail(user.email)) {
       const expiry = Date.now() + (24 * 60 * 60 * 1000); // 24 hours
       const session = { authenticated: true, expiry };
       localStorage.setItem('ZARHRAH_ADMIN_SESSION', JSON.stringify(session));
@@ -298,8 +309,35 @@ const App: React.FC = () => {
     dbLogView(productId, user?.uid);
   }, [user]);
 
-  const removeFromCart = useCallback((id: string) => {
-    setCart((prev) => prev.filter((item) => item.id !== id));
+  const updateCartItem = useCallback((index: number, quantity: number, color?: string, size?: string) => {
+    setCart((prev) => {
+      const newCart = [...prev];
+      if (newCart[index]) {
+        newCart[index] = { ...newCart[index], quantity, selectedColor: color, selectedSize: size };
+        const consolidated: CartItem[] = [];
+        newCart.forEach((item) => {
+          const existingIdx = consolidated.findIndex(c =>
+            c.id === item.id &&
+            c.selectedColor === item.selectedColor &&
+            c.selectedSize === item.selectedSize
+          );
+          if (existingIdx > -1) {
+            consolidated[existingIdx] = {
+              ...consolidated[existingIdx],
+              quantity: consolidated[existingIdx].quantity + item.quantity
+            };
+          } else {
+            consolidated.push(item);
+          }
+        });
+        return consolidated;
+      }
+      return prev;
+    });
+  }, []);
+
+  const removeFromCart = useCallback((index: number) => {
+    setCart((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
   const clearCart = useCallback(() => {
@@ -318,74 +356,79 @@ const App: React.FC = () => {
     });
   }, [products]);
 
-  const handleAddRestockRequest = useCallback((request: RestockRequest) => {
-    addRestockRequest(request);
-  }, []);
+
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <Router>
-      <div className="min-h-screen bg-stone-50 flex flex-col selection:bg-[#C5A059] selection:text-white">
-        <Navbar cartCount={cartCount} wishlistCount={wishlist.length} user={user} />
+      <ToastProvider>
+        <div className="min-h-screen bg-stone-50 flex flex-col selection:bg-[#C5A059] selection:text-white">
+          <Navbar cartCount={cartCount} wishlistCount={wishlist.length} user={user} />
 
-        <main className="flex-grow w-full">
-          <Routes>
-            <Route path="/" element={<Home products={products} setProducts={setProducts} layoutConfig={layoutConfig} footerPages={footerPages} onAddToCart={addToCart} onLogView={logView} onToggleWishlist={toggleWishlist} wishlist={wishlist} />} />
-            <Route path="/wishlist" element={<SuspenseWrapper><Wishlist wishlist={wishlist} onToggleWishlist={toggleWishlist} onAddToCart={addToCart} /></SuspenseWrapper>} />
-            <Route path="/p/:slug" element={<SuspenseWrapper><InfoPage footerPages={footerPages} /></SuspenseWrapper>} />
-            <Route path="/signup" element={<SuspenseWrapper><Signup /></SuspenseWrapper>} />
-            <Route path="/login" element={<SuspenseWrapper><Login /></SuspenseWrapper>} />
-            <Route path="/forgot-password" element={<SuspenseWrapper><ForgotPassword /></SuspenseWrapper>} />
-            <Route
-              path="/product/:id"
-              element={
-                <SuspenseWrapper>
-                  <ProductDetail
-                    products={products}
-                    user={user}
-                    onAddToCart={addToCart}
-                    onLogView={logView}
-                    onAddRestockRequest={handleAddRestockRequest}
-                    onToggleWishlist={toggleWishlist}
-                    wishlist={wishlist}
-                  />
-                </SuspenseWrapper>
-              }
-            />
-            <Route
-              path="/checkout"
-              element={
-                <Checkout
-                  cart={cart}
-                  onRemoveFromCart={removeFromCart}
-                  onClearCart={clearCart}
-                  onOrderPlaced={handleNewOrder}
-                />
-              }
-            />
-            <Route path="/admin"
-              element={
-                <React.Suspense fallback={<div className="min-h-screen bg-stone-50 flex items-center justify-center text-stone-400 text-xs uppercase tracking-widest">Loading Executive Panel...</div>}>
-                  <ErrorBoundary>
-                    <Admin
+          <main className="flex-grow w-full">
+            <Routes>
+              <Route path="/" element={<Home products={products} setProducts={setProducts} layoutConfig={layoutConfig} footerPages={footerPages} onAddToCart={addToCart} onLogView={logView} onToggleWishlist={toggleWishlist} wishlist={wishlist} />} />
+              <Route path="/wishlist" element={<SuspenseWrapper><Wishlist wishlist={wishlist} onToggleWishlist={toggleWishlist} onAddToCart={addToCart} /></SuspenseWrapper>} />
+              <Route path="/p/privacy-policy" element={<SuspenseWrapper><PrivacyPolicy /></SuspenseWrapper>} />
+              <Route path="/p/:slug" element={<SuspenseWrapper><InfoPage footerPages={footerPages} /></SuspenseWrapper>} />
+              <Route path="/signup" element={<SuspenseWrapper><Signup /></SuspenseWrapper>} />
+              <Route path="/login" element={<SuspenseWrapper><Login /></SuspenseWrapper>} />
+              <Route path="/forgot-password" element={<SuspenseWrapper><ForgotPassword /></SuspenseWrapper>} />
+
+              <Route path="/orders" element={<SuspenseWrapper><Orders /></SuspenseWrapper>} />
+              <Route
+                path="/product/:id"
+                element={
+                  <SuspenseWrapper>
+                    <ProductDetail
                       products={products}
-                      layoutConfig={layoutConfig}
-                      footerPages={footerPages}
-                      setProducts={setProducts}
-                      setLayoutConfig={setLayoutConfig}
-                      setFooterPages={setFooterPages}
+                      user={user}
+                      onAddToCart={addToCart}
+                      onLogView={logView}
+                      onToggleWishlist={toggleWishlist}
+                      wishlist={wishlist}
                     />
-                  </ErrorBoundary>
-                </React.Suspense>
-              }
-            />
-            <Route path="/lookbook" element={<SuspenseWrapper><Lookbook /></SuspenseWrapper>} />
-          </Routes>
-        </main>
+                  </SuspenseWrapper>
+                }
+              />
+              <Route
+                path="/checkout"
+                element={
+                  <Checkout
+                    cart={cart}
+                    onRemoveFromCart={removeFromCart}
+                    onUpdateCartItem={updateCartItem}
+                    onClearCart={clearCart}
+                    onOrderPlaced={handleNewOrder}
+                    user={user}
+                  />
+                }
+              />
+              <Route path="/admin"
+                element={
+                  <React.Suspense fallback={<div className="min-h-screen bg-stone-50 flex items-center justify-center text-stone-400 text-xs uppercase tracking-widest">Loading Executive Panel...</div>}>
+                    <ErrorBoundary>
+                      <Admin
+                        products={products}
+                        layoutConfig={layoutConfig}
+                        footerPages={footerPages}
+                        setProducts={setProducts}
+                        setLayoutConfig={setLayoutConfig}
+                        setFooterPages={setFooterPages}
+                      />
+                    </ErrorBoundary>
+                  </React.Suspense>
+                }
+              />
+              <Route path="/lookbook" element={<SuspenseWrapper><Lookbook onAddToCart={addToCart} /></SuspenseWrapper>} />
+            </Routes>
+          </main>
 
-        <WhatsAppBot />
-      </div>
+          <WhatsAppBot />
+          <CookieConsent />
+        </div>
+      </ToastProvider>
     </Router>
   );
 };

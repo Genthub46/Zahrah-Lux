@@ -1,22 +1,31 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
     Plus, Trash2, Edit3, X, Loader2, Upload, ImageIcon,
-    Search, Filter, CheckCircle2, AlertCircle
+    Search, Filter, CheckCircle2, AlertCircle, Square, CheckSquare
 } from 'lucide-react';
-import { Product, Brand } from '../../types';
+import { Product, Brand, Order } from '../../types';
+import { calculateInventoryVelocity } from '../../services/analyticsUtils';
 // import { storage } from '../../services/firebaseConfig';
 // import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { auth } from '../../services/firebaseConfig';
 import { uploadImageToCloudinary } from '../../services/cloudinary';
-import { saveProduct, deleteProduct, saveBrand, deleteBrand } from '../../services/dbUtils';
+import { saveProduct, deleteProduct, saveBrand, deleteBrand, logAdminAction, subscribeToCategories, saveCategory, deleteCategory } from '../../services/dbUtils';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ProductsTabProps {
     products: Product[];
     brands: Brand[];
+    orders: Order[];
 }
 
-const ProductsTab: React.FC<ProductsTabProps> = ({ products, brands }) => {
+const ProductsTab: React.FC<ProductsTabProps> = ({ products, brands, orders }) => {
+    // --- Data State ---
+    const [categories, setCategories] = useState<{ id: string, name: string }[]>([]);
+
+    useEffect(() => {
+        const unsub = subscribeToCategories(setCategories);
+        return () => unsub();
+    }, []);
     // --- Form State ---
     const [editingId, setEditingId] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
@@ -28,7 +37,7 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ products, brands }) => {
         name: '',
         brand: 'ASHLUXE',
         description: '',
-        category: 'Apparel',
+        category: 'Clothing',
         stock: 0,
         images: [],
         tags: [],
@@ -38,6 +47,7 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ products, brands }) => {
     });
 
     const [priceInput, setPriceInput] = useState<string>('');
+    const [costPriceInput, setCostPriceInput] = useState<string>('');
     const [imageInput, setImageInput] = useState('');
     const [tagInput, setTagInput] = useState('');
     const [sizeInput, setSizeInput] = useState('');
@@ -46,6 +56,7 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ products, brands }) => {
     const [hasSizes, setHasSizes] = useState(false);
     const [hasColors, setHasColors] = useState(false);
     const [showBrandManager, setShowBrandManager] = useState(false);
+    const [showCategoryManager, setShowCategoryManager] = useState(false);
 
     // Brand / Color / Custom Inputs
     const [newBrandName, setNewBrandName] = useState('');
@@ -54,10 +65,41 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ products, brands }) => {
     const [colorInputHex, setColorInputHex] = useState('#000000');
     const [colorInputImage, setColorInputImage] = useState('');
 
+    const [newCategoryName, setNewCategoryName] = useState('');
+
     // --- Filter State ---
     const [adminFilter, setAdminFilter] = useState<{ type: 'all' | 'category' | 'tag', value: string }>({ type: 'all', value: '' });
 
+    // Deduplicated categories for UI selectors
+    const uniqueCategories = React.useMemo(() => {
+        const seen = new Set();
+        return categories.filter(c => {
+            const duplicate = seen.has(c.name);
+            seen.add(c.name);
+            return !duplicate;
+        });
+    }, [categories]);
+
+    // --- Bulk Selection State ---
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+
     // --- Actions ---
+
+    const velocityMap = React.useMemo(() => calculateInventoryVelocity(orders), [orders]);
+
+    const getStockoutRisk = (product: Product) => {
+        if (product.stock <= 0) return { label: 'Sold Out', color: 'text-stone-400', bg: 'bg-stone-100' };
+
+        const velocity = velocityMap.get(product.id) || 0;
+        if (velocity === 0) return { label: 'Stagnant', color: 'text-stone-400', bg: 'bg-stone-100' };
+
+        const daysRemaining = product.stock / velocity;
+
+        if (daysRemaining < 7) return { label: `< ${Math.ceil(daysRemaining)} Days Left`, color: 'text-red-600', bg: 'bg-red-50' };
+        if (daysRemaining < 14) return { label: `~${Math.ceil(daysRemaining)} Days Left`, color: 'text-amber-600', bg: 'bg-amber-50' };
+        return { label: '> 2 Weeks', color: 'text-green-600', bg: 'bg-green-50' };
+    };
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
@@ -97,6 +139,7 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ products, brands }) => {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         const numericPrice = parseFloat(priceInput);
+        const numericCost = parseFloat(costPriceInput) || 0;
         if (!formData.name || isNaN(numericPrice) || !formData.images?.length) {
             alert("Required: Name, Price, and at least one Image.");
             return;
@@ -104,6 +147,7 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ products, brands }) => {
         const finalProduct = {
             ...formData,
             price: numericPrice,
+            costPrice: numericCost,
             id: editingId || `p-${Date.now()}`,
             brand: formData.brand === 'CUSTOM' ? customBrand.toUpperCase() : formData.brand,
             tags: tagInput.split(',').map(t => t.trim().toLowerCase()).filter(t => t),
@@ -112,6 +156,16 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ products, brands }) => {
 
         console.log("Saving Product:", finalProduct); // Debug log
         saveProduct(finalProduct).then(() => {
+            logAdminAction(
+                editingId ? 'UPDATE_PRODUCT' : 'CREATE_PRODUCT',
+                `${editingId ? 'Updated' : 'Created'} product: ${finalProduct.name} (${finalProduct.brand}) - Price: ${finalProduct.price}, Cost: ${finalProduct.costPrice}`,
+                auth.currentUser?.email || 'Unknown',
+                {
+                    resourceType: 'product',
+                    resourceId: finalProduct.id,
+                    afterState: finalProduct
+                }
+            );
             cancelEdit();
             alert(editingId ? "Product updated." : "Product added.");
         }).catch(err => {
@@ -124,6 +178,7 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ products, brands }) => {
         setEditingId(product.id);
         setFormData(product);
         setPriceInput(product.price.toString());
+        setCostPriceInput(product.costPrice?.toString() || '');
         setTagInput(product.tags.join(', '));
         setSizeInput(product.sizes?.join(', ') || '');
         setHasSizes(!!product.sizes && product.sizes.length > 0);
@@ -141,6 +196,7 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ products, brands }) => {
     const cancelEdit = () => {
         setEditingId(null);
         setPriceInput('');
+        setCostPriceInput('');
         setTagInput('');
         setSizeInput('');
         setCustomBrand('');
@@ -149,7 +205,7 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ products, brands }) => {
         setColorInputName('');
         setColorInputHex('#000000');
         setColorInputImage('');
-        setFormData({ name: '', brand: 'ASHLUXE', price: 0, images: [], description: '', category: 'Apparel', stock: 0, tags: [], colors: [], sizes: [], isVisible: true });
+        setFormData({ name: '', brand: 'ASHLUXE', price: 0, costPrice: 0, images: [], description: '', category: 'Clothing', stock: 0, tags: [], colors: [], sizes: [], isVisible: true });
     };
 
     const handleAddBrand = async (e: React.FormEvent | React.KeyboardEvent) => {
@@ -190,10 +246,133 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ products, brands }) => {
     const handleConfirmDelete = async (id: string) => {
         try {
             await deleteProduct(id);
+            logAdminAction(
+                'DELETE_PRODUCT',
+                `Deleted product: ${id}`,
+                auth.currentUser?.email || 'Unknown',
+                { resourceType: 'product', resourceId: id }
+            );
             setDeleteConfirmId(null);
         } catch (error) {
             console.error(error);
             alert("Delete failed. See console.");
+        }
+    };
+
+    const handleAddCategory = async (e: React.FormEvent | React.KeyboardEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (!newCategoryName.trim()) return;
+        const cleanName = newCategoryName.trim();
+
+        if (categories.some(c => c.name.toLowerCase() === cleanName.toLowerCase())) {
+            alert("Category already exists.");
+            return;
+        }
+
+        try {
+            await saveCategory(cleanName);
+            setFormData(prev => ({ ...prev, category: cleanName })); // Auto-select
+            setNewCategoryName('');
+        } catch (err) {
+            console.error(err);
+            alert("Failed to save category.");
+        }
+    };
+
+    const handleDeleteCategory = async (id: string) => {
+        if (confirm('Permanently delete this category?')) {
+            try {
+                await deleteCategory(id);
+            } catch (err) {
+                console.error(err);
+                alert("Failed to delete category.");
+            }
+        }
+    };
+
+    const handleSeedCategories = async () => {
+        if (!confirm('This will add the new specific Navbar categories (T-shirts, Dresses, etc.) to your database. Proceed?')) return;
+
+        const newCats = [
+            'Clothing', 'T-shirts', 'Shirts', 'Boxers', 'Shorts', 'Jackets',
+            'Underwear', 'Chinos', 'Pant', 'Trousers', 'Jeans', 'Two Piece',
+            'Jerseys', 'Accessories', 'Belts', 'Headwear', 'Sunglasses',
+            'Dress', 'Top', 'Gown', 'Trouser'
+        ];
+
+        try {
+            for (const cat of newCats) {
+                if (!categories.some(c => c.name.toLowerCase() === cat.toLowerCase())) {
+                    await saveCategory(cat);
+                }
+            }
+            alert("Categories seeded successfully!");
+        } catch (err) {
+            console.error("Error seeding categories:", err);
+            alert("Failed to seed some categories.");
+        }
+    };
+
+    const handleSeedBrands = async () => {
+        if (!confirm('This will add the signature collections (Zara, Bershka, Pull & Bear, Boohooman) to your database. Proceed?')) return;
+
+        const sigBrands = ['Zara', 'Boohooman', 'Pull & Bear', 'Bershka'];
+
+        try {
+            for (const b of sigBrands) {
+                if (!brands.some(existing => existing.name.toLowerCase() === b.toLowerCase())) {
+                    await saveBrand(b);
+                }
+            }
+            alert("Signature Brands seeded successfully!");
+            setShowBrandManager(false);
+        } catch (err) {
+            console.error("Error seeding brands:", err);
+            alert("Failed to seed some brands.");
+        }
+    };
+
+    // --- Bulk Actions ---
+    const toggleSelectAll = () => {
+        if (selectedIds.size === filteredProducts.length) {
+            setSelectedIds(new Set());
+        } else {
+            setSelectedIds(new Set(filteredProducts.map(p => p.id)));
+        }
+    };
+
+    const toggleSelect = (id: string) => {
+        const newSelected = new Set(selectedIds);
+        if (newSelected.has(id)) {
+            newSelected.delete(id);
+        } else {
+            newSelected.add(id);
+        }
+        setSelectedIds(newSelected);
+    };
+
+    const handleBulkDelete = async () => {
+        if (selectedIds.size === 0) return;
+        if (!window.confirm(`Delete ${selectedIds.size} products permanently?`)) return;
+
+        setIsBulkDeleting(true);
+        try {
+            await Promise.all(Array.from(selectedIds).map(id => deleteProduct(id)));
+            logAdminAction(
+                'BULK_DELETE_PRODUCT',
+                `Deleted ${selectedIds.size} products`,
+                auth.currentUser?.email || 'Unknown',
+                { resourceType: 'product' }
+            );
+            setSelectedIds(new Set());
+            alert(`${selectedIds.size} products deleted successfully.`);
+        } catch (error) {
+            console.error(error);
+            alert("Some deletes failed. Check console.");
+        } finally {
+            setIsBulkDeleting(false);
         }
     };
 
@@ -252,6 +431,15 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ products, brands }) => {
                                         </span>
                                     ))}
                                 </div>
+                                <div className="pt-2 border-t border-stone-100">
+                                    <button
+                                        type="button"
+                                        onClick={handleSeedBrands}
+                                        className="w-full py-2 bg-[#C5A059]/10 text-[#C5A059] hover:bg-[#C5A059] hover:text-white rounded-lg text-[9px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        <Plus size={12} /> Auto-Seed Signature Collections
+                                    </button>
+                                </div>
                             </div>
                         )}
 
@@ -285,17 +473,72 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ products, brands }) => {
                                 <input type="text" value={priceInput} onChange={(e) => setPriceInput(e.target.value)} className="w-full px-5 py-3 bg-stone-50 border border-stone-100 rounded-xl text-[11px] font-bold focus:outline-none focus:bg-white focus:border-[#C5A059] transition-all" placeholder="0.00" />
                             </div>
                             <div className="space-y-1">
+                                <label className="text-[9px] font-black text-stone-400 uppercase tracking-widest ml-1">Cost Price (NGN)</label>
+                                <input type="text" value={costPriceInput} onChange={(e) => setCostPriceInput(e.target.value)} className="w-full px-5 py-3 bg-stone-50 border border-stone-100 rounded-xl text-[11px] font-bold focus:outline-none focus:bg-white focus:border-[#C5A059] transition-all" placeholder="0.00" />
+                            </div>
+                            <div className="space-y-1">
                                 <label className="text-[9px] font-black text-stone-400 uppercase tracking-widest ml-1">Stock Level</label>
                                 <input type="number" value={formData.stock} onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })} className="w-full px-5 py-3 bg-stone-50 border border-stone-100 rounded-xl text-[11px] font-bold focus:outline-none focus:bg-white focus:border-[#C5A059] transition-all" />
                             </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                                <label className="text-[9px] font-black text-stone-400 uppercase tracking-widest ml-1">Category</label>
-                                <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value as any })} className="w-full px-5 py-3 bg-stone-50 border border-stone-100 rounded-xl text-[10px] font-bold focus:outline-none focus:bg-white focus:border-[#C5A059]">
-                                    {['Apparel', 'Accessories', 'Shirts', 'Pants', 'Footwear', 'Other'].map(c => <option key={c} value={c}>{c}</option>)}
-                                </select>
+                            <div className="space-y-2 col-span-2">
+                                <div className="flex justify-between items-center">
+                                    <label className="text-[9px] font-black text-stone-400 uppercase tracking-widest ml-1">Category</label>
+                                    <button type="button" onClick={() => setShowCategoryManager(!showCategoryManager)} className="text-[8px] font-bold text-[#C5A059] uppercase tracking-widest hover:underline">
+                                        {showCategoryManager ? 'Close Manager' : 'Manage Categories'}
+                                    </button>
+                                </div>
+
+                                {showCategoryManager && (
+                                    <div className="p-3 bg-white rounded-xl border border-stone-100 space-y-3 mb-4 animate-in slide-in-from-top-2">
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={newCategoryName}
+                                                onChange={e => setNewCategoryName(e.target.value)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') {
+                                                        handleAddCategory(e);
+                                                    }
+                                                }}
+                                                placeholder="NEW CATEGORY"
+                                                className="flex-1 px-3 py-2 text-[10px] border border-stone-200 rounded-lg focus:outline-none focus:border-[#C5A059]"
+                                            />
+                                            <button type="button" onClick={handleAddCategory} className="bg-stone-900 text-white px-3 rounded-lg"><Plus size={12} /></button>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {categories.map(c => (
+                                                <span key={c.id} className="bg-stone-50 border border-stone-100 px-2 py-1 rounded-md text-[9px] font-bold flex items-center gap-1">
+                                                    {c.name} <button type="button" onClick={() => handleDeleteCategory(c.id)} className="text-stone-400 hover:text-red-500"><X size={8} /></button>
+                                                </span>
+                                            ))}
+                                        </div>
+                                        <div className="pt-2 border-t border-stone-100">
+                                            <button
+                                                type="button"
+                                                onClick={handleSeedCategories}
+                                                className="w-full py-2 bg-[#C5A059]/10 text-[#C5A059] hover:bg-[#C5A059] hover:text-white rounded-lg text-[9px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
+                                            >
+                                                <Plus size={12} /> Auto-Seed Navbar Categories
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="flex flex-wrap gap-2">
+                                    {uniqueCategories.map(c => (
+                                        <button
+                                            key={c.name}
+                                            type="button"
+                                            onClick={() => setFormData({ ...formData, category: c.name })}
+                                            className={`px-3 py-2 rounded-lg text-[9px] font-bold uppercase tracking-widest border transition-all ${formData.category === c.name ? 'bg-[#C5A059] text-white border-[#C5A059] shadow-md' : 'bg-white text-stone-400 border-stone-100 hover:border-[#C5A059]/50'}`}
+                                        >
+                                            {c.name}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                             <div className="space-y-1">
                                 <label className="text-[9px] font-black text-stone-400 uppercase tracking-widest ml-1">Search Tags</label>
@@ -409,13 +652,49 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ products, brands }) => {
                 < div className="flex flex-wrap gap-2 pb-4 border-b border-stone-100" >
                     <button onClick={() => setAdminFilter({ type: 'all', value: '' })} className={`px-4 py-2.5 rounded-xl text-[9px] font-bold uppercase tracking-widest border transition-all ${adminFilter.type === 'all' ? 'bg-stone-900 text-white border-stone-900' : 'bg-white text-stone-400 border-stone-100'}`}>All</button>
                     {
-                        ['Apparel', 'Accessories', 'Shirts', 'Pants', 'Footwear', 'Other'].map(c => (
-                            <button key={c} onClick={() => setAdminFilter({ type: 'category', value: c })} className={`px-4 py-2.5 rounded-xl text-[9px] font-bold uppercase tracking-widest border transition-all ${adminFilter.type === 'category' && adminFilter.value === c ? 'bg-[#C5A059] text-white border-[#C5A059]' : 'bg-white text-stone-400 border-stone-100 hover:text-[#C5A059]'}`}>
-                                {c}
+                        uniqueCategories.map(c => (
+                            <button key={c.name} onClick={() => setAdminFilter({ type: 'category', value: c.name })} className={`px-4 py-2.5 rounded-xl text-[9px] font-bold uppercase tracking-widest border transition-all ${adminFilter.type === 'category' && adminFilter.value === c.name ? 'bg-[#C5A059] text-white border-[#C5A059]' : 'bg-white text-stone-400 border-stone-100 hover:text-[#C5A059]'}`}>
+                                {c.name}
                             </button>
                         ))
                     }
                 </div >
+
+                {/* Bulk Actions Toolbar */}
+                {filteredProducts.length > 0 && (
+                    <div className="flex items-center justify-between py-3 px-4 bg-stone-50 rounded-xl border border-stone-100">
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={toggleSelectAll}
+                                className="flex items-center gap-2 text-[10px] font-bold text-stone-600 hover:text-stone-900 transition-colors"
+                            >
+                                {selectedIds.size === filteredProducts.length && filteredProducts.length > 0 ? (
+                                    <CheckSquare size={16} className="text-[#C5A059]" />
+                                ) : (
+                                    <Square size={16} />
+                                )}
+                                <span>{selectedIds.size === filteredProducts.length && filteredProducts.length > 0 ? 'Deselect All' : 'Select All'}</span>
+                            </button>
+                            {selectedIds.size > 0 && (
+                                <span className="text-[10px] font-bold text-[#C5A059] uppercase tracking-widest">
+                                    {selectedIds.size} selected
+                                </span>
+                            )}
+                        </div>
+                        {selectedIds.size > 0 && (
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={handleBulkDelete}
+                                    disabled={isBulkDeleting}
+                                    className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-red-100 transition-colors disabled:opacity-50"
+                                >
+                                    <Trash2 size={14} />
+                                    <span>{isBulkDeleting ? 'Deleting...' : 'Delete Selected'}</span>
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 <div className="grid gap-4">
                     {filteredProducts.map(p => (
@@ -427,6 +706,20 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ products, brands }) => {
                             className="bg-white p-4 pr-6 rounded-[1.5rem] border border-stone-100 shadow-sm flex items-center justify-between group hover:shadow-md transition-all"
                         >
                             <div className="flex items-center gap-5">
+                                {/* Bulk Selection Checkbox */}
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleSelect(p.id);
+                                    }}
+                                    className="flex-shrink-0 text-stone-400 hover:text-[#C5A059] transition-colors"
+                                >
+                                    {selectedIds.has(p.id) ? (
+                                        <CheckSquare size={18} className="text-[#C5A059]" />
+                                    ) : (
+                                        <Square size={18} />
+                                    )}
+                                </button>
                                 <div className="w-16 h-20 bg-stone-50 rounded-xl flex items-center justify-center p-2 border border-stone-100">
                                     {p.images[0] ? <img src={p.images[0]} className="max-h-full max-w-full object-contain mix-blend-multiply" /> : <ImageIcon size={20} className="text-stone-300" />}
                                 </div>
@@ -442,6 +735,14 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ products, brands }) => {
                                             {p.stock > 0 ? `In Stock (${p.stock})` : 'Sold Out'}
                                         </span>
                                         {p.isVisible === false && <span className="px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-stone-100 text-stone-500">Hidden</span>}
+                                        {(() => {
+                                            const risk = getStockoutRisk(p);
+                                            return (
+                                                <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${risk.bg} ${risk.color}`}>
+                                                    {risk.label}
+                                                </span>
+                                            );
+                                        })()}
                                     </div>
                                 </div>
                             </div>

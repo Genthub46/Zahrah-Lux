@@ -1,5 +1,5 @@
 
-import { Order, ViewLog } from '../types';
+import { Order, ViewLog, Product } from '../types';
 
 export const processDailySales = (orders: Order[]) => {
     const salesMap = new Map<string, number>();
@@ -63,4 +63,70 @@ export const processConversionData = (logs: ViewLog[], orders: Order[]) => {
         { name: 'Product Views', value: totalVisits },
         { name: 'Purchases', value: totalOrders }
     ];
+};
+
+export const processProfitability = (orders: Order[], products: Product[]) => {
+    const dataMap = new Map<string, { revenue: number, cost: number, profit: number }>();
+
+    // Initialize last 7 days
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        dataMap.set(dateStr, { revenue: 0, cost: 0, profit: 0 });
+    }
+
+    orders.forEach(order => {
+        const dateStr = new Date(order.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        if (dataMap.has(dateStr)) {
+            const entry = dataMap.get(dateStr)!;
+
+            // Calculate Cost for this order
+            let orderCost = 0;
+            order.items.forEach(item => {
+                // Find current cost of product
+                const product = products.find(p => p.id === item.id);
+                const costPrice = product?.costPrice || 0;
+                orderCost += costPrice * item.quantity;
+            });
+
+            const orderRevenue = order.total;
+            const orderProfit = orderRevenue - orderCost;
+
+            entry.revenue += orderRevenue;
+            entry.cost += orderCost;
+            entry.profit += orderProfit;
+
+            dataMap.set(dateStr, entry);
+        }
+    });
+
+    return Array.from(dataMap).map(([date, data]) => ({
+        date,
+        ...data
+    }));
+};
+
+export const calculateInventoryVelocity = (orders: Order[]) => {
+    const velocityMap = new Map<string, number>();
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    orders.forEach(order => {
+        const orderDate = new Date(order.date);
+        if (orderDate >= thirtyDaysAgo) {
+            order.items.forEach(item => {
+                const current = velocityMap.get(item.id) || 0;
+                velocityMap.set(item.id, current + item.quantity);
+            });
+        }
+    });
+
+    // Convert total 30-day sales to daily average
+    const result = new Map<string, number>();
+    velocityMap.forEach((total, id) => {
+        result.set(id, total / 30);
+    });
+
+    return result;
 };

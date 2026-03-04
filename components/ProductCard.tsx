@@ -53,12 +53,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
           width="500"
           height="625"
           loading="lazy"
-          className={`max-h-full max-w-full object-contain transition-transform duration-[1.2s] ease-out group-hover/card:scale-105 ${isSoldOut ? 'grayscale opacity-60' : ''}`}
+          className={`max-h-full max-w-full object-contain transition-transform duration-700 ease-out group-hover/card:scale-105 ${isSoldOut ? 'grayscale opacity-60' : ''}`}
         />
 
         {/* Manual Image Swap Button - Minimalist */}
         {hasMultipleImages && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 opacity-0 group-hover/card:opacity-100 transition-opacity duration-500 z-20">
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 z-20">
             {product.images.slice(0, 3).map((_, idx) => (
               <button
                 key={idx}
@@ -67,6 +67,20 @@ const ProductCard: React.FC<ProductCardProps> = ({
               />
             ))}
           </div>
+        )}
+
+        {/* Quick Add Button */}
+        {!isSoldOut && onAddToCart && (
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onAddToCart(product, 1);
+            }}
+            className="absolute bottom-0 inset-x-0 bg-[#C5A059] text-white text-[10px] font-bold uppercase tracking-widest py-3 translate-y-full group-hover/card:translate-y-0 transition-transform duration-300 ease-in-out z-20 flex items-center justify-center gap-2 hover:bg-[#b08d4b]"
+          >
+            <span>Quick Add</span>
+          </button>
         )}
 
         {/* Floating Heart Icon - Premium Minimal */}
@@ -90,6 +104,14 @@ const ProductCard: React.FC<ProductCardProps> = ({
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
             <div className="px-4 py-2 border border-stone-900 bg-white/90 backdrop-blur-sm text-stone-900 text-[10px] font-bold uppercase tracking-[0.2em]">
               Sold Out
+            </div>
+          </div>
+        )}
+
+        {!isSoldOut && product.stock < 5 && (
+          <div className="absolute top-3 left-3 z-20">
+            <div className="px-3 py-1 bg-red-600/90 backdrop-blur-sm text-white text-[9px] font-bold uppercase tracking-widest rounded-sm shadow-sm">
+              Low Stock
             </div>
           </div>
         )}

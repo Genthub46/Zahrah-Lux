@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zahrah Luxury Boutique - Monthly Progress Report</title>
+    <style>
+        body {
+            font-family: "Garamond", "Times New Roman", serif;
+            /* Luxury Feel */
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px;
+            background-color: #fff;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: "Didot", "Playfair Display", serif;
+            color: #1a1a1a;
+            margin-top: 1.5em;
+        }
+
+        h1 {
+            border-bottom: 2px solid #C5A059;
+            /* Gold accent */
+            padding-bottom: 10px;
+            font-size: 2.5em;
+            text-align: center;
+        }
+
+        .meta {
+            text-align: center;
+            font-style: italic;
+            color: #666;
+            margin-bottom: 40px;
+        }
+
+        h2 {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+            font-size: 1.5em;
+            margin-top: 40px;
+        }
+
+        h3 {
+            font-size: 1.2em;
+            color: #444;
+            margin-top: 25px;
+        }
+
+        ul {
+            list-style-type: none;
+            /* Remove default bullets */
+            padding-left: 0;
+        }
+
+        li {
+            margin-bottom: 10px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        li::before {
+            content: "•";
+            color: #C5A059;
+            /* Gold bullet */
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        .highlight {
+            font-weight: bold;
+            color: #000;
+        }
+
+        .value-prop {
+            font-style: italic;
+            color: #555;
+            margin-top: 5px;
+            display: block;
+        }
+
+        @media print {
+            body {
+                padding: 0;
+                margin: 20px;
+            }
+
+            a {
+                text-decoration: none;
+                color: #000;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Monthly Progress Report</h1>
+    <div class="meta">
+        <strong>Project:</strong> Zahrah Luxury Boutique Web App<br>
+        <strong>Date:</strong> February 11, 2026
+    </div>
+
+    <h2>Executive Summary</h2>
+    <p>This month focused on transforming the platform from a simple storefront into an intelligent, data-driven
+        business tool. We successfully deployed critical <strong>Operational Research</strong> features to track
+        profitability and optimize inventory, while simultaneously enhancing the customer shopping experience and
+        stabilizing the administrative backend.</p>
+
+    <h2>Key Features Delivered</h2>
+
+    <h3>1. Operational Intelligence (New)</h3>
+    <ul>
+        <li><span class="highlight">Profitability Tracking:</span>
+            <ul>
+                <li><strong>Cost Price Management:</strong> Added the ability to input and track the Cost Price for each
+                    product in the Admin Panel.</li>
+                <li><strong>Real-Time Margin Analysis:</strong> Launched a new Analytics Dashboard that calculates
+                    <strong>Gross Profit</strong> and <strong>Net Margin</strong> in real-time.</li>
+                <li><strong>Profit Trends:</strong> Visualized revenue vs. cost performance over the last 7 days to
+                    identify profitable periods.</li>
+                <li><span class="value-prop">Business Value: You can now see exactly how much profit you are making, not
+                        just total revenue.</span></li>
+            </ul>
+        </li>
+    </ul>
+
+    <h3>2. Inventory Optimization</h3>
+    <ul>
+        <li><span class="highlight">Scarcity Marketing (Low Stock Alerts):</span>
+            <ul>
+                <li><strong>"Hurry! Only X Left":</strong> Products with low stock (< 5 units) now display urgent
+                        messages on the product page.</li>
+                <li><strong>Visual Badges:</strong> A "Low Stock" red badge appears on product cards in the catalog to
+                    drive impulse clicks.</li>
+                <li><span class="value-prop">Business Value: Creates urgency for customers to buy now, increasing
+                        conversion rates and clearing slow-moving inventory.</span></li>
+            </ul>
+        </li>
+    </ul>
+
+    <h3>3. User Experience (UX) Enhancements</h3>
+    <ul>
+        <li><span class="highlight">Smart Recommendations:</span>
+            <ul>
+                <li><strong>"Curated Similarities" Widget:</strong> Automatically suggests related products on the
+                    detail page.</li>
+                <li><strong>Inventory-Aware Sorting:</strong> The system now prioritizes <em>in-stock</em> items in
+                    recommendations, preventing users from clicking on sold-out goods.</li>
+            </ul>
+        </li>
+        <li><span class="highlight">Post-Purchase Flow:</span>
+            <ul>
+                <li>Optimized the order confirmation screen to encourage account creation ("Sign Up" / "Log In") for
+                    better customer retention.</li>
+            </ul>
+        </li>
+        <li><span class="highlight">Category Unification:</span>
+            <ul>
+                <li>Standardized product categories across the Storefront and Admin Panel for a consistent browsing
+                    experience.</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h3>4. System Stability & Deployment</h3>
+    <ul>
+        <li><span class="highlight">Admin Panel Refinements:</span>
+            <ul>
+                <li>Fixed critical bugs in the <strong>Orders</strong>, <strong>Customers</strong>, and
+                    <strong>Dashboard</strong> tabs to ensure accurate data reporting.</li>
+                <li>Resolved data display issues in the Admin tables.</li>
+            </ul>
+        </li>
+        <li><span class="highlight">Live Deployment:</span>
+            <ul>
+                <li>Successfully deployed the full application to <strong>Firebase Hosting</strong>.</li>
+                <li>The platform is now live and accessible globally at <code>https://zahrah-boutique.web.app</code>.
+                </li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>Technical Improvements</h2>
+    <ul>
+        <li><strong>Codebase Optimization:</strong> Improved build times and reduced bundle sizes for faster page loads.
+        </li>
+        <li><strong>Database Integrity:</strong> Implemented robust data models for <code>Product</code> costs and
+            <code>Order</code> tracking to support future analytics features.</li>
+    </ul>
+
+    <h2>Next Steps (Upcoming)</h2>
+    <ul>
+        <li><strong>Advanced Forecasting:</strong> Implementing algorithms to predict when stock will run out.</li>
+        <li><strong>Dynamic Pricing:</strong> Tools to adjust prices based on demand rules.</li>
+        <li><strong>Customer Segmentation:</strong> Grouping customers by spending habits for targeted marketing.</li>
+    </ul>
+
+</body>
+
+</html>

@@ -44,7 +44,7 @@ const Logo: React.FC<LogoProps> = ({ className = "", size = "100%" }) => {
       <g fill="url(#goldGradient)">
         <path d="M80 55 L75 40 L90 48 L100 35 L110 48 L125 40 L120 55 H80Z" />
         <circle cx="75" cy="38" r="2" />
-        <circle cx="100" cy="33" r="2.5" />
+        <circle cx="100" cy="33 " r="2.5" />
         <circle cx="125" cy="38" r="2" />
       </g>
 

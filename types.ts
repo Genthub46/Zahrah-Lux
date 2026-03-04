@@ -6,7 +6,7 @@ export interface Product {
   price: number;
   images: string[];
   description: string;
-  category: 'Apparel' | 'Footwear' | 'Accessories' | 'Beauty' | 'Travel' | 'Watches' | 'Perfumes' | 'Bags' | 'Other';
+  category: string;
   stock: number;
   tags: string[];
   colors?: { name: string; hex: string; image?: string }[];
@@ -15,6 +15,7 @@ export interface Product {
   composition?: string[];
   specifications?: string[];
   isVisible?: boolean;
+  costPrice?: number;
 }
 
 export interface CartItem extends Product {
@@ -36,6 +37,7 @@ export interface Order {
   paymentMethod?: 'Paystack' | 'COD';
   paymentStatus?: 'Paid' | 'Pending' | 'Failed';
   paymentReference?: string;
+  userId?: string;
 }
 
 export interface Review {
@@ -78,13 +80,30 @@ export interface HomeLayoutConfig {
   showFeatures?: boolean;
   showBoutique?: boolean;
   boutiqueBannerImage?: string;
+  boutiqueBannerTitle?: string; // NEW: Customizable Title
   showManor?: boolean;
   manorProductIds?: string[];
   showStyling?: boolean;
-  stylingProductIds?: string[];
+  stylingProductIds?: string[]; // Legacy fallback
+  stylingLooks?: {            // NEW: Multiple Looks
+    id: string;
+    image: string;
+    title: string;
+    price: string;
+    productIds: string[];
+    hotspots?: { x: number; y: number; label: string; price?: string }[];
+  }[];
   showBundles?: boolean;
   bundlesProductIds?: string[];
   showLifestyle?: boolean;
+
+  // Dynamic Content
+  heroImage?: string;
+  lifestyleImages?: [string, string];
+
+  // NEW: Manual overrides for Curated Picks tabs
+  curatedPicks?: Record<string, string[]>; // e.g., { 'T-Shirts': ['id1', 'id2'] }
+  curatedCategories?: { id: string; label: string; isVisible: boolean }[];
 }
 
 export interface FooterPage {
@@ -97,4 +116,32 @@ export interface FooterPage {
 export interface Brand {
   id: string;
   name: string;
+}
+
+export interface AdminLog {
+  id: string;
+  action: string;
+  details: string;
+  userEmail: string;
+  timestamp: number;
+  // Enhanced audit trail fields
+  ipAddress?: string;
+  userAgent?: string;
+  beforeState?: string; // JSON string of previous state
+  afterState?: string;  // JSON string of new state
+  resourceType?: string;
+  resourceId?: string;
+}
+
+
+export interface UserProfile {
+  uid: string;
+  name: string;
+  email: string;
+  role: 'customer' | 'admin' | 'super_admin' | 'manager' | 'support' | 'viewer';
+  permissions?: string[]; // Custom permission overrides
+  twoFactorEnabled?: boolean;
+  twoFactorSecret?: string;
+  lastLoginAt?: string;
+  createdAt: string;
 }

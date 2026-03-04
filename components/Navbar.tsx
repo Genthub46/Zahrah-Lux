@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { User } from 'firebase/auth';
 import { auth } from '../services/firebaseConfig';
 import { signOut } from 'firebase/auth';
-import { subscribeToBrands } from '../services/dbUtils';
+import { subscribeToBrands, subscribeToCategories } from '../services/dbUtils';
 import { ADMIN_EMAILS } from '../constants';
 
 interface NavbarProps {
@@ -18,32 +18,45 @@ interface NavbarProps {
 
 const MENU_HIERARCHY = {
   Men: [
-    { label: 'All', path: '/?tag=men' },
+    { label: 'All', path: '/' },
     {
       label: 'Clothing',
       subItems: [
         { label: 'T-shirts', path: '/?tag=men&category=t-shirts' },
         { label: 'Shirts', path: '/?tag=men&category=shirts' },
-        { label: 'Pants', path: '/?tag=men&category=pants' },
+        { label: 'Boxers', path: '/?tag=men&category=boxers' },
         { label: 'Shorts', path: '/?tag=men&category=shorts' },
         { label: 'Jackets', path: '/?tag=men&category=jackets' },
-        { label: 'Vests', path: '/?tag=men&category=vests' },
+        { label: 'Underwear', path: '/?tag=men&category=underwear' },
+        { label: 'Chinos', path: '/?tag=men&category=chinos' },
+        { label: 'Pant', path: '/?tag=men&category=pant' },
+        { label: 'Trousers', path: '/?tag=men&category=trousers' },
+        { label: 'Jeans', path: '/?tag=men&category=jeans' },
+        { label: 'Two Piece', path: '/?tag=men&category=two-piece' },
       ]
     },
-    { label: 'Jersey', path: '/?tag=men&category=jersey' },
-    { label: 'Accessories', path: '/?tag=men&category=accessories' },
-    { label: 'Slides', path: '/?tag=men&category=slides' },
+    { label: 'Jerseys', path: '/?tag=men&category=jerseys' },
+    {
+      label: 'Accessories',
+      subItems: [
+        { label: 'Belts', path: '/?tag=men&category=belts' },
+        { label: 'Headwears', path: '/?tag=men&category=headwears' },
+        { label: 'Sunglasses', path: '/?tag=men&category=sunglasses' },
+      ]
+    }
   ],
   Women: [
-    { label: 'All', path: '/?tag=women' },
-    { label: 'Tops', path: '/?tag=women&category=tops' },
-    { label: 'Bottoms', path: '/?tag=women&category=bottoms' },
-    { label: 'Dresses', path: '/?tag=women&category=dresses' },
-    { label: 'Jerseys', path: '/?tag=women&category=jerseys' },
-    { label: 'Accessories', path: '/?tag=women&category=accessories' },
-    { label: 'Swimwear', path: '/?tag=women&category=swimwear' },
-    { label: 'Jackets', path: '/?tag=women&category=jackets' },
-    { label: 'Slides', path: '/?tag=women&category=slides' },
+    { label: 'All', path: '/' },
+    { label: 'Dress', path: '/?tag=women&category=dress' },
+    { label: 'Top', path: '/?tag=women&category=top' },
+    { label: 'Gown', path: '/?tag=women&category=gown' },
+    { label: 'Trouser', path: '/?tag=women&category=trouser' },
+  ],
+  Collections: [
+    { label: 'Zara', path: '/?brand=zara' },
+    { label: 'Boohooman', path: '/?brand=boohooman' },
+    { label: 'Pull & Bear', path: '/?brand=pull-bear' },
+    { label: 'Bershka', path: '/?brand=bershka' },
   ]
 };
 
@@ -51,7 +64,10 @@ const Navbar: React.FC<NavbarProps> = ({ cartCount, wishlistCount, user }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const [activeSubMenu, setActiveSubMenu] = useState<string | null>(null);
+  const [expandedMobileMenu, setExpandedMobileMenu] = useState<string | null>(null);
   const [brands, setBrands] = useState<{ id: string; name: string }[]>([]);
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
 
   const navRef = useRef<HTMLElement>(null);
@@ -68,11 +84,19 @@ const Navbar: React.FC<NavbarProps> = ({ cartCount, wishlistCount, user }) => {
   }, []);
 
   useEffect(() => {
-    const unsub = subscribeToBrands((data) => {
+    const unsubBrands = subscribeToBrands((data) => {
       setBrands(data.sort((a, b) => a.name.localeCompare(b.name)));
     });
-    return () => unsub();
+    const unsubCats = subscribeToCategories((data) => {
+      setCategories(data.sort((a, b) => a.name.localeCompare(b.name)));
+    });
+    return () => {
+      unsubBrands();
+      unsubCats();
+    };
   }, []);
+
+
 
   useEffect(() => {
     // Close menus on route change
@@ -133,7 +157,7 @@ const Navbar: React.FC<NavbarProps> = ({ cartCount, wishlistCount, user }) => {
             {!isAdmin && (
               <>
                 {/* Men Dropdown */}
-                <div className="relative" onMouseEnter={() => setActiveMenu('Men')} onMouseLeave={() => setActiveMenu(null)}>
+                <div className="relative" onMouseEnter={() => setActiveMenu('Men')} onMouseLeave={() => { setActiveMenu(null); setActiveSubMenu(null); }}>
                   <button className={`${linkClass} flex items-center`}>
                     Men
                   </button>
@@ -145,29 +169,81 @@ const Navbar: React.FC<NavbarProps> = ({ cartCount, wishlistCount, user }) => {
                         exit={{ opacity: 0, y: 10 }}
                         className="absolute top-full left-1/2 -translate-x-1/2 pt-8"
                       >
-                        <div className="bg-white/95 backdrop-blur-xl border border-stone-100 shadow-2xl shadow-stone-200/50 p-8 min-w-[400px] grid grid-cols-2 gap-12 rounded-sm">
-                          {MENU_HIERARCHY.Men.map((item: any, idx) => (
-                            <div key={idx} className="space-y-4">
-                              {item.subItems ? (
-                                <div className="space-y-4">
-                                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#C5A059] border-b border-stone-100 pb-2">{item.label}</p>
-                                  <ul className="space-y-2">
-                                    {item.subItems.map((sub: any) => (
-                                      <li key={sub.label}>
-                                        <button onClick={() => handleLinkClick(sub.path)} className="text-sm font-serif text-stone-500 hover:text-stone-900 hover:translate-x-1 transition-all text-left w-full block py-1">
-                                          {sub.label}
-                                        </button>
-                                      </li>
-                                    ))}
-                                  </ul>
+                        <div className="bg-white/95 backdrop-blur-xl border border-stone-100 shadow-2xl shadow-stone-200/50 w-[500px] flex rounded-sm overflow-hidden min-h-[420px]">
+                          {/* Inner Padding Wrapper */}
+                          <div className="flex flex-1 p-10">
+                            {/* Left Column - Main Categories */}
+                            <div className="w-48 space-y-5 pr-8 border-r border-stone-100 shrink-0">
+                              {MENU_HIERARCHY.Men.map((item: any, idx) => (
+                                <div
+                                  key={idx}
+                                  onMouseEnter={() => setActiveSubMenu(item.label)}
+                                >
+                                  {item.subItems ? (
+                                    <button className={`text-[10px] font-bold uppercase tracking-[0.25em] transition-all duration-300 text-left w-full pb-2 flex justify-between items-center cursor-default ${activeSubMenu === item.label ? 'text-stone-900 translate-x-2' : 'text-stone-400 hover:text-stone-900'}`}>
+                                      {item.label}
+                                      <ChevronRight size={14} className={`transition-transform duration-500 ease-out ${activeSubMenu === item.label ? 'translate-x-0 opacity-100 text-[#C5A059]' : 'opacity-0 -translate-x-4'}`} />
+                                    </button>
+                                  ) : (
+                                    <button onClick={() => handleLinkClick(item.path)} className="text-[10px] font-bold uppercase tracking-[0.25em] text-stone-400 hover:text-stone-900 hover:translate-x-2 transition-all duration-300 text-left w-full pb-2 group/btn">
+                                      {item.label}
+                                    </button>
+                                  )}
                                 </div>
-                              ) : (
-                                <button onClick={() => handleLinkClick(item.path)} className="text-[11px] font-bold uppercase tracking-[0.2em] text-stone-900 hover:text-[#C5A059] transition-colors text-left w-full border-b border-stone-100 pb-2">
-                                  {item.label}
-                                </button>
+                              ))}
+                            </div>
+
+                            {/* Right Column - Sub Items */}
+                            <div className="flex-1 relative pl-8">
+                              <AnimatePresence>
+                                {MENU_HIERARCHY.Men.map((item: any) => {
+                                  if (item.label === activeSubMenu && item.subItems) {
+                                    return (
+                                      <motion.div
+                                        key={item.label}
+                                        initial="hidden"
+                                        animate="visible"
+                                        exit="hidden"
+                                        variants={{
+                                          hidden: { opacity: 0 },
+                                          visible: { opacity: 1, transition: { staggerChildren: 0.04 } }
+                                        }}
+                                        className="absolute top-0 left-8 right-0 pr-4"
+                                      >
+                                        <motion.p
+                                          variants={{ hidden: { opacity: 0, x: -10 }, visible: { opacity: 1, x: 0 } }}
+                                          className="text-[9px] font-black uppercase tracking-[0.3em] text-[#C5A059] border-b border-stone-100 pb-3 mb-6"
+                                        >
+                                          {item.label} Collection
+                                        </motion.p>
+                                        <ul className="grid grid-cols-2 gap-y-4 gap-x-2">
+                                          {item.subItems.map((sub: any) => (
+                                            <motion.li
+                                              key={sub.label}
+                                              variants={{ hidden: { opacity: 0, y: 5 }, visible: { opacity: 1, y: 0 } }}
+                                            >
+                                              <button onClick={() => handleLinkClick(sub.path)} className="text-[13px] font-serif text-stone-500 hover:text-stone-900 hover:translate-x-1.5 transition-all duration-300 text-left w-full block">
+                                                {sub.label}
+                                              </button>
+                                            </motion.li>
+                                          ))}
+                                        </ul>
+                                      </motion.div>
+                                    );
+                                  }
+                                  return null;
+                                })}
+                              </AnimatePresence>
+
+                              {/* Empty State / Hint */}
+                              {!activeSubMenu && (
+                                <div className="absolute inset-0 left-8 flex flex-col items-center justify-center opacity-40 pointer-events-none">
+                                  <div className="w-8 h-px bg-stone-300 mb-4" />
+                                  <span className="text-[8px] uppercase tracking-[0.4em] font-bold text-stone-400">Select a Category</span>
+                                </div>
                               )}
                             </div>
-                          ))}
+                          </div>
                         </div>
                       </motion.div>
                     )}
@@ -200,13 +276,13 @@ const Navbar: React.FC<NavbarProps> = ({ cartCount, wishlistCount, user }) => {
                   </AnimatePresence>
                 </div>
 
-                {/* Brands Dropdown */}
-                <div className="relative" onMouseEnter={() => setActiveMenu('Brands')} onMouseLeave={() => setActiveMenu(null)}>
+                {/* Collections Dropdown */}
+                <div className="relative" onMouseEnter={() => setActiveMenu('Collections')} onMouseLeave={() => setActiveMenu(null)}>
                   <button className={`${linkClass} flex items-center`}>
-                    Categories
+                    Collections
                   </button>
                   <AnimatePresence>
-                    {activeMenu === 'Brands' && (
+                    {activeMenu === 'Collections' && (
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -214,13 +290,15 @@ const Navbar: React.FC<NavbarProps> = ({ cartCount, wishlistCount, user }) => {
                         className="absolute top-full left-1/2 -translate-x-1/2 pt-8"
                       >
                         <div className="bg-white/95 backdrop-blur-xl border border-stone-100 shadow-2xl shadow-stone-200/50 p-8 min-w-[300px] max-h-[60vh] overflow-y-auto rounded-sm scrollbar-thin scrollbar-thumb-stone-200 scrollbar-track-transparent">
-                          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#C5A059] mb-6 border-b border-stone-100 pb-2">Our Brands</p>
+                          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#C5A059] mb-6 border-b border-stone-100 pb-2">Brands</p>
                           <div className="grid grid-cols-1 gap-1">
-                            {brands.map((brand) => (
-                              <button key={brand.id} onClick={() => handleLinkClick(`/?brand=${brand.name.toLowerCase()}`)} className="text-sm font-serif text-stone-500 hover:text-stone-900 hover:pl-2 transition-all text-left truncate py-1.5 border-b border-stone-50 last:border-0 hover:bg-stone-50 px-2 rounded-sm">
+                            {brands.length > 0 ? brands.map((brand) => (
+                              <button key={brand.id} onClick={() => handleLinkClick(`/?brand=${encodeURIComponent(brand.name)}`)} className="text-sm font-serif text-stone-500 hover:text-stone-900 hover:pl-2 transition-all text-left truncate py-1.5 border-b border-stone-50 last:border-0 hover:bg-stone-50 px-2 rounded-sm">
                                 {brand.name}
                               </button>
-                            ))}
+                            )) : (
+                              <span className="text-xs text-stone-400 italic">No collections available</span>
+                            )}
                           </div>
                         </div>
                       </motion.div>
@@ -284,9 +362,12 @@ const Navbar: React.FC<NavbarProps> = ({ cartCount, wishlistCount, user }) => {
                     className="absolute top-full right-0 mt-6 w-56 bg-white border border-stone-100 shadow-xl p-0 rounded-sm overflow-hidden"
                   >
                     <div className="px-6 py-4 border-b border-stone-50 bg-stone-50/50">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-stone-900 truncate">{user.displayName || 'Member'}</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-stone-900 truncate">{isAdminUser ? 'Admin' : (user.displayName?.split(' ')[0] || 'Member')}</p>
                       <p className="text-[9px] text-stone-400 truncate mt-1">{user.email}</p>
                     </div>
+                    <button onClick={() => handleLinkClick('/orders')} className="w-full text-left px-6 py-4 text-[9px] font-bold tracking-[0.2em] uppercase text-stone-500 hover:bg-stone-50 hover:text-stone-900 transition-colors flex items-center gap-3 border-b border-stone-50">
+                      <ShoppingBag size={12} /> My Orders
+                    </button>
                     <button onClick={handleSignOut} className="w-full text-left px-6 py-4 text-[9px] font-bold tracking-[0.2em] uppercase text-red-400 hover:bg-stone-50 transition-colors flex items-center gap-3">
                       <LogOut size={12} /> Sign Out
                     </button>
@@ -329,12 +410,12 @@ const Navbar: React.FC<NavbarProps> = ({ cartCount, wishlistCount, user }) => {
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed top-0 left-0 bottom-0 w-[85vw] max-w-sm bg-white z-[11001] shadow-2xl flex flex-col"
+              className="fixed top-0 left-0 h-[100dvh] w-full max-w-sm bg-white z-[11001] shadow-2xl flex flex-col"
               onClick={e => e.stopPropagation()}
             >
               {/* Header */}
               <div className="p-8 flex justify-between items-center border-b border-stone-100">
-                <span className="text-xs font-black uppercase tracking-[0.2em] text-stone-900">Of Menu</span>
+                <span className="text-xs font-black uppercase tracking-[0.2em] text-stone-900">Main Menu</span>
                 <button
                   onClick={() => setIsOpen(false)}
                   className="p-2 -mr-2 text-stone-400 hover:text-stone-900 hover:bg-stone-50 rounded-full transition-colors"
@@ -359,28 +440,139 @@ const Navbar: React.FC<NavbarProps> = ({ cartCount, wishlistCount, user }) => {
 
                 {/* Collections Group */}
                 <div className="px-6 pt-4 pb-2">
-                  <p className="text-[8px] font-black uppercase tracking-widest text-stone-300">Collections</p>
+                  <p className="text-[8px] font-black uppercase tracking-widest text-stone-300">Categories</p>
                 </div>
 
-                <button
-                  onClick={() => handleLinkClick('/?tag=men')}
-                  className="flex items-center space-x-4 w-full px-6 py-4 rounded-xl text-[10px] font-bold tracking-widest uppercase text-stone-400 hover:bg-stone-50 hover:text-stone-900 transition-all group"
-                >
-                  <div className="bg-stone-50 p-2 rounded-lg group-hover:bg-white group-hover:shadow-sm transition-all">
-                    <div className="w-4 h-4 rounded-full border border-stone-300 group-hover:border-[#C5A059]" />
-                  </div>
-                  <span>Men</span>
-                </button>
+                {/* Mobile Accordion: MEN */}
+                <div className="flex flex-col">
+                  <button
+                    onClick={() => setExpandedMobileMenu(prev => prev === 'Men' ? null : 'Men')}
+                    className="flex justify-between items-center w-full px-6 py-4 rounded-xl text-[10px] font-bold tracking-widest uppercase text-stone-400 hover:bg-stone-50 hover:text-stone-900 transition-all group"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="bg-stone-50 p-2 rounded-lg group-hover:bg-white group-hover:shadow-sm transition-all">
+                        <div className="w-4 h-4 rounded-full border border-stone-300 group-hover:border-[#C5A059]" />
+                      </div>
+                      <span>Men</span>
+                    </div>
+                    <ChevronDown size={14} className={`transition-transform duration-300 ${expandedMobileMenu === 'Men' ? 'rotate-180 text-[#C5A059]' : 'text-stone-300'}`} />
+                  </button>
+                  <AnimatePresence>
+                    {expandedMobileMenu === 'Men' && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden bg-stone-50/50 rounded-xl mx-4 mb-2"
+                      >
+                        <div className="p-4 space-y-4">
+                          {MENU_HIERARCHY.Men.map(item => (
+                            <div key={item.label} className="space-y-2">
+                              {item.subItems ? (
+                                <>
+                                  <p className="text-[8px] font-bold tracking-[0.2em] uppercase text-stone-400 pl-4">{item.label}</p>
+                                  <div className="pl-6 space-y-3 mt-2 border-l border-stone-200 ml-4 py-1">
+                                    {item.subItems.map(subItem => (
+                                      <button
+                                        key={subItem.label}
+                                        onClick={() => handleLinkClick(subItem.path)}
+                                        className="block text-left text-[10px] font-serif tracking-widest uppercase text-stone-500 hover:text-stone-900 w-full"
+                                      >
+                                        {subItem.label}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </>
+                              ) : (
+                                <button
+                                  onClick={() => handleLinkClick(item.path)}
+                                  className="block text-left text-[10px] font-bold tracking-[0.2em] uppercase text-stone-700 hover:text-[#C5A059] pl-4 w-full"
+                                >
+                                  {item.label}
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
 
-                <button
-                  onClick={() => handleLinkClick('/?tag=women')}
-                  className="flex items-center space-x-4 w-full px-6 py-4 rounded-xl text-[10px] font-bold tracking-widest uppercase text-stone-400 hover:bg-stone-50 hover:text-stone-900 transition-all group"
-                >
-                  <div className="bg-stone-50 p-2 rounded-lg group-hover:bg-white group-hover:shadow-sm transition-all">
-                    <div className="w-4 h-4 rounded-full border border-stone-300 group-hover:border-[#C5A059]" />
-                  </div>
-                  <span>Women</span>
-                </button>
+                {/* Mobile Accordion: WOMEN */}
+                <div className="flex flex-col">
+                  <button
+                    onClick={() => setExpandedMobileMenu(prev => prev === 'Women' ? null : 'Women')}
+                    className="flex justify-between items-center w-full px-6 py-4 rounded-xl text-[10px] font-bold tracking-widest uppercase text-stone-400 hover:bg-stone-50 hover:text-stone-900 transition-all group"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="bg-stone-50 p-2 rounded-lg group-hover:bg-white group-hover:shadow-sm transition-all">
+                        <div className="w-4 h-4 rounded-full border border-stone-300 group-hover:border-[#C5A059]" />
+                      </div>
+                      <span>Women</span>
+                    </div>
+                    <ChevronDown size={14} className={`transition-transform duration-300 ${expandedMobileMenu === 'Women' ? 'rotate-180 text-[#C5A059]' : 'text-stone-300'}`} />
+                  </button>
+                  <AnimatePresence>
+                    {expandedMobileMenu === 'Women' && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden bg-stone-50/50 rounded-xl mx-4 mb-2"
+                      >
+                        <div className="p-4 space-y-4">
+                          {MENU_HIERARCHY.Women.map((item: any) => (
+                            <div key={item.label} className="space-y-2">
+                              {item.subItems ? (
+                                <>
+                                  <p className="text-[8px] font-bold tracking-[0.2em] uppercase text-stone-400 pl-4">{item.label}</p>
+                                  <div className="pl-6 space-y-3 mt-2 border-l border-stone-200 ml-4 py-1">
+                                    {item.subItems.map(subItem => (
+                                      <button
+                                        key={subItem.label}
+                                        onClick={() => handleLinkClick(subItem.path)}
+                                        className="block text-left text-[10px] font-serif tracking-widest uppercase text-stone-500 hover:text-stone-900 w-full"
+                                      >
+                                        {subItem.label}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </>
+                              ) : (
+                                <button
+                                  onClick={() => handleLinkClick(item.path)}
+                                  className="block text-left text-[10px] font-bold tracking-[0.2em] uppercase text-stone-700 hover:text-[#C5A059] pl-4 w-full"
+                                >
+                                  {item.label}
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                <div className="px-6 pt-4 pb-2">
+                  <p className="text-[8px] font-black uppercase tracking-widest text-stone-300">Brands</p>
+                </div>
+
+                {brands.length > 0 ? brands.map(brand => (
+                  <button
+                    key={brand.id}
+                    onClick={() => handleLinkClick(`/?brand=${encodeURIComponent(brand.name)}`)}
+                    className="flex items-center space-x-4 w-full px-6 py-4 rounded-xl text-[10px] font-bold tracking-widest uppercase text-stone-400 hover:bg-stone-50 hover:text-stone-900 transition-all group"
+                  >
+                    <div className="bg-stone-50 p-2 rounded-lg group-hover:bg-white group-hover:shadow-sm transition-all">
+                      <div className="w-4 h-4 rounded-full border border-stone-300 group-hover:border-[#C5A059]" />
+                    </div>
+                    <span>{brand.name}</span>
+                  </button>
+                )) : (
+                  <div className="px-6 py-4 text-xs italic text-stone-400">No collections available</div>
+                )}
 
                 <button
                   onClick={() => handleLinkClick('/lookbook')}
@@ -422,6 +614,15 @@ const Navbar: React.FC<NavbarProps> = ({ cartCount, wishlistCount, user }) => {
                       <p className="text-[8px] font-black uppercase tracking-widest text-stone-300">Signed In As</p>
                       <p className="text-[10px] font-bold text-stone-900 mt-1 truncate">{user.email}</p>
                     </div>
+                    <button
+                      onClick={() => handleLinkClick('/orders')}
+                      className="flex items-center space-x-4 w-full px-6 py-4 rounded-xl text-[10px] font-bold tracking-widest uppercase text-stone-400 hover:bg-stone-50 hover:text-stone-900 transition-all group"
+                    >
+                      <div className="bg-stone-50 p-2 rounded-lg group-hover:bg-white group-hover:shadow-sm transition-all">
+                        <ShoppingBag size={16} className="text-stone-300 group-hover:text-stone-900" />
+                      </div>
+                      <span>My Orders</span>
+                    </button>
                   </>
                 )}
               </div>

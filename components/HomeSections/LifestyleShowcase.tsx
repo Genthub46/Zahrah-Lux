@@ -3,13 +3,20 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 
-const LifestyleShowcase: React.FC = () => {
+interface LifestyleShowcaseProps {
+    images?: [string, string];
+}
+
+const LifestyleShowcase: React.FC<LifestyleShowcaseProps> = ({ images }) => {
+    const image1 = images?.[0] || "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?q=80&w=2070&auto=format&fit=crop";
+    const image2 = images?.[1] || "https://images.unsplash.com/photo-1549439602-43ebca23d7bc?q=80&w=2070&auto=format&fit=crop";
+
     return (
         <section className="grid grid-cols-1 md:grid-cols-2 w-full">
             {/* Left Column: Jewelry/Accessories Focus */}
             <div className="relative h-[60vh] md:h-[85vh] group overflow-hidden cursor-pointer">
                 <img
-                    src="https://images.unsplash.com/photo-1611591437281-460bfbe1220a?q=80&w=2070&auto=format&fit=crop" // Jewelry/Necklace close-up
+                    src={image1} // Jewelry/Necklace close-up
                     alt="Luxury Accessories"
                     className="object-cover w-full h-full transition-transform duration-1000 group-hover:scale-105"
                 />
@@ -26,7 +33,7 @@ const LifestyleShowcase: React.FC = () => {
             {/* Right Column: Streetwear Model Focus */}
             <div className="relative h-[60vh] md:h-[85vh] group overflow-hidden cursor-pointer">
                 <img
-                    src="https://images.unsplash.com/photo-1549439602-43ebca23d7bc?q=80&w=2070&auto=format&fit=crop" // Streetwear/Urban model
+                    src={image2} // Streetwear/Urban model
                     alt="Urban Collection"
                     className="object-cover w-full h-full transition-transform duration-1000 group-hover:scale-105"
                 />

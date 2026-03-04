@@ -9,22 +9,32 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Logo from '../components/Logo';
 
 import { usePaystackPayment } from 'react-paystack';
+import { User } from 'firebase/auth';
 
 interface CheckoutProps {
   cart: CartItem[];
   onRemoveFromCart: (id: string) => void;
   onClearCart: () => void;
   onOrderPlaced: (order: Order) => void;
+  user: User | null;
 }
 
-const Checkout: React.FC<CheckoutProps> = ({ cart, onRemoveFromCart, onClearCart, onOrderPlaced }) => {
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
+const Checkout: React.FC<CheckoutProps> = ({ cart, onRemoveFromCart, onClearCart, onOrderPlaced, user }) => {
+  const [email, setEmail] = useState(user?.email || '');
+  const [name, setName] = useState(user?.displayName || '');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [touched, setTouched] = useState({ email: false, phone: false });
+
+  // Update state if user prop changes (e.g. strict refresh)
+  React.useEffect(() => {
+    if (user) {
+      if (!email) setEmail(user.email || '');
+      if (!name) setName(user.displayName || '');
+    }
+  }, [user]);
 
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
@@ -32,6 +42,13 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, onRemoveFromCart, onClearCart
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
 
   const navigate = useNavigate();
+
+  // Scroll to top when payment is successful
+  React.useEffect(() => {
+    if (paymentSuccess) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [paymentSuccess]);
 
   // Calculate Total First
   const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -54,7 +71,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, onRemoveFromCart, onClearCart
     const newOrder: Order = {
       id: `ORD-${Date.now()}`,
       customerName: name,
-      customerEmail: email,
+      customerEmail: email.toLowerCase(),
       customerPhone: phone,
       customerAddress: address,
       items: [...cart],
@@ -63,7 +80,8 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, onRemoveFromCart, onClearCart
       status: 'Pending',
       paymentMethod: 'Paystack',
       paymentStatus: 'Paid',
-      paymentReference: reference.reference
+      paymentReference: reference.reference,
+      userId: user?.uid
     };
     onOrderPlaced(newOrder);
     setPaymentSuccess(true);
@@ -198,10 +216,36 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, onRemoveFromCart, onClearCart
               <Logo size={100} className="mx-auto mb-10 opacity-20" />
               <h3 className="text-2xl font-bold mb-4 serif italic tracking-tight uppercase tracking-widest">Thank you, {name}.</h3>
               <p className="text-stone-400 text-[10px] tracking-[0.4em] uppercase">Your feedback has been curated.</p>
+
+
+
               <p className="text-[9px] text-stone-300 mt-12 animate-pulse tracking-widest uppercase">Redirecting to boutique...</p>
             </motion.div>
           )}
         </AnimatePresence>
+
+        {!user && (
+          <div className="mt-12 bg-stone-50 p-8 rounded-sm border border-stone-100 max-w-md mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700 delay-500">
+            <h4 className="text-sm font-bold uppercase tracking-widest text-stone-900 mb-2">Track Your Order</h4>
+            <p className="text-xs text-stone-500 mb-6 font-serif italic">Create an account or log in to track this order.</p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                to="/signup"
+                state={{ email }}
+                className="px-8 py-3 bg-stone-900 text-white text-[9px] font-bold tracking-[0.3em] uppercase hover:bg-[#C5A059] transition-colors"
+              >
+                Sign Up
+              </Link>
+              <Link
+                to="/login"
+                state={{ email }}
+                className="px-8 py-3 bg-white border border-stone-200 text-stone-900 text-[9px] font-bold tracking-[0.3em] uppercase hover:bg-stone-50 transition-colors"
+              >
+                Log In
+              </Link>
+            </div>
+          </div>
+        )}
       </div>
     );
   }

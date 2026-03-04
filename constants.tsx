@@ -1,5 +1,37 @@
 
 import { Product, FooterPage, HomeLayoutConfig } from './types';
+export const PRODUCT_CATEGORIES = [
+  'Clothing',
+  'T-shirts',
+  'Shirts',
+  'Boxers',
+  'Shorts',
+  'Jackets',
+  'Underwear',
+  'Chinos',
+  'Pant',
+  'Trousers',
+  'Jeans',
+  'Two Piece',
+  'Jerseys',
+  'Accessories',
+  'Belts',
+  'Headwear',
+  'Sunglasses',
+  'Dress',
+  'Top',
+  'Gown',
+  'Trouser',
+  'Footwear',
+  'Beauty',
+  'Travel',
+  'Watches',
+  'Perfumes',
+  'Bags',
+  'Slides',
+  'Other'
+] as const;
+
 export const ADMIN_EMAILS = [
   'admin@zahrah.com'
 ];
@@ -133,5 +165,10 @@ export const INITIAL_HOME_LAYOUT: HomeLayoutConfig = {
       productIds: [],
       isVisible: true
     }
+  ],
+  heroImage: "https://images.unsplash.com/photo-1549037173-e3b717902c57?auto=format&fit=crop&w=1920&q=80",
+  lifestyleImages: [
+    "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?q=80&w=2070&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1549439602-43ebca23d7bc?q=80&w=2070&auto=format&fit=crop"
   ]
 };

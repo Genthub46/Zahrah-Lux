@@ -14,6 +14,7 @@ import {
     getDoc
 } from "firebase/firestore";
 import { Product, Order, ViewLog, RestockRequest, FooterPage, HomeLayoutConfig, Review } from "../types";
+import { PRODUCT_CATEGORIES } from "../constants";
 
 // Collection References
 const PRODUCTS_COL = "products";
@@ -45,6 +46,17 @@ export const subscribeToProducts = (callback: (data: Product[]) => void) => {
 export const subscribeToOrders = (callback: (data: Order[]) => void) => {
     return onSnapshot(collection(db, ORDERS_COL), (snapshot) => {
         const orders = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Order));
+        callback(orders);
+    });
+};
+
+export const subscribeToUserOrders = (email: string, callback: (data: Order[]) => void) => {
+    if (!email) return () => { };
+    const q = query(collection(db, ORDERS_COL), where("customerEmail", "==", email));
+    return onSnapshot(q, (snapshot) => {
+        const orders = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Order));
+        // Sort by date descending
+        orders.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         callback(orders);
     });
 };
@@ -191,6 +203,9 @@ export const subscribeToCategories = (callback: (data: { id: string; name: strin
 };
 
 export const saveCategory = async (name: string) => {
+    const q = query(collection(db, CATEGORIES_COL), where("name", "==", name));
+    const snapshot = await getDocs(q);
+    if (!snapshot.empty) return; // Exists
     await addDoc(collection(db, CATEGORIES_COL), { name });
 };
 
@@ -223,11 +238,14 @@ export const seedInitialData = async (products: Product[], config: HomeLayoutCon
     });
 
     // Seed Default Categories
-    const defaultCategories = ['Apparel', 'Accessories', 'Footwear', 'Shirts', 'Pants', 'Other'];
-    defaultCategories.forEach(c => {
-        const ref = doc(collection(db, CATEGORIES_COL)); // Auto-ID
-        batch.set(ref, { name: c });
-    });
+    for (const c of PRODUCT_CATEGORIES) {
+        const q = query(collection(db, CATEGORIES_COL), where("name", "==", c));
+        const snapshot = await getDocs(q);
+        if (snapshot.empty) {
+            const ref = doc(collection(db, CATEGORIES_COL));
+            batch.set(ref, { name: c });
+        }
+    }
 
     const configRef = doc(db, CONFIG_COL, "homeLayout");
     batch.set(configRef, config);
@@ -241,6 +259,13 @@ export const saveUserData = async (userId: string, data: { cart?: any[], wishlis
     if (!userId) return;
     const userRef = doc(db, USERS_COL, userId);
     await setDoc(userRef, data, { merge: true });
+};
+
+export const subscribeToUsers = (callback: (data: any[]) => void) => {
+    return onSnapshot(collection(db, USERS_COL), (snapshot) => {
+        const users = snapshot.docs.map(doc => ({ ...doc.data() }));
+        callback(users);
+    });
 };
 
 export const getUserData = async (userId: string) => {
@@ -261,6 +286,70 @@ export const subscribeToUserData = (userId: string, callback: (data: { cart: any
             callback({ cart: data.cart || [], wishlist: data.wishlist || [] });
         } else {
             callback(null);
+        }
+    });
+};
+
+// --- Activity Logs ---
+const ADMIN_LOGS_COL = "adminLogs";
+
+export const subscribeToAdminLogs = (callback: (logs: any[]) => void) => {
+    // Sort logic should ideally happen server-side or via query, but client-side sort for now
+    const q = query(collection(db, ADMIN_LOGS_COL));
+    return onSnapshot(q, (snapshot) => {
+        const logs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
+        logs.sort((a: any, b: any) => b.timestamp - a.timestamp); // Newest first
+        callback(logs);
+    });
+};
+
+export const logAdminAction = async (
+    action: string,
+    details: string,
+    userEmail: string = "Unknown",
+    options?: {
+        resourceType?: string;
+        resourceId?: string;
+        beforeState?: any;
+        afterState?: any;
+    }
+) => {
+    // Fire and forget - do not block the UI for logging
+    Promise.resolve().then(async () => {
+        try {
+            // Capture browser info
+            const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : 'Unknown';
+
+            // Attempt to get IP address (will be fetched client-side via external service)
+            let ipAddress = 'Unknown';
+            try {
+                // Use a simple IP detection service (fallback to unknown)
+                const ipResponse = await fetch('https://api.ipify.org?format=json', {
+                    signal: AbortSignal.timeout(1000) // Reduced to 1 second
+                });
+                if (ipResponse.ok) {
+                    const ipData = await ipResponse.json();
+                    ipAddress = ipData.ip || 'Unknown';
+                }
+            } catch {
+                // Ignore IP fetch errors - not critical
+            }
+
+            await addDoc(collection(db, ADMIN_LOGS_COL), {
+                action,
+                details,
+                userEmail,
+                timestamp: Date.now(),
+                // Enhanced audit fields
+                ipAddress,
+                userAgent,
+                resourceType: options?.resourceType || null,
+                resourceId: options?.resourceId || null,
+                beforeState: options?.beforeState ? JSON.stringify(options.beforeState) : null,
+                afterState: options?.afterState ? JSON.stringify(options.afterState) : null,
+            });
+        } catch (error) {
+            console.error("Failed to log admin action:", error);
         }
     });
 };

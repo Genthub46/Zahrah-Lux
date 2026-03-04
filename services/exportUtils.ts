@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { Order, RestockRequest } from '../types';
+import * as XLSX from 'xlsx';
+import { Order, RestockRequest, Product } from '../types';
 
 export const exportOrdersToCSV = (orders: Order[]) => {
     const headers = ['Order ID', 'Date', 'Customer Name', 'Email', 'Phone', 'Address', 'Status', 'Total (NGN)', 'Items'];
@@ -30,6 +31,111 @@ export const exportOrdersToCSV = (orders: Order[]) => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+};
+
+// --- JSON Export ---
+export interface ExportOptions {
+    dateFrom?: string;
+    dateTo?: string;
+    columns?: string[];
+}
+
+export const exportOrdersToJSON = (orders: Order[], options: ExportOptions = {}) => {
+    let filteredOrders = orders;
+
+    // Date range filter
+    if (options.dateFrom || options.dateTo) {
+        filteredOrders = orders.filter(order => {
+            const orderDate = new Date(order.date);
+            if (options.dateFrom && orderDate < new Date(options.dateFrom)) return false;
+            if (options.dateTo && orderDate > new Date(options.dateTo)) return false;
+            return true;
+        });
+    }
+
+    const jsonContent = JSON.stringify(filteredOrders, null, 2);
+    const blob = new Blob([jsonContent], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `zahrah_orders_${new Date().toISOString().split('T')[0]}.json`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
+export const exportProductsToJSON = (products: Product[]) => {
+    const jsonContent = JSON.stringify(products, null, 2);
+    const blob = new Blob([jsonContent], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `zahrah_products_${new Date().toISOString().split('T')[0]}.json`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
+// --- Excel Export ---
+export const exportOrdersToExcel = (orders: Order[], options: ExportOptions = {}) => {
+    let filteredOrders = orders;
+
+    // Date range filter
+    if (options.dateFrom || options.dateTo) {
+        filteredOrders = orders.filter(order => {
+            const orderDate = new Date(order.date);
+            if (options.dateFrom && orderDate < new Date(options.dateFrom)) return false;
+            if (options.dateTo && orderDate > new Date(options.dateTo)) return false;
+            return true;
+        });
+    }
+
+    const worksheetData = filteredOrders.map(order => ({
+        'Order ID': order.id,
+        'Date': new Date(order.date).toLocaleDateString(),
+        'Customer Name': order.customerName,
+        'Email': order.customerEmail,
+        'Phone': order.customerPhone,
+        'Address': order.customerAddress,
+        'Status': order.status,
+        'Payment Method': order.paymentMethod || 'N/A',
+        'Payment Status': order.paymentStatus || 'N/A',
+        'Total (NGN)': order.total,
+        'Items': order.items.map(i => `${i.name} (x${i.quantity})`).join(', ')
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Orders');
+
+    // Auto-size columns
+    const maxWidth = 50;
+    const colWidths = Object.keys(worksheetData[0] || {}).map(key => ({
+        wch: Math.min(maxWidth, Math.max(key.length, ...worksheetData.map(row => String((row as any)[key] || '').length)))
+    }));
+    worksheet['!cols'] = colWidths;
+
+    XLSX.writeFile(workbook, `zahrah_orders_${new Date().toISOString().split('T')[0]}.xlsx`);
+};
+
+export const exportProductsToExcel = (products: Product[]) => {
+    const worksheetData = products.map(product => ({
+        'Product ID': product.id,
+        'Name': product.name,
+        'Brand': product.brand,
+        'Category': product.category,
+        'Price (NGN)': product.price,
+        'Stock': product.stock,
+        'Tags': product.tags.join(', '),
+        'Sizes': product.sizes?.join(', ') || '',
+        'Visible': product.isVisible !== false ? 'Yes' : 'No'
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Products');
+
+    XLSX.writeFile(workbook, `zahrah_products_${new Date().toISOString().split('T')[0]}.xlsx`);
 };
 
 // Helper: Load Image from URL to Image Element

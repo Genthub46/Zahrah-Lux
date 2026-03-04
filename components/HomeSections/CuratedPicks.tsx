@@ -1,8 +1,7 @@
-
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Product } from '../../types';
+import { Product, HomeLayoutConfig } from '../../types';
 import ProductCard from '../ProductCard';
 import { useNavigate } from 'react-router-dom';
 
@@ -12,15 +11,11 @@ interface CuratedPicksProps {
     onLogView: (id: string) => void;
     onToggleWishlist: (product: Product) => void;
     isWishlisted: (id: string) => boolean;
+    layoutConfig?: HomeLayoutConfig;
 }
 
-const TAB_GROUPS = [
-    ['T-Shirts', 'Pants', 'Jackets'],
-    ['Shorts', 'Slides', 'Bags']
-];
-
 interface CuratedSectionProps extends CuratedPicksProps {
-    tabs: string[];
+    tabs: { id: string; label: string }[];
     sectionIndex: number;
 }
 
@@ -31,21 +26,45 @@ const CuratedSection: React.FC<CuratedSectionProps> = ({
     onAddToCart,
     onLogView,
     onToggleWishlist,
-    isWishlisted
+    isWishlisted,
+    layoutConfig
 }) => {
-    const [activeTab, setActiveTab] = useState(tabs[0]);
+    // If no tabs are visible in this group, don't render the section at all
+    if (tabs.length === 0) return null;
+
+    const [activeTabId, setActiveTabId] = useState(tabs[0].id);
     const navigate = useNavigate();
 
+    // Ensure we have a valid active tab if tabs change props
+    React.useEffect(() => {
+        if (!tabs.find(t => t.id === activeTabId)) {
+            setActiveTabId(tabs[0].id);
+        }
+    }, [tabs, activeTabId]);
+
+    const activeTabLabel = tabs.find(t => t.id === activeTabId)?.label || '';
+
     const filteredProducts = useMemo(() => {
+        // 1. Check for manual override using the CATEGORY ID (stable key) or Label (legacy fallback)
+        const curatedPicks = layoutConfig?.curatedPicks || {};
+
+        // Try precise ID match first, then label match for backward compatibility
+        const manualIds = curatedPicks[activeTabId] || curatedPicks[activeTabLabel];
+
+        if (manualIds && manualIds.length > 0) {
+            return products.filter(p => manualIds.includes(p.id));
+        }
+
+        // 2. Fallback to Tag/Category matching
+        const search = activeTabLabel.toLowerCase().replace('-', '');
         return products.filter(p => {
-            const search = activeTab.toLowerCase().replace('-', '');
             const tags = p.tags.map(t => t.toLowerCase());
             const category = p.category.toLowerCase();
 
             if (search === 'tshirts') return tags.includes('t-shirts') || tags.includes('tees') || category.includes('t-shirt');
             return tags.includes(search) || category.includes(search) || p.name.toLowerCase().includes(search);
         }).slice(0, 8);
-    }, [products, activeTab]);
+    }, [products, activeTabId, activeTabLabel, layoutConfig]);
 
     const scrollContainerId = `scroll-curated-picks-${sectionIndex}`;
 
@@ -62,24 +81,24 @@ const CuratedSection: React.FC<CuratedSectionProps> = ({
         <div className="mb-24 last:mb-0">
             {/* Header & Tabs */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 md:mb-12 gap-6 md:gap-8">
-                <div className="flex gap-x-8 items-baseline">
+                <div className="flex gap-x-8 items-baseline overflow-x-auto no-scrollbar w-full md:w-auto">
                     {tabs.map((tab) => (
                         <button
-                            key={tab}
-                            onClick={() => setActiveTab(tab)}
-                            className={`text-xl md:text-3xl font-serif transition-colors duration-300 ${activeTab === tab
+                            key={tab.id}
+                            onClick={() => setActiveTabId(tab.id)}
+                            className={`text-xl md:text-3xl font-serif transition-colors duration-300 whitespace-nowrap ${activeTabId === tab.id
                                 ? 'text-stone-900 border-b-2 border-stone-900'
                                 : 'text-stone-300 hover:text-stone-500'
                                 }`}
                         >
-                            {tab}
+                            {tab.label}
                         </button>
                     ))}
                 </div>
 
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-6 shrink-0">
                     <button
-                        onClick={() => navigate(`/?category=${activeTab.toLowerCase()}`)}
+                        onClick={() => navigate(`/?category=${activeTabLabel.toLowerCase()}`)}
                         className="hidden md:block px-6 py-3 border border-stone-200 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-stone-900 hover:text-white transition-all"
                     >
                         View All
@@ -127,7 +146,7 @@ const CuratedSection: React.FC<CuratedSectionProps> = ({
                         </motion.div>
                     )) : (
                         <div className="w-full py-20 flex flex-col items-center justify-center text-stone-300 opacity-60">
-                            <p className="text-2xl font-serif italic">No {activeTab} available currently.</p>
+                            <p className="text-2xl font-serif italic">No {activeTabLabel} available currently.</p>
                         </div>
                     )}
                 </AnimatePresence>
@@ -136,11 +155,32 @@ const CuratedSection: React.FC<CuratedSectionProps> = ({
     );
 }
 
+const DEFAULT_CATEGORIES = [
+    { id: 't-shirts', label: 'T-Shirts', isVisible: true },
+    { id: 'pants', label: 'Pants', isVisible: true },
+    { id: 'jackets', label: 'Jackets', isVisible: true },
+    { id: 'shorts', label: 'Shorts', isVisible: true },
+    { id: 'slides', label: 'Slides', isVisible: true },
+    { id: 'bags', label: 'Bags', isVisible: true }
+];
+
 const CuratedPicks: React.FC<CuratedPicksProps> = (props) => {
+    // 1. Get Categories from config or fallback
+    const allCategories = props.layoutConfig?.curatedCategories || DEFAULT_CATEGORIES;
+
+    // 2. Filter visible only
+    const visibleCategories = allCategories.filter(c => c.isVisible !== false);
+
+    // 3. Chunk into groups of 3 for the layout (replicating original design)
+    const categoryGroups = [];
+    for (let i = 0; i < visibleCategories.length; i += 3) {
+        categoryGroups.push(visibleCategories.slice(i, i + 3));
+    }
+
     return (
         <section className="py-24 bg-stone-50/50 border-t border-stone-100">
             <div className="px-4 sm:px-6 lg:px-12 max-w-[1800px] mx-auto">
-                {TAB_GROUPS.map((group, idx) => (
+                {categoryGroups.map((group, idx) => (
                     <CuratedSection
                         key={idx}
                         tabs={group}

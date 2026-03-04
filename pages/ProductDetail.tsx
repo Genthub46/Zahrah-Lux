@@ -49,7 +49,6 @@ interface ProductDetailProps {
   user?: any; // Using any for brevity, or imported User type
   onAddToCart: (product: Product, quantity?: number, color?: string, size?: string) => void;
   onLogView: (id: string) => void;
-  onAddRestockRequest: (request: RestockRequest) => void;
   onToggleWishlist: (product: Product) => void;
   wishlist: Product[];
 }
@@ -59,7 +58,6 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
   user,
   onAddToCart,
   onLogView,
-  onAddRestockRequest,
   onToggleWishlist,
   wishlist
 }) => {
@@ -146,9 +144,18 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const relatedProducts = products
-    .filter(p => p.id !== product.id && p.category === product.category)
-    .slice(0, 4);
+  const relatedProducts = useMemo(() => {
+    return products
+      .filter(p => p.id !== product.id && p.category === product.category)
+      .sort((a, b) => {
+        // Prioritize in-stock items
+        if (a.stock > 0 && b.stock <= 0) return -1;
+        if (a.stock <= 0 && b.stock > 0) return 1;
+        // Then by creation (id descending assumption or random)
+        return b.id.localeCompare(a.id);
+      })
+      .slice(0, 4);
+  }, [products, product]);
 
   return (
     <div className="pt-4 pb-32 md:pt-24 md:pb-24 bg-white min-h-screen">
@@ -351,7 +358,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                         onAddToCart(product, quantity, selectedColor, selectedSize);
                       }
                     }}
-                    // disabled={!isSoldOut && !isSelectionComplete} // Logic moved to onClick for notification
+
                     className={`w-full py-4 md:py-6 text-xs md:text-sm font-black tracking-[0.2em] md:tracking-[0.4em] uppercase rounded-xl md:rounded-2xl shadow-xl transition-all flex items-center justify-center space-x-3 md:space-x-4 ${isSoldOut
                       ? 'bg-stone-900 text-white hover:scale-[1.02] shadow-2xl ring-2 md:ring-4 ring-stone-50'
                       : 'bg-stone-900 text-white hover:scale-[1.02] active:scale-95'
@@ -371,14 +378,21 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                 </div>
               </div>
 
-              {/* Spacer removed as per design request */}
+
               {quantity >= product.stock && !isSoldOut && (
                 <p className="text-[9px] font-bold text-amber-600 uppercase tracking-widest text-center animate-pulse">Maximum studio stock reached</p>
               )}
               {!isSoldOut && (
-                <p className="text-[9px] text-stone-400 font-bold uppercase tracking-widest text-center">
-                  {product.stock} Units Remaining
-                </p>
+                <div className="flex flex-col items-center gap-2 mt-2">
+                  <p className={`text-[9px] font-bold uppercase tracking-widest text-center ${product.stock < 5 ? 'text-red-500' : 'text-stone-400'}`}>
+                    {product.stock < 5 ? `Hurry! Only ${product.stock} Item${product.stock === 1 ? '' : 's'} Left` : `${product.stock} Units Available`}
+                  </p>
+                  {product.stock < 5 && (
+                    <div className="w-full max-w-[200px] h-1 bg-stone-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-red-500 rounded-full animate-pulse" style={{ width: `${(product.stock / 10) * 100}%` }} />
+                    </div>
+                  )}
+                </div>
               )}
 
               <div className="flex space-x-4">
