@@ -254,6 +254,28 @@ export const seedInitialData = async (products: Product[], config: HomeLayoutCon
     console.log("Seeding complete.");
 };
 
+export const wipeDatabase = async () => {
+    console.log("Wiping database collections...");
+    const collectionsToWipe = [
+        PRODUCTS_COL, ORDERS_COL, LOGS_COL, REQUESTS_COL, PAGES_COL,
+        BRANDS_COL, REVIEWS_COL, CONFIG_COL, USERS_COL, CATEGORIES_COL,
+        ADMIN_LOGS_COL, NEWSLETTER_COL
+    ];
+
+    for (const colName of collectionsToWipe) {
+        try {
+            const snapshot = await getDocs(collection(db, colName));
+            if (!snapshot.empty) {
+                const deletePromises = snapshot.docs.map(docSnapshot => deleteDoc(docSnapshot.ref));
+                await Promise.all(deletePromises);
+            }
+        } catch (error) {
+            console.error(`Error wiping collection ${colName}:`, error);
+        }
+    }
+    console.log("Database wipe complete.");
+};
+
 // --- User Data Persistence ---
 export const saveUserData = async (userId: string, data: { cart?: any[], wishlist?: any[] }) => {
     if (!userId) return;

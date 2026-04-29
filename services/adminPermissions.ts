@@ -45,7 +45,6 @@ export const ROLE_PERMISSIONS: Record<AdminRole, Permission[]> = {
         'customers:view', 'customers:export',
         'analytics:view', 'analytics:export',
         'waitlist:view', 'waitlist:edit', 'waitlist:export',
-        'pages:view', 'pages:create', 'pages:edit',
         'activity_log:view',
     ],
     support: [

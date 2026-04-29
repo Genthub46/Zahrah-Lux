@@ -7,11 +7,6 @@ export default defineConfig({
   server: {
     host: true,
   },
-  define: {
-    'process.env': {
-      API_KEY: JSON.stringify(process.env.VITE_API_KEY || '')
-    }
-  },
   build: {
     rollupOptions: {
       output: {

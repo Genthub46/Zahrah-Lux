@@ -13,13 +13,14 @@ import { User } from 'firebase/auth';
 
 interface CheckoutProps {
   cart: CartItem[];
-  onRemoveFromCart: (id: string) => void;
+  onRemoveFromCart: (index: number) => void;
+  onUpdateCartItem: (index: number, quantity: number, color?: string, size?: string) => void;
   onClearCart: () => void;
   onOrderPlaced: (order: Order) => void;
   user: User | null;
 }
 
-const Checkout: React.FC<CheckoutProps> = ({ cart, onRemoveFromCart, onClearCart, onOrderPlaced, user }) => {
+const Checkout: React.FC<CheckoutProps> = ({ cart, onRemoveFromCart, onUpdateCartItem, onClearCart, onOrderPlaced, user }) => {
   const [email, setEmail] = useState(user?.email || '');
   const [name, setName] = useState(user?.displayName || '');
   const [phone, setPhone] = useState('');
@@ -27,6 +28,50 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, onRemoveFromCart, onClearCart
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [touched, setTouched] = useState({ email: false, phone: false });
+
+  const [showVariantModal, setShowVariantModal] = useState(false);
+  const [variantSelections, setVariantSelections] = useState<Record<number, { color?: string; size?: string }>>({});
+
+  const getItemsNeedingVariants = () => {
+    return cart.map((item, index) => {
+      const needsColor = item.colors && item.colors.length > 0 && !item.selectedColor;
+      const needsSize = item.sizes && item.sizes.length > 0 && !item.selectedSize;
+      if (needsColor || needsSize) {
+        return { index, item, needsColor, needsSize };
+      }
+      return null;
+    }).filter(Boolean) as { index: number; item: CartItem; needsColor: boolean | undefined; needsSize: boolean | undefined }[];
+  };
+
+  const handleVariantSelect = (index: number, type: 'color' | 'size', value: string) => {
+    setVariantSelections(prev => ({
+      ...prev,
+      [index]: { ...prev[index], [type]: value }
+    }));
+  };
+
+  const confirmVariants = () => {
+    const missing = getItemsNeedingVariants();
+    let allValid = true;
+
+    missing.forEach((v) => {
+      const sel = variantSelections[v.index];
+      if (v.needsColor && !sel?.color) allValid = false;
+      if (v.needsSize && !sel?.size) allValid = false;
+    });
+
+    if (!allValid) {
+      alert("Please select all required sizes and colors before checking out.");
+      return;
+    }
+
+    missing.forEach(v => {
+      const sel = variantSelections[v.index];
+      onUpdateCartItem(v.index, v.item.quantity, sel?.color || v.item.selectedColor, sel?.size || v.item.selectedSize);
+    });
+
+    setShowVariantModal(false);
+  };
 
   // Update state if user prop changes (e.g. strict refresh)
   React.useEffect(() => {
@@ -103,6 +148,12 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, onRemoveFromCart, onClearCart
 
     if (cart.length === 0) {
       alert('Your shopping bag is empty.');
+      return;
+    }
+
+    const missingVariants = getItemsNeedingVariants();
+    if (missingVariants.length > 0) {
+      setShowVariantModal(true);
       return;
     }
 
@@ -276,34 +327,60 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, onRemoveFromCart, onClearCart
             </div>
           ) : (
             <div className="space-y-8">
-              {cart.map((item) => (
-                <div key={item.id} className="flex space-x-6 py-8 border-b border-stone-100 animate-in fade-in duration-500">
-                  <div className="w-28 h-36 flex-shrink-0">
-                    <img src={item.images?.[0]} alt={item.name} className="w-full h-full object-cover rounded-sm shadow-sm grayscale hover:grayscale-0 transition-all" />
-                  </div>
-                  <div className="flex-1 flex flex-col justify-between">
-                    <div className="flex justify-between">
-                      <div>
-                        <h3 className="font-bold text-lg text-stone-900">{item.name}</h3>
-                        <p className="text-stone-500 text-[10px] mt-1 uppercase tracking-widest">{item.category} • AUTHENTIC ZARA UK</p>
-                      </div>
-                      <p className="font-bold">N{item.price.toLocaleString()}</p>
+              {cart.map((item, index) => {
+                const needsColor = item.colors && item.colors.length > 0 && !item.selectedColor;
+                const needsSize = item.sizes && item.sizes.length > 0 && !item.selectedSize;
+
+                return (
+                  <div key={`${item.id}-${index}`} className="flex space-x-6 py-8 border-b border-stone-100 animate-in fade-in duration-500">
+                    <div className="w-28 h-36 flex-shrink-0">
+                      <img src={item.images?.[0]} alt={item.name} className="w-full h-full object-cover rounded-sm shadow-sm grayscale hover:grayscale-0 transition-all" />
                     </div>
-                    <div className="flex justify-between items-center mt-4">
-                      <div className="text-xs text-stone-400 tracking-widest uppercase">
-                        Units: <span className="text-stone-900 font-bold ml-2">{item.quantity}</span>
+                    <div className="flex-1 flex flex-col justify-between">
+                      <div className="flex justify-between">
+                        <div>
+                          <h3 className="font-bold text-lg text-stone-900">{item.name}</h3>
+                          <p className="text-stone-500 text-[10px] mt-1 uppercase tracking-widest">{item.category} • AUTHENTIC ZARA UK</p>
+
+                          {(item.selectedColor || item.selectedSize) && (
+                            <div className="mt-2 text-[10px] text-stone-600 uppercase tracking-widest">
+                              {item.selectedSize && <span className="mr-3">Size: <span className="font-bold text-stone-900">{item.selectedSize}</span></span>}
+                              {item.selectedColor && <span>Color: <span className="font-bold text-stone-900">{item.selectedColor}</span></span>}
+                            </div>
+                          )}
+                          {(needsColor || needsSize) && (
+                            <div className="mt-3">
+                              <div className="text-[10px] text-amber-600 uppercase tracking-widest font-bold flex items-center gap-1 mb-2">
+                                <AlertCircle className="w-3 h-3" />
+                                <span>Requires variant selection</span>
+                              </div>
+                              <button
+                                onClick={() => setShowVariantModal(true)}
+                                className="text-[9px] font-bold tracking-[0.2em] uppercase bg-stone-100 hover:bg-stone-200 text-stone-900 py-1.5 px-3 rounded-sm transition-colors"
+                              >
+                                Choose Variant
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                        <p className="font-bold">N{item.price.toLocaleString()}</p>
                       </div>
-                      <button
-                        onClick={() => onRemoveFromCart(item.id)}
-                        className="text-stone-300 hover:text-red-500 transition-colors p-2"
-                        title="Remove Item"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
+                      <div className="flex justify-between items-center mt-4">
+                        <div className="text-xs text-stone-400 tracking-widest uppercase">
+                          Units: <span className="text-stone-900 font-bold ml-2">{item.quantity}</span>
+                        </div>
+                        <button
+                          onClick={() => onRemoveFromCart(index)}
+                          className="text-stone-300 hover:text-red-500 transition-colors p-2"
+                          title="Remove Item"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
@@ -388,6 +465,83 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, onRemoveFromCart, onClearCart
           </div>
         </div>
       </div>
+
+      <AnimatePresence>
+        {showVariantModal && (
+          <div className="fixed inset-0 bg-stone-900/40 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white w-full max-w-lg p-8 rounded-sm shadow-2xl max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex items-center gap-3 mb-6 border-b border-stone-100 pb-4">
+                <AlertCircle className="w-6 h-6 text-[#C5A059]" />
+                <h3 className="text-xl font-bold uppercase tracking-widest">Select Variants</h3>
+              </div>
+
+              <p className="text-stone-500 text-xs mb-8">Please complete your product selections before securely checking out.</p>
+
+              <div className="space-y-8">
+                {getItemsNeedingVariants().map((v) => (
+                  <div key={v.index} className="flex gap-4 border border-stone-100 p-4 rounded-sm bg-stone-50">
+                    <img src={v.item.images[0]} alt={v.item.name} className="w-16 h-20 object-cover rounded-sm" />
+                    <div className="flex-1 flex flex-col gap-3">
+                      <div>
+                        <p className="font-bold text-sm">{v.item.name}</p>
+                        <p className="text-[9px] uppercase tracking-widest text-stone-400 mb-1">N{v.item.price.toLocaleString()}</p>
+                      </div>
+
+                      {v.needsSize && (
+                        <div>
+                          <label className="text-[9px] font-bold uppercase tracking-widest text-stone-400 mb-1 block">Size</label>
+                          <select
+                            className="w-full text-xs p-2 border border-stone-200 outline-none focus:border-[#C5A059] bg-white"
+                            value={variantSelections[v.index]?.size || ''}
+                            onChange={(e) => handleVariantSelect(v.index, 'size', e.target.value)}
+                          >
+                            <option value="" disabled>Select a size...</option>
+                            {v.item.sizes!.map(s => <option key={s} value={s}>{s}</option>)}
+                          </select>
+                        </div>
+                      )}
+
+                      {v.needsColor && (
+                        <div>
+                          <label className="text-[9px] font-bold uppercase tracking-widest text-stone-400 mb-1 block">Color</label>
+                          <select
+                            className="w-full text-xs p-2 border border-stone-200 outline-none focus:border-[#C5A059] bg-white"
+                            value={variantSelections[v.index]?.color || ''}
+                            onChange={(e) => handleVariantSelect(v.index, 'color', e.target.value)}
+                          >
+                            <option value="" disabled>Select a color...</option>
+                            {v.item.colors!.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                          </select>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-8 flex gap-4">
+                <button
+                  onClick={() => setShowVariantModal(false)}
+                  className="flex-1 py-4 border border-stone-200 text-stone-900 text-[10px] font-bold uppercase tracking-widest hover:bg-stone-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmVariants}
+                  className="flex-1 py-4 bg-stone-900 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-[#C5A059] transition-colors"
+                >
+                  Confirm & Update
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

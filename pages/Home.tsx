@@ -529,10 +529,8 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
                 Built by Gentree Studio
               </a>
             </div>
-            <div className="flex space-x-6 opacity-20 grayscale hover:grayscale-0 transition-all duration-500">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" className="h-5" alt="Paypal" />
-              <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" className="h-5" alt="Visa" />
-              <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" className="h-8" alt="Mastercard" />
+            <div className="flex space-x-6 opacity-40 grayscale hover:grayscale-0 transition-all duration-500 items-center">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/0/0b/Paystack_Logo.png" className="h-6 object-contain" alt="Paystack" />
             </div>
           </div>
         </div >

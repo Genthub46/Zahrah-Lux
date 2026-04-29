@@ -15,10 +15,11 @@ import {
   subscribeToPages,
   subscribeToBrands,
   subscribeToReviews,
-  subscribeToUsers
+  subscribeToUsers,
+  wipeDatabase
 } from '../services/dbUtils';
 import { INITIAL_PRODUCTS, INITIAL_FOOTER_PAGES, INITIAL_HOME_LAYOUT } from '../constants';
-import { isAdminEmail, getAdminRole } from '../services/adminPermissions';
+import { isAdminEmail, getAdminRole, canPerform } from '../services/adminPermissions';
 import { useToast } from '../contexts/ToastContext';
 import { useSessionTimeout } from '../hooks/useSessionTimeout';
 
@@ -68,6 +69,13 @@ const Admin: React.FC<AdminProps> = ({
   const [restockRequests, setRestockRequests] = useState<RestockRequest[]>([]);
   const [footerPages, setFooterPages] = useState<FooterPage[]>(initialFooterPages);
   const [users, setUsers] = useState<UserProfile[]>([]);
+
+  const [productFilter, setProductFilter] = useState<{ type: 'all' | 'category' | 'tag' | 'stock', value: string }>({ type: 'all', value: '' });
+
+  const navigateToProductsWithFilter = (type: 'all' | 'category' | 'tag' | 'stock', value: string) => {
+    setProductFilter({ type, value });
+    setActiveTab('products');
+  };
 
   // Extra Data
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -149,15 +157,33 @@ const Admin: React.FC<AdminProps> = ({
       });
   };
 
+  const handleWipeDatabase = async () => {
+    if (!window.confirm("CRITICAL WARNING: This will permanently DELETE ALL DATA (products, orders, customers, pages, layout) from the database. Only Admin login details will remain. Are you absolutely sure?")) {
+      return;
+    }
+
+    try {
+      await wipeDatabase();
+      showToast("Database Wiped Successfully!", { type: 'success' });
+    } catch (err) {
+      console.error(err);
+      showToast("Database Wipe Failed. See console.", { type: 'error' });
+    }
+  };
+
+  const currentUser = auth.currentUser;
+  const adminRole = currentUser ? getAdminRole(currentUser.email) : null;
+  const isAuthorized = !!adminRole;
+
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutGrid },
     { id: 'products', label: 'Products', icon: Package },
     { id: 'customers', label: 'Customers', icon: Users },
     { id: 'orders', label: 'Orders', icon: ShoppingCart },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-    { id: 'pricing', label: 'Pricing AI', icon: DollarSign }, // New Tab
+    { id: 'pricing', label: 'Pricing AI', icon: DollarSign },
     { id: 'requests', label: 'Waitlist', icon: BellRing },
-    { id: 'pages', label: 'Boutique Pages', icon: FileText },
+    ...(canPerform(adminRole, 'pages', 'view') ? [{ id: 'pages', label: 'Boutique Pages', icon: FileText }] : []),
     { id: 'layout', label: 'Home Layout', icon: LayoutGrid },
     { id: 'activity', label: 'Activity Log', icon: FileText }
   ];
@@ -169,10 +195,6 @@ const Admin: React.FC<AdminProps> = ({
   if (!isLoggedIn) {
     return <AdminLogin />;
   }
-
-  const currentUser = auth.currentUser;
-  const adminRole = currentUser ? getAdminRole(currentUser.email) : null;
-  const isAuthorized = !!adminRole;
 
   if (!isAuthorized) {
     return (
@@ -257,8 +279,10 @@ const Admin: React.FC<AdminProps> = ({
         tabs={tabs}
         onLogout={handleLogout}
         onRepairDatabase={handleRepairDatabase}
+        onWipeDatabase={handleWipeDatabase}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
+        role={adminRole}
       />
 
       <main className="flex-1 lg:ml-72 p-6 lg:p-20 pt-[100px] lg:pt-32">
@@ -288,12 +312,19 @@ const Admin: React.FC<AdminProps> = ({
                 products={products}
                 users={users}
                 onNavigate={setActiveTab}
+                onNavigateToProductsWithFilter={navigateToProductsWithFilter}
                 role={adminRole}
               />
             )}
 
             {activeTab === 'products' && (
-              <ProductsTab products={products} brands={brands} orders={orders} />
+              <ProductsTab
+                products={products}
+                brands={brands}
+                orders={orders}
+                initialFilter={productFilter}
+                onFilterChange={setProductFilter}
+              />
             )}
 
             {activeTab === 'customers' && (
@@ -327,7 +358,7 @@ const Admin: React.FC<AdminProps> = ({
               <LayoutTab layoutConfig={layoutConfig} setLayoutConfig={setLayoutConfig} products={products} />
             )}
 
-            {activeTab === 'pages' && (
+            {activeTab === 'pages' && canPerform(adminRole, 'pages', 'view') && (
               <PagesTab footerPages={footerPages} />
             )}
 

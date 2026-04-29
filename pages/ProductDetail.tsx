@@ -85,7 +85,25 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const dragX = useMotionValue(0);
 
-  const product = useMemo(() => products.find(p => p.id === id), [products, id]);
+  const product = useMemo(() => {
+    if (!id) return undefined;
+
+    // Check if ID matches exactly first
+    let found = products.find(p => p.id === id);
+    if (found) return found;
+
+    // Check if ID in URL has a 'p-' prefix (from old routing or share links) but DB doesn't
+    if (id.startsWith('p-')) {
+      const strippedId = id.substring(2);
+      found = products.find(p => p.id === strippedId);
+      if (found) return found;
+    }
+
+    // Check if DB has 'p-' but URL doesn't
+    found = products.find(p => p.id === `p-${id}`);
+    return found;
+  }, [products, id]);
+
   const isSoldOut = product ? product.stock <= 0 : false;
   const isWishlisted = product ? wishlist.some(p => p.id === product.id) : false;
 
@@ -94,8 +112,11 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
   const isSelectionComplete = (!needsColor || selectedColor) && (!needsSize || selectedSize);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'instant' });
+    window.scrollTo({ top: 0, behavior: 'auto' });
     setActiveImgIdx(0); // Reset index on product change
+    setSelectedColor('');
+    setSelectedSize('');
+    setQuantity(1);
   }, [id]);
 
   useEffect(() => {
@@ -136,26 +157,57 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isLightboxOpen, handleNextImage, handlePrevImage]);
 
-  if (!product) return null;
+  const relatedProducts = useMemo(() => {
+    if (!product) return [];
+    return products
+      .filter(p => p.id !== product.id && (p.category === product.category || p.brand === product.brand))
+      .sort((a, b) => {
+        let scoreA = 0;
+        let scoreB = 0;
+
+        if (a.brand === product.brand) scoreA += 10;
+        if (a.category === product.category) scoreA += 5;
+        if (a.stock > 0) scoreA += 2;
+
+        if (b.brand === product.brand) scoreB += 10;
+        if (b.category === product.category) scoreB += 5;
+        if (b.stock > 0) scoreB += 2;
+
+        if (scoreA !== scoreB) {
+          return scoreB - scoreA;
+        }
+
+        // Then by creation (id descending assumption or random)
+        return b.id.localeCompare(a.id);
+      })
+      .slice(0, 4);
+  }, [products, product]);
+
+  if (!product) {
+    if (products.length === 0) {
+      return (
+        <div className="min-h-screen bg-stone-50 flex flex-col items-center justify-center space-y-4">
+          <div className="w-8 h-8 border-2 border-stone-200 border-t-[#C5A059] rounded-full animate-spin" />
+          <p className="text-[10px] font-bold text-stone-400 tracking-widest uppercase animate-pulse">Loading Artifact...</p>
+        </div>
+      );
+    }
+    return (
+      <div className="min-h-screen bg-stone-50 flex flex-col items-center justify-center p-6 text-center">
+        <h2 className="text-2xl font-bold font-serif italic text-stone-900 mb-4">Artifact Not Found</h2>
+        <p className="text-stone-500 mb-8 max-w-md">We couldn't locate the specific item you're looking for. It may have been removed or the link might be broken.</p>
+        <Link to="/" className="px-8 py-3 bg-stone-900 text-white text-[9px] font-bold tracking-[0.3em] uppercase hover:bg-[#C5A059] transition-colors">
+          Return to Boutique
+        </Link>
+      </div>
+    );
+  }
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-
-  const relatedProducts = useMemo(() => {
-    return products
-      .filter(p => p.id !== product.id && p.category === product.category)
-      .sort((a, b) => {
-        // Prioritize in-stock items
-        if (a.stock > 0 && b.stock <= 0) return -1;
-        if (a.stock <= 0 && b.stock > 0) return 1;
-        // Then by creation (id descending assumption or random)
-        return b.id.localeCompare(a.id);
-      })
-      .slice(0, 4);
-  }, [products, product]);
 
   return (
     <div className="pt-4 pb-32 md:pt-24 md:pb-24 bg-white min-h-screen">

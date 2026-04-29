@@ -11,10 +11,11 @@ interface DashboardTabProps {
     products: Product[];
     users: UserProfile[];
     onNavigate: (tab: string) => void;
+    onNavigateToProductsWithFilter?: (type: 'all' | 'category' | 'tag' | 'stock', value: string) => void;
     role?: AdminRole | null;
 }
 
-const DashboardTab: React.FC<DashboardTabProps> = ({ orders, products, users, onNavigate, role }) => {
+const DashboardTab: React.FC<DashboardTabProps> = ({ orders, products, users, onNavigate, onNavigateToProductsWithFilter, role }) => {
     // Calculate stats
     const stats = useMemo(() => {
         const today = new Date();
@@ -173,7 +174,7 @@ const DashboardTab: React.FC<DashboardTabProps> = ({ orders, products, users, on
                     )}
                     {stats.outOfStockCount > 0 && (
                         <button
-                            onClick={() => onNavigate('products')}
+                            onClick={() => onNavigateToProductsWithFilter ? onNavigateToProductsWithFilter('stock', 'out_of_stock') : onNavigate('products')}
                             className="flex items-center gap-3 px-4 py-3 bg-red-50 border border-red-200 rounded-xl hover:bg-red-100 transition-colors"
                         >
                             <Package size={18} className="text-red-600" />

@@ -16,9 +16,11 @@ interface ProductsTabProps {
     products: Product[];
     brands: Brand[];
     orders: Order[];
+    initialFilter?: { type: 'all' | 'category' | 'tag' | 'stock', value: string };
+    onFilterChange?: (filter: { type: 'all' | 'category' | 'tag' | 'stock', value: string }) => void;
 }
 
-const ProductsTab: React.FC<ProductsTabProps> = ({ products, brands, orders }) => {
+const ProductsTab: React.FC<ProductsTabProps> = ({ products, brands, orders, initialFilter, onFilterChange }) => {
     // --- Data State ---
     const [categories, setCategories] = useState<{ id: string, name: string }[]>([]);
 
@@ -68,7 +70,18 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ products, brands, orders }) =
     const [newCategoryName, setNewCategoryName] = useState('');
 
     // --- Filter State ---
-    const [adminFilter, setAdminFilter] = useState<{ type: 'all' | 'category' | 'tag', value: string }>({ type: 'all', value: '' });
+    const [adminFilter, setAdminFilter] = useState<{ type: 'all' | 'category' | 'tag' | 'stock', value: string }>(initialFilter || { type: 'all', value: '' });
+
+    useEffect(() => {
+        if (initialFilter) {
+            setAdminFilter(initialFilter);
+        }
+    }, [initialFilter]);
+
+    const handleFilterChange = (filter: { type: 'all' | 'category' | 'tag' | 'stock', value: string }) => {
+        setAdminFilter(filter);
+        if (onFilterChange) onFilterChange(filter);
+    };
 
     // Deduplicated categories for UI selectors
     const uniqueCategories = React.useMemo(() => {
@@ -380,6 +393,7 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ products, brands, orders }) =
         if (adminFilter.type === 'all') return true;
         if (adminFilter.type === 'category') return p.category === adminFilter.value;
         if (adminFilter.type === 'tag') return (p.tags || []).includes(adminFilter.value);
+        if (adminFilter.type === 'stock' && adminFilter.value === 'out_of_stock') return p.stock <= 0;
         return true;
     });
 
@@ -650,14 +664,15 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ products, brands, orders }) =
             < div className="lg:col-span-7 space-y-6" >
                 {/* Filters */}
                 < div className="flex flex-wrap gap-2 pb-4 border-b border-stone-100" >
-                    <button onClick={() => setAdminFilter({ type: 'all', value: '' })} className={`px-4 py-2.5 rounded-xl text-[9px] font-bold uppercase tracking-widest border transition-all ${adminFilter.type === 'all' ? 'bg-stone-900 text-white border-stone-900' : 'bg-white text-stone-400 border-stone-100'}`}>All</button>
+                    <button onClick={() => handleFilterChange({ type: 'all', value: '' })} className={`px-4 py-2.5 rounded-xl text-[9px] font-bold uppercase tracking-widest border transition-all ${adminFilter.type === 'all' ? 'bg-stone-900 text-white border-stone-900' : 'bg-white text-stone-400 border-stone-100'}`}>All</button>
                     {
                         uniqueCategories.map(c => (
-                            <button key={c.name} onClick={() => setAdminFilter({ type: 'category', value: c.name })} className={`px-4 py-2.5 rounded-xl text-[9px] font-bold uppercase tracking-widest border transition-all ${adminFilter.type === 'category' && adminFilter.value === c.name ? 'bg-[#C5A059] text-white border-[#C5A059]' : 'bg-white text-stone-400 border-stone-100 hover:text-[#C5A059]'}`}>
+                            <button key={c.name} onClick={() => handleFilterChange({ type: 'category', value: c.name })} className={`px-4 py-2.5 rounded-xl text-[9px] font-bold uppercase tracking-widest border transition-all ${adminFilter.type === 'category' && adminFilter.value === c.name ? 'bg-[#C5A059] text-white border-[#C5A059]' : 'bg-white text-stone-400 border-stone-100 hover:text-[#C5A059]'}`}>
                                 {c.name}
                             </button>
                         ))
                     }
+                    <button onClick={() => handleFilterChange({ type: 'stock', value: 'out_of_stock' })} className={`px-4 py-2.5 rounded-xl text-[9px] font-bold uppercase tracking-widest border transition-all ${adminFilter.type === 'stock' && adminFilter.value === 'out_of_stock' ? 'bg-red-500 text-white border-red-500' : 'bg-white text-red-400 border-red-100 hover:text-red-500'}`}>Out of Stock</button>
                 </div >
 
                 {/* Bulk Actions Toolbar */}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { LogOut, Activity, X, LucideIcon, Store, FileText, Users } from 'lucide-react';
+import { LogOut, Activity, X, LucideIcon, Store, FileText, Users, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import Logo from '../Logo';
@@ -16,8 +16,10 @@ interface AdminSidebarProps {
     tabs: Tab[];
     onLogout: () => void;
     onRepairDatabase: () => void;
+    onWipeDatabase: () => void;
     isOpen?: boolean;
     onClose?: () => void;
+    role?: string | null;
 }
 
 const AdminSidebar: React.FC<AdminSidebarProps> = ({
@@ -26,8 +28,10 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     tabs,
     onLogout,
     onRepairDatabase,
+    onWipeDatabase,
     isOpen = false,
-    onClose
+    onClose,
+    role
 }) => {
     // Desktop Sidebar (Always visible on lg screens)
     const DesktopSidebar = (
@@ -35,7 +39,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
             <Link to="/" className="h-32 flex items-center justify-center border-b border-stone-100 hover:bg-stone-50 transition-colors">
                 <Logo size={80} className="text-stone-900" />
             </Link>
-            <div className="p-6">
+            <div className="flex-1 overflow-y-auto p-6 scrollbar-hide">
                 <nav className="space-y-2">
                     {tabs.map((tab) => (
                         <button
@@ -57,7 +61,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 </nav>
             </div>
 
-            <div className="mt-auto p-8 border-t border-stone-100 space-y-2">
+            <div className="mt-auto p-8 border-t border-stone-100 space-y-2 shrink-0">
                 <div className="mb-6 px-4">
                     <p className="text-[9px] font-black text-stone-300 uppercase tracking-widest mb-2">System Controls</p>
                 </div>
@@ -81,6 +85,16 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                     <Activity size={16} className="text-stone-300 group-hover:text-[#C5A059] transition-colors" />
                     <span>Repair Database</span>
                 </button>
+
+                {role === 'super_admin' && (
+                    <button
+                        onClick={onWipeDatabase}
+                        className="w-full px-4 py-3 text-[10px] font-bold tracking-widest uppercase text-red-500 hover:text-red-700 hover:bg-red-50 rounded-xl flex items-center space-x-3 transition-all group border border-red-100"
+                    >
+                        <AlertTriangle size={16} className="text-red-400 group-hover:text-red-600 transition-colors" />
+                        <span>Wipe Database</span>
+                    </button>
+                )}
 
                 <button
                     onClick={onLogout}
