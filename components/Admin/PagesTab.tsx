@@ -71,7 +71,7 @@ const PagesTab: React.FC<PagesTabProps> = ({ footerPages }) => {
                                     >
                                         <option value="Customer Services">Customer Services</option>
                                         <option value="Company">Company</option>
-                                        <option value="Policies">Policies</option>
+                                        <option value="Terms">Terms</option>
                                     </select>
                                     <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none">
                                         <Layout size={14} className="text-stone-400" />
@@ -142,7 +142,7 @@ const PagesTab: React.FC<PagesTabProps> = ({ footerPages }) => {
 
                 {/* --- LIST SECTION --- */}
                 <div className="lg:col-span-12 xl:col-span-7 space-y-4">
-                    {['Customer Services', 'Company', 'Policies'].map(cat => (
+                    {['Customer Services', 'Company', 'Terms'].map(cat => (
                         <div key={cat} className="space-y-4 mb-8">
                             <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-300 pl-4">{cat}</h4>
                             {footerPages.filter(p => p.category === cat).map(page => (

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Package, ShoppingCart, BarChart3, BellRing, LayoutGrid, FileText, Lock, Users, DollarSign
 } from 'lucide-react';
@@ -19,12 +19,14 @@ import {
   wipeDatabase
 } from '../services/dbUtils';
 import { INITIAL_PRODUCTS, INITIAL_FOOTER_PAGES, INITIAL_HOME_LAYOUT } from '../constants';
-import { isAdminEmail, getAdminRole, canPerform } from '../services/adminPermissions';
+import { canPerform, AdminRole } from '../services/adminPermissions';
+import { getStaffRole } from '../services/staffService';
+import { Shield } from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';
 import { useSessionTimeout } from '../hooks/useSessionTimeout';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock } from 'lucide-react';
+import { Clock, Eye } from 'lucide-react';
 
 // Sub-components
 import AdminLogin from '../components/Admin/AdminLogin';
@@ -40,6 +42,8 @@ import CustomersTab from '../components/Admin/CustomersTab';
 import AnalyticsDashboard from '../components/Analytics/AnalyticsDashboard';
 import DashboardTab from '../components/Admin/DashboardTab';
 import PricingTab from '../components/Admin/PricingTab';
+import AbandonedTab from '../components/Admin/AbandonedTab';
+import StaffTab from '../components/Admin/StaffTab';
 import { updateProduct } from '../services/dbUtils';
 
 interface AdminProps {
@@ -84,9 +88,17 @@ const Admin: React.FC<AdminProps> = ({
   // Auth State
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
+  const [adminRole, setAdminRole] = useState<AdminRole | null>(null);
 
   // UI State
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'dashboard';
+  const setActiveTab = useCallback((tabId: string) => {
+    setSearchParams((prev) => {
+      prev.set('tab', tabId);
+      return prev;
+    });
+  }, [setSearchParams]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Session Timeout
@@ -104,8 +116,14 @@ const Admin: React.FC<AdminProps> = ({
 
   // --- Subscriptions ---
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (user) => {
+    const unsub = onAuthStateChanged(auth, async (user) => {
       setIsLoggedIn(!!user);
+      if (user && user.email) {
+          const role = await getStaffRole(user.email);
+          setAdminRole(role);
+      } else {
+          setAdminRole(null);
+      }
       setIsAuthChecking(false);
     });
     return () => unsub();
@@ -172,7 +190,6 @@ const Admin: React.FC<AdminProps> = ({
   };
 
   const currentUser = auth.currentUser;
-  const adminRole = currentUser ? getAdminRole(currentUser.email) : null;
   const isAuthorized = !!adminRole;
 
   const tabs = [
@@ -182,10 +199,12 @@ const Admin: React.FC<AdminProps> = ({
     { id: 'orders', label: 'Orders', icon: ShoppingCart },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
     { id: 'pricing', label: 'Pricing AI', icon: DollarSign },
-    { id: 'requests', label: 'Waitlist', icon: BellRing },
-    ...(canPerform(adminRole, 'pages', 'view') ? [{ id: 'pages', label: 'Boutique Pages', icon: FileText }] : []),
-    { id: 'layout', label: 'Home Layout', icon: LayoutGrid },
-    { id: 'activity', label: 'Activity Log', icon: FileText }
+    { id: 'abandoned', label: 'Abandoned Carts', icon: ShoppingCart },
+    { id: 'requests', label: 'Restock Requests', icon: BellRing },
+    { id: 'layout', label: 'Theme & Layout', icon: LayoutGrid },
+    { id: 'pages', label: 'Pages & Footer', icon: FileText },
+    { id: 'activity', label: 'Activity Logs', icon: FileText },
+    ...(adminRole === 'super_admin' ? [{ id: 'staff', label: 'Staff Access', icon: Shield }] : [])
   ];
 
   if (isAuthChecking) {
@@ -286,7 +305,7 @@ const Admin: React.FC<AdminProps> = ({
       />
 
       <main className="flex-1 lg:ml-72 p-6 lg:p-20 pt-[100px] lg:pt-32">
-        <header className="mb-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 animate-in slide-in-from-top-4 duration-700">
+        <header className="mb-12 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 animate-in slide-in-from-top-4 duration-700">
           <div>
             <h1 className="text-4xl md:text-6xl font-serif font-black text-stone-900 tracking-tighter uppercase mb-2">
               {tabs.find(t => t.id === activeTab)?.label}
@@ -296,6 +315,13 @@ const Admin: React.FC<AdminProps> = ({
               <p className="text-[10px] text-stone-400 uppercase tracking-[0.4em] font-bold">Zarhrah Executive Panel</p>
             </div>
           </div>
+          <button
+            onClick={() => navigate('/')}
+            className="flex items-center space-x-2 border border-[#C5A059] px-6 py-3 rounded-full text-[10px] font-black tracking-[0.2em] uppercase text-[#C5A059] hover:bg-[#C5A059] hover:text-white transition-all shadow-sm hover:shadow-lg active:scale-95 group duration-300"
+          >
+            <Eye size={12} className="transition-transform duration-300 group-hover:scale-110" />
+            <span>Live Boutique</span>
+          </button>
         </header>
 
         <AnimatePresence mode="wait">
@@ -350,6 +376,10 @@ const Admin: React.FC<AdminProps> = ({
               />
             )}
 
+            {activeTab === 'abandoned' && (
+              <AbandonedTab />
+            )}
+
             {activeTab === 'requests' && (
               <RequestsTab restockRequests={restockRequests} products={products} reviews={reviews} />
             )}
@@ -364,6 +394,10 @@ const Admin: React.FC<AdminProps> = ({
 
             {activeTab === 'activity' && (
               <ActivityLogTab />
+            )}
+
+            {activeTab === 'staff' && adminRole === 'super_admin' && (
+              <StaffTab />
             )}
           </motion.div>
         </AnimatePresence>

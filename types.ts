@@ -38,6 +38,7 @@ export interface Order {
   paymentStatus?: 'Paid' | 'Pending' | 'Failed';
   paymentReference?: string;
   userId?: string;
+  couponApplied?: string;
 }
 
 export interface Review {
@@ -45,6 +46,7 @@ export interface Review {
   rating: number;
   comment: string;
   customerName: string;
+  customerEmail?: string;
   date: string;
 }
 
@@ -99,6 +101,7 @@ export interface HomeLayoutConfig {
 
   // Dynamic Content
   heroImage?: string;
+  heroImages?: string[];
   lifestyleImages?: [string, string];
 
   // NEW: Manual overrides for Curated Picks tabs
@@ -144,4 +147,5 @@ export interface UserProfile {
   twoFactorSecret?: string;
   lastLoginAt?: string;
   createdAt: string;
+  cart?: CartItem[];
 }

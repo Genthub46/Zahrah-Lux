@@ -3,6 +3,7 @@ import { FileText, Mail, MessageCircle, X, Trash2, Star, BellRing } from 'lucide
 import { RestockRequest, Product, Review } from '../../types';
 import { deleteRestockRequest, updateRestockRequestStatus, deleteReview } from '../../services/dbUtils';
 import { exportWaitlistToPDF } from '../../services/exportUtils';
+import { sendAutomatedEmail } from '../../services/emailUtils';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface RequestsTabProps {
@@ -12,6 +13,8 @@ interface RequestsTabProps {
 }
 
 const RequestsTab: React.FC<RequestsTabProps> = ({ restockRequests, products, reviews }) => {
+    const [sendingProductId, setSendingProductId] = React.useState<string | null>(null);
+    const [sendingRequestId, setSendingRequestId] = React.useState<string | null>(null);
 
     const groupedRequests = useMemo(() => {
         return restockRequests.reduce((acc, req) => {
@@ -80,9 +83,47 @@ const RequestsTab: React.FC<RequestsTabProps> = ({ restockRequests, products, re
                                             </div>
                                             <div>
                                                 <h4 className="font-bold text-lg text-stone-900 leading-tight mb-2">{p?.name || 'Unknown Artifact'}</h4>
-                                                <div className="inline-flex items-center gap-2 px-3 py-1 bg-stone-900 text-white rounded-lg">
-                                                    <BellRing size={10} />
-                                                    <span className="text-[9px] font-black uppercase tracking-widest">{reqs.length} Waiting</span>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-stone-900 text-white rounded-lg">
+                                                        <BellRing size={10} />
+                                                        <span className="text-[9px] font-black uppercase tracking-widest">{reqs.length} Waiting</span>
+                                                    </div>
+                                                    <button
+                                                        onClick={async () => {
+                                                            try {
+                                                                setSendingProductId(pid);
+                                                                const emails = reqs.map(r => r.customerEmail);
+                                                                const htmlMessage = `
+                                                                    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+                                                                        <h2 style="color: #C5A059; text-transform: uppercase; letter-spacing: 2px;">Zarhrah Luxury Collections</h2>
+                                                                        <p>Good news!</p>
+                                                                        <p>The <strong>${p?.name}</strong> you requested is finally back in stock.</p>
+                                                                        <p>Visit our website to secure yours before it sells out again.</p>
+                                                                        <br/>
+                                                                        <p style="font-size: 12px; color: #888;">Thank you for shopping with Zarhrah Luxury Collections.</p>
+                                                                    </div>
+                                                                `;
+                                                                await sendAutomatedEmail(emails, `Back in Stock: ${p?.name}`, htmlMessage);
+                                                                
+                                                                // Mark all as notified
+                                                                await Promise.all(reqs.map(r => updateRestockRequestStatus(r.id, 'Notified')));
+                                                                alert("All waiting customers have been notified!");
+                                                            } catch (err) {
+                                                                console.error("Failed to notify:", err);
+                                                                alert("Failed to send emails. Ensure backend is deployed.");
+                                                            } finally {
+                                                                setSendingProductId(null);
+                                                            }
+                                                        }}
+                                                        disabled={sendingProductId === pid}
+                                                        className="inline-flex items-center gap-2 px-3 py-1 bg-[#C5A059] text-white rounded-lg hover:bg-stone-900 transition-colors disabled:opacity-50"
+                                                        title="Notify All Customers"
+                                                    >
+                                                        <Mail size={10} />
+                                                        <span className="text-[9px] font-black uppercase tracking-widest">
+                                                            {sendingProductId === pid ? 'Sending...' : 'Notify All'}
+                                                        </span>
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
@@ -119,14 +160,36 @@ const RequestsTab: React.FC<RequestsTabProps> = ({ restockRequests, products, re
                                                         </div>
 
                                                         <div className="flex items-center space-x-1 pl-2 border-l border-stone-100">
-                                                            <a
-                                                                href={`mailto:${req.customerEmail}?subject=Back in Stock: ${p?.name}&body=Good news! The ${p?.name} is back in stock at Zarhrah Luxury.`}
-                                                                target="_blank" rel="noreferrer"
-                                                                className="p-2 rounded-lg text-stone-400 hover:bg-stone-900 hover:text-white transition-all"
+                                                            <button
+                                                                onClick={async () => {
+                                                                    try {
+                                                                        setSendingRequestId(req.id);
+                                                                        const htmlMessage = `
+                                                                            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+                                                                                <h2 style="color: #C5A059; text-transform: uppercase; letter-spacing: 2px;">Zarhrah Luxury Collections</h2>
+                                                                                <p>Dear ${req.customerName},</p>
+                                                                                <p>Good news! The <strong>${p?.name}</strong> you requested is finally back in stock.</p>
+                                                                                <p>Visit our website to secure yours before it sells out again.</p>
+                                                                                <br/>
+                                                                                <p style="font-size: 12px; color: #888;">Thank you for shopping with Zarhrah Luxury Collections.</p>
+                                                                            </div>
+                                                                        `;
+                                                                        await sendAutomatedEmail(req.customerEmail, `Back in Stock: ${p?.name}`, htmlMessage);
+                                                                        await updateRestockRequestStatus(req.id, 'Notified');
+                                                                        alert(`Notification sent to ${req.customerEmail}`);
+                                                                    } catch (err) {
+                                                                        console.error("Failed to send email:", err);
+                                                                        alert("Failed to send email. Ensure backend is deployed.");
+                                                                    } finally {
+                                                                        setSendingRequestId(null);
+                                                                    }
+                                                                }}
+                                                                disabled={sendingRequestId === req.id}
+                                                                className="p-2 rounded-lg text-stone-400 hover:bg-stone-900 hover:text-white transition-all disabled:opacity-50"
                                                                 title="Send Email"
                                                             >
                                                                 <Mail size={14} />
-                                                            </a>
+                                                            </button>
                                                             {req.customerWhatsapp && (
                                                                 <a
                                                                     href={`https://wa.me/${req.customerWhatsapp.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Good news! The ${p?.name} is back in stock at Zarhrah Luxury.`)}`}

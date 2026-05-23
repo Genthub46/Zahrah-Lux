@@ -11,9 +11,11 @@ import {
     getDocs,
     query,
     where,
-    getDoc
+    getDoc,
+    runTransaction,
+    orderBy
 } from "firebase/firestore";
-import { Product, Order, ViewLog, RestockRequest, FooterPage, HomeLayoutConfig, Review } from "../types";
+import { Product, CartItem, Order, ViewLog, RestockRequest, FooterPage, HomeLayoutConfig, Review } from "../types";
 import { PRODUCT_CATEGORIES } from "../constants";
 
 // Collection References
@@ -38,7 +40,11 @@ export const subscribeToProducts = (callback: (data: Product[]) => void) => {
     return onSnapshot(collection(db, PRODUCTS_COL), (snapshot) => {
         const products = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Product));
         // Sort by ID descending (Newest First, assuming p-TIMESTAMP format)
-        products.sort((a, b) => b.id.localeCompare(a.id));
+        products.sort((a, b) => {
+            const tsA = parseInt(a.id.replace(/\D/g, '')) || 0;
+            const tsB = parseInt(b.id.replace(/\D/g, '')) || 0;
+            return tsB - tsA;
+        });
         callback(products);
     });
 };
@@ -58,6 +64,8 @@ export const subscribeToUserOrders = (email: string, callback: (data: Order[]) =
         // Sort by date descending
         orders.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         callback(orders);
+    }, (error) => {
+        console.error("Orders sync error:", error);
     });
 };
 
@@ -118,9 +126,123 @@ export const saveOrder = async (order: Order) => {
     }
 };
 
+/**
+ * Places an order atomically inside a Firestore transaction.
+ * Reads the latest stock levels first, verifies availability, 
+ * deducts inventory, and writes the order. Thread and concurrent safe.
+ */
+export const placeOrderWithStockCheck = async (order: Order): Promise<void> => {
+    const orderRef = doc(db, ORDERS_COL, order.id || `ORD-${Date.now()}`);
+    
+    await runTransaction(db, async (transaction) => {
+        // 1. Gather and execute all reads first (Firestore transactions require all reads before writes)
+        const productDataList = [];
+        for (const item of order.items) {
+            const productRef = doc(db, PRODUCTS_COL, item.id);
+            const productDoc = await transaction.get(productRef);
+            
+            if (!productDoc.exists()) {
+                throw new Error(`Product "${item.name}" is no longer available in our collection.`);
+            }
+            
+            const dbProduct = productDoc.data() as Product;
+            if (dbProduct.stock < item.quantity) {
+                throw new Error(`Insufficient stock for "${item.name}". Only ${dbProduct.stock} unit(s) left in stock.`);
+            }
+            
+            productDataList.push({
+                ref: productRef,
+                currentStock: dbProduct.stock,
+                deductQty: item.quantity
+            });
+        }
+        
+        // 2. Perform all updates (writes) after reads are fully validated
+        for (const update of productDataList) {
+            const newStock = Math.max(0, update.currentStock - update.deductQty);
+            transaction.update(update.ref, { stock: newStock });
+        }
+        
+        // 3. Write the order document
+        transaction.set(orderRef, order);
+    });
+};
+
+/**
+ * Validates whether all items in the cart have sufficient stock levels
+ * in Firestore before payment is initiated.
+ */
+export const verifyCartStock = async (cart: CartItem[]): Promise<{ valid: boolean; error?: string }> => {
+    try {
+        for (const item of cart) {
+            const productRef = doc(db, PRODUCTS_COL, item.id);
+            const productDoc = await getDoc(productRef);
+            
+            if (!productDoc.exists()) {
+                return { valid: false, error: `Product "${item.name}" is no longer in our collection.` };
+            }
+            
+            const dbProduct = productDoc.data() as Product;
+            if (dbProduct.stock < item.quantity) {
+                return { 
+                    valid: false, 
+                    error: `Insufficient stock for "${item.name}". Only ${dbProduct.stock} unit(s) remaining in boutique.` 
+                };
+            }
+        }
+        return { valid: true };
+    } catch (error: any) {
+        console.error("Cart verification failed:", error);
+        return { valid: false, error: "Failed to verify stock with store servers. Please try again." };
+    }
+};
+
 export const logView = async (productId: string, userId?: string) => {
     await addDoc(collection(db, LOGS_COL), { productId, userId: userId || null, timestamp: Date.now() });
 };
+
+// --- Abandoned Checkout Recovery ---
+const ABANDONED_COL = 'abandonedCheckouts';
+
+export const saveAbandonedCheckout = async (data: {
+    email: string;
+    name: string;
+    cart: any[];
+    total: number;
+    timestamp: number;
+    sessionId: string;
+}) => {
+    const docRef = doc(db, ABANDONED_COL, data.sessionId);
+    await setDoc(docRef, data, { merge: true });
+};
+
+export const deleteAbandonedCheckout = async (sessionId: string) => {
+    await deleteDoc(doc(db, ABANDONED_COL, sessionId));
+};
+
+// --- Live Notifications ---
+
+export const subscribeToNewOrders = (startTime: string, callback: (order: Order) => void) => {
+    const q = query(collection(db, ORDERS_COL), where("date", ">", startTime), orderBy("date", "asc"));
+    return onSnapshot(q, (snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+            if (change.type === "added") {
+                callback({ ...change.doc.data(), id: change.doc.id } as Order);
+            }
+        });
+    });
+};
+
+export const subscribeToAbandonedCheckouts = (callback: (data: any[]) => void) => {
+    return onSnapshot(collection(db, ABANDONED_COL), (snapshot) => {
+        const items = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        // Only show sessions older than 30 mins
+        const thirtyMinsAgo = Date.now() - 30 * 60 * 1000;
+        const stale = items.filter((a: any) => a.timestamp < thirtyMinsAgo);
+        callback(stale);
+    });
+};
+
 
 export const addRestockRequest = async (req: RestockRequest) => {
     await addDoc(collection(db, REQUESTS_COL), req);
@@ -237,7 +359,7 @@ export const seedInitialData = async (products: Product[], config: HomeLayoutCon
         batch.set(ref, p);
     });
 
-    // Seed Default Categories
+    // Seed Default Categories (only if they don't exist)
     for (const c of PRODUCT_CATEGORIES) {
         const q = query(collection(db, CATEGORIES_COL), where("name", "==", c));
         const snapshot = await getDocs(q);
@@ -247,8 +369,12 @@ export const seedInitialData = async (products: Product[], config: HomeLayoutCon
         }
     }
 
+    // Only overwrite home layout if it's missing (true repair)
     const configRef = doc(db, CONFIG_COL, "homeLayout");
-    batch.set(configRef, config);
+    const configSnap = await getDocs(query(collection(db, CONFIG_COL)));
+    if (configSnap.empty) {
+        batch.set(configRef, config);
+    }
 
     await batch.commit();
     console.log("Seeding complete.");
@@ -257,9 +383,8 @@ export const seedInitialData = async (products: Product[], config: HomeLayoutCon
 export const wipeDatabase = async () => {
     console.log("Wiping database collections...");
     const collectionsToWipe = [
-        PRODUCTS_COL, ORDERS_COL, LOGS_COL, REQUESTS_COL, PAGES_COL,
-        BRANDS_COL, REVIEWS_COL, CONFIG_COL, USERS_COL, CATEGORIES_COL,
-        ADMIN_LOGS_COL, NEWSLETTER_COL
+        PRODUCTS_COL, ORDERS_COL, LOGS_COL, REQUESTS_COL,
+        REVIEWS_COL, USERS_COL, ADMIN_LOGS_COL, NEWSLETTER_COL
     ];
 
     for (const colName of collectionsToWipe) {
@@ -380,16 +505,13 @@ export const logAdminAction = async (
 const NEWSLETTER_COL = "newsletter";
 
 export const subscribeToNewsletter = async (email: string) => {
-    // Check if already exists to avoid duplicates
-    const q = query(collection(db, NEWSLETTER_COL), where("email", "==", email));
-    const querySnapshot = await getDocs(q);
-
-    if (!querySnapshot.empty) {
-        return; // Already subscribed
-    }
-
     await addDoc(collection(db, NEWSLETTER_COL), {
         email,
         date: new Date().toISOString()
     });
+};
+
+export const getNewsletterSubscribers = async () => {
+    const querySnapshot = await getDocs(collection(db, NEWSLETTER_COL));
+    return querySnapshot.docs.map(doc => doc.data() as { email: string, date: string });
 };

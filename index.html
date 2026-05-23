@@ -4,6 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <base href="/">
+    <!-- Force HTTPS on all assets: prevents mixed content SSL warnings -->
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zarhrah Luxury | Premium Boutique</title>
     <meta name="description"
@@ -13,7 +15,13 @@
     <meta property="og:title" content="Zarhrah Luxury | Premium Boutique">
     <meta property="og:description"
         content="Experience premium luxury fashion at Zarhrah. Discover exclusive collections in London and Lagos.">
+    <meta property="og:image" content="https://images.unsplash.com/photo-1549439602-43ebca23d7bc?q=80&w=2070&auto=format&fit=crop">
+    <meta property="og:url" content="https://zahrahluxury.com">
     <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Zarhrah Luxury | Premium Boutique">
+    <meta name="twitter:description" content="Experience premium luxury fashion at Zarhrah. Discover exclusive collections of tailored shirts, elegant apparels, and sophisticated accessories in London and Lagos.">
+    <meta name="twitter:image" content="https://images.unsplash.com/photo-1549439602-43ebca23d7bc?q=80&w=2070&auto=format&fit=crop">
     <!-- Removed Tailwind CDN for performance -->
     <link
         href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap"
@@ -34,7 +42,7 @@
             background-color: #ffffff;
             color: var(--obsidian);
             margin: 0;
-            overflow-x: hidden;
+            overflow-x: clip;
         }
 
         /* Subtle Noise Texture */
@@ -107,6 +115,17 @@
 
         .animate-kenburns {
             animation: kenburns 20s ease infinite alternate;
+        }
+        /* WCAG 2.1 AA — Global focus-visible styles for keyboard navigation */
+        :focus-visible {
+            outline: 2px solid var(--gold);
+            outline-offset: 3px;
+            border-radius: 2px;
+        }
+
+        /* Remove focus ring for mouse users only */
+        :focus:not(:focus-visible) {
+            outline: none;
         }
     </style>
     <script type="importmap">

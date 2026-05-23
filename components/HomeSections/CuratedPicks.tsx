@@ -134,7 +134,7 @@ const CuratedSection: React.FC<CuratedSectionProps> = ({
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.9 }}
                             transition={{ duration: 0.3 }}
-                            className="w-[280px] md:w-[350px] flex-shrink-0 snap-start"
+                            className="w-[280px] md:w-[320px] flex-shrink-0 snap-start"
                         >
                             <ProductCard
                                 product={product}

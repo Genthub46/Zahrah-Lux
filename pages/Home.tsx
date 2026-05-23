@@ -98,7 +98,7 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
 
   const searchParams = new URLSearchParams(location.search);
   const brandFilter = searchParams.get('brand');
-  const tagFilter = searchParams.get('tag');
+  const tagFilters = searchParams.getAll('tag');
   const categoryFilter = searchParams.get('category');
 
   useEffect(() => {
@@ -111,7 +111,7 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
 
   // Scroll to catalog when filters change
   useEffect(() => {
-    if (brandFilter || tagFilter || categoryFilter) {
+    if (brandFilter || tagFilters.length > 0 || categoryFilter) {
       const el = document.getElementById('catalog');
       if (el) {
         setTimeout(() => {
@@ -119,17 +119,17 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
         }, 100);
       }
     }
-  }, [brandFilter, tagFilter, categoryFilter]);
+  }, [brandFilter, tagFilters, categoryFilter]);
 
   const filteredCatalog = useMemo(() => {
     return products.filter(p => {
       if (p.isVisible === false) return false;
       const matchesBrand = !brandFilter || (p.brand && p.brand.toLowerCase() === brandFilter.toLowerCase());
-      const matchesTag = !tagFilter || (p.tags && p.tags.some(t => t.toLowerCase() === tagFilter.toLowerCase()));
+      const matchesTag = tagFilters.length === 0 || tagFilters.every(tag => p.tags && p.tags.some(t => t.toLowerCase() === tag.toLowerCase()));
       const matchesCategory = !categoryFilter || (p.category && p.category.toLowerCase() === categoryFilter.toLowerCase());
       return matchesBrand && matchesTag && matchesCategory;
     });
-  }, [products, brandFilter, tagFilter, categoryFilter]);
+  }, [products, brandFilter, tagFilters, categoryFilter]);
 
   const scrollSection = (id: string, direction: 'left' | 'right') => {
     const el = document.getElementById(`scroll-${id}`);
@@ -225,17 +225,17 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
 
       {/* Dynamic Sections or Filtered Catalog */}
       <div id="catalog" className="min-h-screen">
-        {(brandFilter || tagFilter || categoryFilter) ? (
+        {(brandFilter || tagFilters.length > 0 || categoryFilter) ? (
           <div className="py-24 px-6 md:px-12 max-w-[1920px] mx-auto">
             <div className="mb-16 md:mb-24 text-center">
               <span className="text-[#C5A059] text-[10px] uppercase tracking-macro mb-6 block font-medium">
-                {brandFilter ? 'Brand Collection' : tagFilter ? 'Curated Selection' : 'Category'}
+                {brandFilter ? 'Brand Collection' : tagFilters.length > 0 ? 'Curated Selection' : 'Category'}
               </span>
               <h2 className="text-3xl md:text-5xl font-serif text-stone-900 mb-8 capitalize font-light tracking-wide">
-                {brandFilter || tagFilter || categoryFilter}
+                {brandFilter || (tagFilters.length > 0 ? tagFilters.join(', ') : categoryFilter)}
               </h2>
               <p className="text-stone-500 text-xs md:text-sm max-w-xl mx-auto font-light leading-relaxed tracking-wide">
-                Browsing our exclusive collection of {(brandFilter || tagFilter || categoryFilter)?.toLowerCase()}.
+                Browsing our exclusive collection of {(brandFilter || (tagFilters.length > 0 ? tagFilters.join(', ') : categoryFilter))?.toLowerCase()}.
                 Each piece represents the pinnacle of luxury and craftsmanship.
               </p>
               <button
@@ -280,7 +280,11 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
               if (section.title.toUpperCase() === 'NEW ARRIVALS') {
                 sectionProducts = products
                   .filter(p => p.isVisible !== false)
-                  .sort((a, b) => b.id.localeCompare(a.id))
+                  .sort((a, b) => {
+                    const tsA = parseInt(a.id.replace(/\D/g, '')) || 0;
+                    const tsB = parseInt(b.id.replace(/\D/g, '')) || 0;
+                    return tsB - tsA;
+                  })
                   .slice(0, 12);
               } else {
                 sectionProducts = products.filter(p => section.productIds.includes(p.id));
@@ -299,10 +303,6 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
                       {/* Enhanced Section Header */}
                       <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 md:mb-20 gap-4 md:gap-8 relative z-10">
                         <div className="max-w-xl text-left">
-                          <div className="hidden md:flex items-center gap-3 mb-6">
-                            <span className="h-px w-8 bg-stone-300"></span>
-                            <span className="text-[9px] font-medium uppercase tracking-macro text-[#C5A059]">Collection 0{idx + 1}</span>
-                          </div>
                           <h2 className="text-2xl md:text-4xl font-serif text-stone-900 leading-tight font-light tracking-wide">
                             <span className="block mb-2">{section.title}</span>
                           </h2>
@@ -381,7 +381,7 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
       </div>
 
       {/* Signature Features Section */}
-      {(layoutConfig.showFeatures ?? true) && !brandFilter && !tagFilter && !categoryFilter && (
+      {(layoutConfig.showFeatures ?? true) && !brandFilter && tagFilters.length === 0 && !categoryFilter && (
         <section className="py-32 bg-white border-t border-stone-100">
           <div className="max-w-7xl mx-auto px-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-16 md:gap-24 text-center">
@@ -409,7 +409,7 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
       )}
 
       {/* Boutique Banner as Archive Replacement */}
-      {(layoutConfig.showBoutique ?? true) && !brandFilter && !tagFilter && !categoryFilter && (
+      {(layoutConfig.showBoutique ?? true) && !brandFilter && tagFilters.length === 0 && !categoryFilter && (
         <React.Suspense fallback={<SectionLoader />}>
           <BoutiqueBanner
             image={layoutConfig.boutiqueBannerImage}
@@ -419,7 +419,7 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
       )}
 
       {/* Manor Collection Section */}
-      {(layoutConfig.showManor ?? true) && !brandFilter && !tagFilter && !categoryFilter && (
+      {(layoutConfig.showManor ?? true) && !brandFilter && tagFilters.length === 0 && !categoryFilter && (
         <React.Suspense fallback={<SectionLoader />}>
           <ManorCollection
             products={products}
@@ -433,7 +433,7 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
       )}
 
       {/* Styling Ideas Section */}
-      {(layoutConfig.showStyling ?? true) && !brandFilter && !tagFilter && !categoryFilter && (
+      {(layoutConfig.showStyling ?? true) && !brandFilter && tagFilters.length === 0 && !categoryFilter && (
         <React.Suspense fallback={<SectionLoader />}>
           <StylingIdeas
             products={products}
@@ -448,7 +448,7 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
       )}
 
       {/* Bundles Deals Section */}
-      {(layoutConfig.showBundles ?? true) && !brandFilter && !tagFilter && !categoryFilter && (
+      {(layoutConfig.showBundles ?? true) && !brandFilter && tagFilters.length === 0 && !categoryFilter && (
         <React.Suspense fallback={<SectionLoader />}>
           <BundlesDeals
             products={products}
@@ -462,7 +462,7 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
       )}
 
       {/* Lifestyle Showcase Section */}
-      {(layoutConfig.showLifestyle ?? true) && !brandFilter && !tagFilter && !categoryFilter && (
+      {(layoutConfig.showLifestyle ?? true) && !brandFilter && tagFilters.length === 0 && !categoryFilter && (
         <React.Suspense fallback={<SectionLoader />}>
           <LifestyleShowcase images={layoutConfig.lifestyleImages} />
         </React.Suspense>
@@ -482,18 +482,32 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
 
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-y-16 gap-x-12 text-left mb-32">
             {/* Standard Pages Columns */}
-            {(['Customer Services', 'Company', 'Policies'] as const).map((cat) => (
-              <div key={cat} className="space-y-8">
-                <h4 className="text-[9px] font-medium uppercase tracking-macro text-stone-500">{cat}</h4>
-                <ul className="space-y-4 text-stone-300 text-[10px] font-medium tracking-wide uppercase">
-                  {(groupedFooterPages[cat] || []).map((page) => (
-                    <li key={page.slug}>
-                      <Link to={`/p/${page.slug}`} className="hover:text-white hover:pl-2 transition-all duration-300 block">{page.title}</Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+            <div className="space-y-8">
+              <h4 className="text-[9px] font-medium uppercase tracking-macro text-stone-500">Customer Services</h4>
+              <ul className="space-y-4 text-stone-300 text-[10px] font-medium tracking-wide uppercase">
+                <li><Link to="/p/contact" className="hover:text-white hover:pl-2 transition-all duration-300 block">Contact Us</Link></li>
+                <li><Link to="/p/faq" className="hover:text-white hover:pl-2 transition-all duration-300 block">FAQ</Link></li>
+                <li><Link to="/p/returns-exchanges" className="hover:text-white hover:pl-2 transition-all duration-300 block">Returns & Exchanges</Link></li>
+              </ul>
+            </div>
+
+            <div className="space-y-8">
+              <h4 className="text-[9px] font-medium uppercase tracking-macro text-stone-500">Company</h4>
+              <ul className="space-y-4 text-stone-300 text-[10px] font-medium tracking-wide uppercase">
+                <li><Link to="/p/about" className="hover:text-white hover:pl-2 transition-all duration-300 block">About Us</Link></li>
+                <li><Link to="/p/careers" className="hover:text-white hover:pl-2 transition-all duration-300 block">Careers</Link></li>
+                <li><Link to="/p/sustainability" className="hover:text-white hover:pl-2 transition-all duration-300 block">Sustainability</Link></li>
+              </ul>
+            </div>
+
+            <div className="space-y-8">
+              <h4 className="text-[9px] font-medium uppercase tracking-macro text-stone-500">Terms</h4>
+              <ul className="space-y-4 text-stone-300 text-[10px] font-medium tracking-wide uppercase">
+                <li><Link to="/p/terms-of-service" className="hover:text-white hover:pl-2 transition-all duration-300 block">Terms of Service</Link></li>
+                <li><Link to="/p/privacy-policy" className="hover:text-white hover:pl-2 transition-all duration-300 block">Privacy Policy</Link></li>
+                <li><Link to="/p/refund-policy" className="hover:text-white hover:pl-2 transition-all duration-300 block">Refund Policy</Link></li>
+              </ul>
+            </div>
 
             {/* Specialized Categories Column */}
             <div className="space-y-8">

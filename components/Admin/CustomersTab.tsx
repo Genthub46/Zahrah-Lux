@@ -1,6 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { UserProfile, Order } from '../../types';
-import { Search, User, Mail, Calendar, ShoppingBag, DollarSign } from 'lucide-react';
+import { Search, User, Mail, Calendar, ShoppingBag, DollarSign, Download, ShoppingCart } from 'lucide-react';
+import { getNewsletterSubscribers } from '../../services/dbUtils';
+import { exportNewsletterToCSV } from '../../services/exportUtils';
+import { sendAutomatedEmail } from '../../services/emailUtils';
 
 interface CustomersTabProps {
     users: UserProfile[];
@@ -9,6 +12,7 @@ interface CustomersTabProps {
 
 const CustomersTab: React.FC<CustomersTabProps> = ({ users, orders }) => {
     const [searchTerm, setSearchTerm] = useState('');
+    const [isRecovering, setIsRecovering] = useState(false);
 
     const customerData = useMemo(() => {
         return users.map(user => {
@@ -82,6 +86,66 @@ const CustomersTab: React.FC<CustomersTabProps> = ({ users, orders }) => {
                     <p className="text-xs text-stone-400 mt-2 uppercase tracking-widest">
                         {users.length} Registered Clients
                     </p>
+                </div>
+                <div className="flex gap-2">
+                    <button
+                        onClick={async () => {
+                            const abandonedCarts = users.filter(u => u.cart && u.cart.length > 0 && u.email);
+                            if (abandonedCarts.length === 0) {
+                                alert("No abandoned carts found right now.");
+                                return;
+                            }
+                            
+                            setIsRecovering(true);
+                            try {
+                                const emails = abandonedCarts.map(u => u.email as string);
+                                const subject = "Your Zarhrah Luxury curated selections are waiting.";
+                                const htmlMessage = `
+                                    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+                                        <h2 style="color: #C5A059; text-transform: uppercase; letter-spacing: 2px;">Zarhrah Luxury Collections</h2>
+                                        <p>We noticed you left some beautiful pieces in your cart.</p>
+                                        <p>Complete your order today to secure them before they sell out.</p>
+                                        <br/>
+                                        <p style="font-size: 12px; color: #888;">Thank you for shopping with Zarhrah Luxury Collections.</p>
+                                    </div>
+                                `;
+                                
+                                // Send to all emails via Resend batching (BCC essentially)
+                                await sendAutomatedEmail(emails, subject, htmlMessage);
+                                alert("Abandoned cart emails sent successfully in the background!");
+                            } catch (err) {
+                                console.error("Failed to send abandoned cart emails:", err);
+                                alert("Failed to send emails. Ensure the backend is configured.");
+                            } finally {
+                                setIsRecovering(false);
+                            }
+                        }}
+                        disabled={isRecovering}
+                        className="flex items-center space-x-2 px-4 py-2 bg-stone-100 text-stone-900 border border-stone-200 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-stone-200 transition-colors disabled:opacity-50"
+                        title="Email customers with items left in their cart"
+                    >
+                        <ShoppingCart size={14} />
+                        <span>{isRecovering ? 'Sending...' : 'Recover Abandoned Carts'}</span>
+                    </button>
+                    <button
+                        onClick={async () => {
+                            try {
+                                const subscribers = await getNewsletterSubscribers();
+                                if (subscribers.length === 0) {
+                                    alert("No newsletter subscribers yet.");
+                                    return;
+                                }
+                                exportNewsletterToCSV(subscribers);
+                            } catch (err: any) {
+                                console.error(err);
+                                alert("Failed to export newsletter: " + err.message);
+                            }
+                        }}
+                        className="flex items-center space-x-2 px-4 py-2 bg-stone-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#C5A059] transition-colors"
+                    >
+                        <Download size={14} />
+                        <span>Export Newsletter List</span>
+                    </button>
                 </div>
             </div>
 

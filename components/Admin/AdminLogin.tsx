@@ -28,7 +28,7 @@ const AdminLogin: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#0c0a09] flex items-center justify-center p-6 relative overflow-hidden">
+        <div className="min-h-[100dvh] bg-[#0c0a09] flex items-center justify-center p-6 relative overflow-hidden">
             {/* Background Decor */}
             <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
                 <div className="absolute top-0 left-0 w-96 h-96 bg-[#C5A059] rounded-full blur-[150px] -translate-x-1/2 -translate-y-1/2"></div>

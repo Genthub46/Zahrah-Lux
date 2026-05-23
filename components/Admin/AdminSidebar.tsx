@@ -36,11 +36,11 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     // Desktop Sidebar (Always visible on lg screens)
     const DesktopSidebar = (
         <aside className="hidden lg:flex w-72 bg-white/80 backdrop-blur-md border-r border-stone-100 fixed h-full flex-col z-[100]">
-            <Link to="/" className="h-32 flex items-center justify-center border-b border-stone-100 hover:bg-stone-50 transition-colors">
-                <Logo size={80} className="text-stone-900" />
+            <Link to="/" className="h-24 flex items-center justify-center border-b border-stone-100 hover:bg-stone-50 transition-colors">
+                <Logo size={70} className="text-stone-900" />
             </Link>
-            <div className="flex-1 overflow-y-auto p-6 scrollbar-hide">
-                <nav className="space-y-2">
+            <div className="flex-1 overflow-y-auto px-6 py-6 scrollbar-hide">
+                <nav className="space-y-1">
                     {tabs.map((tab) => (
                         <button
                             key={tab.id}

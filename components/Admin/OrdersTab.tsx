@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import {
     Search, FileSpreadsheet, FileText, ChevronLeft, ChevronRight,
-    CheckCircle2, Clock, Truck, Package
+    CheckCircle2, Clock, Truck, Package, Mail
 } from 'lucide-react';
 import { Order } from '../../types';
 import { saveOrder } from '../../services/dbUtils';
+import { sendAutomatedEmail } from '../../services/emailUtils';
 import { exportOrdersToCSV, exportOrdersToPDF } from '../../services/exportUtils';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -16,6 +17,7 @@ const OrdersTab: React.FC<OrdersTabProps> = ({ orders }) => {
     const [dateFilterMode, setDateFilterMode] = useState<'week' | 'month' | 'year' | 'all'>('week');
     const [dateOffset, setDateOffset] = useState(0);
     const [orderSearchQuery, setOrderSearchQuery] = useState('');
+    const [sendingEmailId, setSendingEmailId] = useState<string | null>(null);
 
     // --- Filtering Logic ---
     const filteredOrders = useMemo(() => {
@@ -91,6 +93,37 @@ const OrdersTab: React.FC<OrdersTabProps> = ({ orders }) => {
                 console.error(error);
                 alert(`Failed to update order status: ${error.message}`);
             }
+        }
+    };
+
+    const handleEmailUpdate = async (order: Order) => {
+        try {
+            setSendingEmailId(order.id);
+            const htmlMessage = `
+                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+                    <h2 style="color: #C5A059; text-transform: uppercase; letter-spacing: 2px;">Zarhrah Luxury Collections</h2>
+                    <p>Dear ${order.customerName},</p>
+                    <p>This is an update regarding your recent order <strong>#${order.id.slice(-8).toUpperCase()}</strong>.</p>
+                    <div style="padding: 15px; background-color: #f9f9f9; border-left: 4px solid #C5A059; margin: 20px 0;">
+                        <p style="margin: 0; font-size: 16px;">Current Status: <strong style="text-transform: uppercase;">${order.status}</strong></p>
+                    </div>
+                    <p>If you have any questions, please reply directly to this email.</p>
+                    <br/>
+                    <p style="font-size: 12px; color: #888;">Thank you for shopping with Zarhrah Luxury Collections.</p>
+                </div>
+            `;
+            
+            await sendAutomatedEmail(
+                order.customerEmail,
+                `Zarhrah Luxury Order Update: ${order.id.slice(-8).toUpperCase()}`,
+                htmlMessage
+            );
+            alert(`Email sent successfully to ${order.customerEmail}!`);
+        } catch (err) {
+            console.error("Failed to send email:", err);
+            alert("Failed to send email. Ensure the backend is configured.");
+        } finally {
+            setSendingEmailId(null);
         }
     };
 
@@ -178,8 +211,8 @@ const OrdersTab: React.FC<OrdersTabProps> = ({ orders }) => {
                     </div>
                 </div>
 
-                {/* Table (Desktop) */}
-                <div className="hidden md:block overflow-x-auto">
+                {/* Table (Responsive) */}
+                <div className="block overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead className="bg-stone-50/50 text-[9px] font-black uppercase text-stone-400 tracking-[0.3em] border-b border-stone-100">
                             <tr>
@@ -234,17 +267,28 @@ const OrdersTab: React.FC<OrdersTabProps> = ({ orders }) => {
                                             </div>
                                         </td>
                                         <td className="px-8 py-6">
-                                            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border ${getStatusColor(order.status)}`}>
-                                                {getStatusIcon(order.status)}
-                                                <select
-                                                    value={order.status || 'Pending'}
-                                                    onChange={(e) => updateOrderStatus(order.id, e.target.value as any)}
-                                                    className="bg-transparent text-[9px] font-black uppercase tracking-widest focus:outline-none cursor-pointer appearance-none pr-2"
+                                            <div className="flex flex-col gap-2">
+                                                <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border ${getStatusColor(order.status)}`}>
+                                                    {getStatusIcon(order.status)}
+                                                    <select
+                                                        value={order.status || 'Pending'}
+                                                        onChange={(e) => updateOrderStatus(order.id, e.target.value as any)}
+                                                        className="bg-transparent text-[9px] font-black uppercase tracking-widest focus:outline-none cursor-pointer appearance-none pr-2"
+                                                    >
+                                                        <option value="Pending">Processing</option>
+                                                        <option value="Shipped">Dispatched</option>
+                                                        <option value="Delivered">Delivered</option>
+                                                    </select>
+                                                </div>
+                                                <button
+                                                    onClick={() => handleEmailUpdate(order)}
+                                                    disabled={sendingEmailId === order.id}
+                                                    className="inline-flex items-center gap-2 text-[9px] font-bold text-stone-400 hover:text-[#C5A059] uppercase tracking-widest transition-colors pl-2 disabled:opacity-50"
+                                                    title="Email Customer Update"
                                                 >
-                                                    <option value="Pending">Processing</option>
-                                                    <option value="Shipped">Dispatched</option>
-                                                    <option value="Delivered">Delivered</option>
-                                                </select>
+                                                    <Mail size={10} />
+                                                    <span>{sendingEmailId === order.id ? 'Sending...' : 'Email Update'}</span>
+                                                </button>
                                             </div>
                                         </td>
                                         <td className="px-8 py-6 text-right">

@@ -45,29 +45,28 @@ const ProductCard: React.FC<ProductCardProps> = ({
       className="group/card cursor-pointer relative block"
     >
       <div
-        className={`aspect-[4/5] rounded-sm overflow-hidden flex items-center justify-center p-6 relative ${dark ? 'bg-stone-800' : 'bg-[#F9F9F8]'}`}
+        className={`aspect-[3/4] rounded-sm overflow-hidden flex items-center justify-center relative ${dark ? 'bg-stone-800' : 'bg-[#F9F9F8]'}`}
       >
-        <img
-          src={getOptimizedImageUrl(product.images[currentImageIndex] || product.images[0])}
-          alt={product.name}
-          width="500"
-          height="625"
-          loading="lazy"
-          className={`max-h-full max-w-full object-contain transition-transform duration-700 ease-out group-hover/card:scale-105 ${isSoldOut ? 'grayscale opacity-60' : ''}`}
-        />
-
-        {/* Manual Image Swap Button - Minimalist */}
-        {hasMultipleImages && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 z-20">
-            {product.images.slice(0, 3).map((_, idx) => (
-              <button
-                key={idx}
-                onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(idx); }}
-                className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${currentImageIndex === idx ? 'bg-stone-800 scale-125' : 'bg-stone-300 hover:bg-stone-500'}`}
-              />
-            ))}
-          </div>
-        )}
+        <div className="relative w-full h-full">
+          <img
+            src={getOptimizedImageUrl(product.images[0])}
+            alt={product.name || product.category}
+            width="500"
+            height="667"
+            loading="lazy"
+            className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-out group-hover/card:scale-105 ${hasMultipleImages ? 'group-hover/card:opacity-0' : ''} ${isSoldOut ? 'grayscale opacity-60' : ''}`}
+          />
+          {hasMultipleImages && (
+            <img
+              src={getOptimizedImageUrl(product.images[1])}
+              alt={`${product.name} Alternate View`}
+              width="500"
+              height="667"
+              loading="lazy"
+              className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-out opacity-0 group-hover/card:opacity-100 group-hover/card:scale-105 ${isSoldOut ? 'grayscale opacity-60' : ''}`}
+            />
+          )}
+        </div>
 
         {/* Quick Add Button */}
         {!isSoldOut && onAddToCart && (

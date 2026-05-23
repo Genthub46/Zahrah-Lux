@@ -1,16 +1,18 @@
 
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Product, RestockRequest } from '../types';
 import {
   ArrowLeft, Share2, Check, ShoppingBag, Ban,
   Mail, Bell, Truck, Globe, Award, Sparkles, Send,
-  Plus, Minus, Heart, ChevronDown, ChevronUp, X, ChevronLeft, ChevronRight, Maximize2, AlertCircle
+  Plus, Minus, Heart, ChevronDown, ChevronUp, X, ChevronLeft, ChevronRight, Maximize2, AlertCircle, Download, Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 import ProductCard from '../components/ProductCard';
 import RestockModal from '../components/RestockModal';
+import Logo from '../components/Logo';
 import { getOptimizedImageUrl } from '../utils/imageOptimizer';
+import html2canvas from 'html2canvas';
 
 // Accordion Component for Product Information
 interface AccordionProps {
@@ -73,6 +75,40 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
   const [isRestockSubmitted, setIsRestockSubmitted] = useState(false);
   const [isRestockModalOpen, setIsRestockModalOpen] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
+  const [addedToCartNotification, setAddedToCartNotification] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const savedSession = localStorage.getItem('ZARHRAH_ADMIN_SESSION');
+    if (savedSession) {
+      const { expiry } = JSON.parse(savedSession);
+      if (Date.now() < expiry) setIsAdmin(true);
+    }
+  }, []);
+
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [isGeneratingCard, setIsGeneratingCard] = useState(false);
+
+  const downloadSocialCard = async () => {
+    if (!cardRef.current || !product) return;
+    setIsGeneratingCard(true);
+    try {
+      const canvas = await html2canvas(cardRef.current, {
+        useCORS: true,
+        scale: 2, // High resolution for social media
+        backgroundColor: '#ffffff'
+      });
+      const image = canvas.toDataURL('image/jpeg', 0.9);
+      const link = document.createElement('a');
+      link.href = image;
+      link.download = `Zarhrah-${product.name.replace(/\s+/g, '-').toLowerCase()}.jpg`;
+      link.click();
+    } catch (error) {
+      console.error('Error generating card:', error);
+    } finally {
+      setIsGeneratingCard(false);
+    }
+  };
 
   useEffect(() => {
     if (showNotification) {
@@ -80,6 +116,13 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
       return () => clearTimeout(timer);
     }
   }, [showNotification]);
+
+  useEffect(() => {
+    if (addedToCartNotification) {
+      const timer = setTimeout(() => setAddedToCartNotification(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [addedToCartNotification]);
 
   // Lightbox & Gesture State
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
@@ -125,6 +168,51 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
     }
   }, [id, product, onLogView]);
 
+  // Inject Google JSON-LD Product Schema for SEO rich snippets
+  useEffect(() => {
+    const existingScript = document.getElementById('product-schema-ld');
+    if (existingScript) existingScript.remove();
+
+    if (!product) return;
+
+    const schema = {
+      '@context': 'https://schema.org/',
+      '@type': 'Product',
+      name: product.name,
+      description: product.description,
+      image: product.images,
+      brand: {
+        '@type': 'Brand',
+        name: product.brand,
+      },
+      offers: {
+        '@type': 'Offer',
+        priceCurrency: 'NGN',
+        price: product.price,
+        availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+        url: window.location.href,
+        seller: {
+          '@type': 'Organization',
+          name: 'Zarhrah Luxury Collections',
+        },
+      },
+      ...(product.tags && product.tags.length > 0 && {
+        keywords: product.tags.join(', '),
+      }),
+    };
+
+    const script = document.createElement('script');
+    script.id = 'product-schema-ld';
+    script.type = 'application/ld+json';
+    script.textContent = JSON.stringify(schema);
+    document.head.appendChild(script);
+
+    return () => {
+      const s = document.getElementById('product-schema-ld');
+      if (s) s.remove();
+    };
+  }, [product]);
+
   const handleNextImage = useCallback(() => {
     if (product) {
       setActiveImgIdx((prev) => (prev + 1) % product.images.length);
@@ -159,28 +247,38 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
 
   const relatedProducts = useMemo(() => {
     if (!product) return [];
+
+    const productTags = new Set((product.tags || []).map(t => t.toLowerCase().trim()));
+
     return products
-      .filter(p => p.id !== product.id && (p.category === product.category || p.brand === product.brand))
-      .sort((a, b) => {
-        let scoreA = 0;
-        let scoreB = 0;
+      .filter(p => p.id !== product.id && p.isVisible !== false && (
+        p.category === product.category ||
+        p.brand === product.brand ||
+        (p.tags || []).some(t => productTags.has(t.toLowerCase().trim()))
+      ))
+      .map(p => {
+        let score = 0;
 
-        if (a.brand === product.brand) scoreA += 10;
-        if (a.category === product.category) scoreA += 5;
-        if (a.stock > 0) scoreA += 2;
+        // Brand & category affinity
+        if (p.brand === product.brand) score += 10;
+        if (p.category === product.category) score += 6;
 
-        if (b.brand === product.brand) scoreB += 10;
-        if (b.category === product.category) scoreB += 5;
-        if (b.stock > 0) scoreB += 2;
+        // Tag overlap — each shared tag adds 3 points
+        const pTags = new Set((p.tags || []).map(t => t.toLowerCase().trim()));
+        productTags.forEach(tag => { if (pTags.has(tag)) score += 3; });
 
-        if (scoreA !== scoreB) {
-          return scoreB - scoreA;
-        }
+        // Boost items that are in-stock
+        if (p.stock > 0) score += 4;
 
-        // Then by creation (id descending assumption or random)
-        return b.id.localeCompare(a.id);
+        // Slight freshness boost for recently added items
+        const tsA = parseInt(p.id.replace(/\D/g, '')) || 0;
+        score += tsA > 0 ? 1 : 0;
+
+        return { product: p, score };
       })
-      .slice(0, 4);
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 4)
+      .map(x => x.product);
   }, [products, product]);
 
   if (!product) {
@@ -211,7 +309,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
 
   return (
     <div className="pt-4 pb-32 md:pt-24 md:pb-24 bg-white min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* Breadcrumb / Back */}
         <div className="hidden md:block mb-12">
           <Link to="/" className="inline-flex items-center space-x-2 text-xs font-black uppercase tracking-[0.4em] text-stone-400 hover:text-stone-900 transition-colors">
@@ -229,7 +327,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                 onClick={() => setActiveImgIdx(idx)}
                 className={`w-full aspect-[3/4] rounded-xl overflow-hidden border-2 transition-all p-1 bg-stone-50 flex-shrink-0 ${activeImgIdx === idx ? 'border-[#C5A059] shadow-md scale-105' : 'border-transparent opacity-40 hover:opacity-80'}`}
               >
-                <img src={getOptimizedImageUrl(img)} width="150" height="200" className="w-full h-full object-contain" alt={`Thumbnail ${idx}`} />
+                <img src={getOptimizedImageUrl(img)} width="150" height="200" className="w-full h-full object-contain" alt={`${product.name} — view ${idx + 1} of ${product.images.length}`} />
               </button>
             ))}
           </div>
@@ -275,12 +373,14 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                   <>
                     <button
                       onClick={(e) => { e.stopPropagation(); handlePrevImage(); }}
+                      aria-label="Previous image"
                       className="absolute left-8 top-1/2 -translate-y-1/2 p-4 bg-white/90 backdrop-blur-lg rounded-full shadow-2xl text-stone-900 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white hidden lg:block"
                     >
                       <ChevronLeft size={24} />
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); handleNextImage(); }}
+                      aria-label="Next image"
                       className="absolute right-8 top-1/2 -translate-y-1/2 p-4 bg-white/90 backdrop-blur-lg rounded-full shadow-2xl text-stone-900 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white hidden lg:block"
                     >
                       <ChevronRight size={24} />
@@ -408,6 +508,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                         setShowNotification(true);
                       } else {
                         onAddToCart(product, quantity, selectedColor, selectedSize);
+                        setAddedToCartNotification(true);
                       }
                     }}
 
@@ -447,17 +548,35 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                 </div>
               )}
 
+              {isAdmin && product && (
+                <button
+                  onClick={() => navigate(`/admin?tab=products&edit=${product.id}`)}
+                  className="w-full py-4 mb-4 border border-[#C5A059] hover:bg-[#C5A059] hover:text-white text-[#C5A059] rounded-xl md:rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center space-x-3 duration-300 shadow-sm hover:shadow-md"
+                >
+                  <Sparkles size={14} />
+                  <span>Edit Product in Panel</span>
+                </button>
+              )}
+
               <div className="flex space-x-4">
                 <button
                   onClick={() => onToggleWishlist(product)}
                   className={`flex-1 py-5 border-2 rounded-2xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center space-x-3 ${isWishlisted ? 'border-red-500 bg-red-50 text-red-500 shadow-lg' : 'border-stone-100 text-stone-900 hover:bg-stone-50'}`}
                 >
                   <Heart size={16} fill={isWishlisted ? "currentColor" : "none"} />
-                  <span>{isWishlisted ? 'In Wishlist' : 'Add to Wishlist'}</span>
+                  <span className="hidden md:inline">{isWishlisted ? 'In Wishlist' : 'Add to Wishlist'}</span>
+                </button>
+                <button
+                  onClick={downloadSocialCard}
+                  disabled={isGeneratingCard}
+                  className="flex-1 py-5 border-2 border-stone-100 rounded-2xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center space-x-3 text-stone-900 hover:bg-stone-50"
+                >
+                  {isGeneratingCard ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+                  <span className="hidden md:inline">Save Card</span>
                 </button>
                 <button
                   onClick={handleShare}
-                  className="px-8 py-5 border-2 border-stone-100 rounded-2xl text-stone-900 hover:bg-stone-50 transition-all"
+                  className="px-6 md:px-8 py-5 border-2 border-stone-100 rounded-2xl text-stone-900 hover:bg-stone-50 transition-all flex items-center justify-center"
                 >
                   {copied ? <Check size={18} className="text-green-600" /> : <Share2 size={18} />}
                 </button>
@@ -616,7 +735,60 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
             Please select {needsColor && !selectedColor && needsSize && !selectedSize ? 'Size & Color' : needsSize && !selectedSize ? 'Size' : 'Color'}
           </motion.div>
         )}
+        {addedToCartNotification && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 bg-[#C5A059] text-white text-[10px] font-bold uppercase tracking-widest rounded-full shadow-2xl whitespace-nowrap flex items-center gap-2"
+          >
+            <Check size={14} />
+            <span>Added to Cart Successfully</span>
+          </motion.div>
+        )}
       </AnimatePresence>
+
+      {/* Hidden Premium Social Card Template for HTML-to-Canvas */}
+      <div style={{ position: 'absolute', left: '-9999px', top: '-9999px', pointerEvents: 'none' }}>
+        <div ref={cardRef} className="w-[1080px] h-[1350px] bg-[#FAF9F6] flex flex-col items-center justify-between p-16 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #FAF9F6 0%, #F5F0E6 100%)' }}>
+          
+          {/* Decorative Corner Borders */}
+          <div className="absolute top-12 left-12 w-24 h-24 border-t-4 border-l-4 border-[#C5A059] opacity-50" />
+          <div className="absolute top-12 right-12 w-24 h-24 border-t-4 border-r-4 border-[#C5A059] opacity-50" />
+          <div className="absolute bottom-12 left-12 w-24 h-24 border-b-4 border-l-4 border-[#C5A059] opacity-50" />
+          <div className="absolute bottom-12 right-12 w-24 h-24 border-b-4 border-r-4 border-[#C5A059] opacity-50" />
+
+          {/* Header */}
+          <div className="flex flex-col items-center mt-12 z-10">
+            <Logo size="140px" />
+          </div>
+
+          {/* Image Container - Premium Display */}
+          <div className="w-[850px] h-[850px] relative mt-6 mb-6 z-10">
+            {/* Outer Frame */}
+            <div className="absolute inset-0 bg-white shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)] rounded-[4rem] border border-stone-200 overflow-hidden flex items-center justify-center p-6">
+              <div className="absolute inset-0 bg-stone-50/40 m-3 rounded-[3.5rem] border border-stone-100 pointer-events-none" />
+              <img src={getOptimizedImageUrl(product.images[0])} alt={product.name} className="w-[95%] h-[95%] object-contain rounded-[3rem]" crossOrigin="anonymous" />
+            </div>
+          </div>
+
+          {/* Footer Details */}
+          <div className="text-center space-y-6 z-10 mb-12">
+            <div className="flex items-center justify-center space-x-4 mb-4">
+              <span className="h-[2px] w-16 bg-[#C5A059]"></span>
+              <span className="text-sm font-black uppercase tracking-[0.5em] text-[#C5A059]">{product.brand || 'ZARHRAH'}</span>
+              <span className="h-[2px] w-16 bg-[#C5A059]"></span>
+            </div>
+            <h2 className="text-6xl font-bold font-serif italic text-stone-900 px-12 leading-tight drop-shadow-sm">{product.name}</h2>
+            <p className="text-4xl font-black text-stone-900 tracking-wider">₦{product.price.toLocaleString()}</p>
+          </div>
+
+          {/* Watermark / Footer URL */}
+          <div className="absolute bottom-12 w-full text-center">
+             <p className="text-sm font-bold tracking-[0.6em] text-stone-400 uppercase">zarhrahluxurycollections.com</p>
+          </div>
+        </div>
+      </div>
     </div >
   );
 };

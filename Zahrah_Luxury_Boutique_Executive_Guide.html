@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zahrah Luxury Boutique - Operations & Executive Guide</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --primary-gold: #C5A059;
+            --dark-gold: #b2883b;
+            --charcoal: #1c1a18;
+            --body-text: #4a4540;
+            --soft-white: #faf9f6;
+            --border-color: #e8e5e0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            line-height: 1.7;
+            color: var(--body-text);
+            background-color: #ffffff;
+            font-size: 15px;
+            padding-bottom: 60px;
+        }
+
+        /* Top Action Bar for browser view */
+        .action-bar {
+            background-color: var(--charcoal);
+            color: #ffffff;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .action-logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 20px;
+            letter-spacing: 0.1em;
+            color: var(--primary-gold);
+            font-weight: 600;
+        }
+
+        .print-btn {
+            background-color: var(--primary-gold);
+            color: #ffffff;
+            border: none;
+            padding: 10px 24px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .print-btn:hover {
+            background-color: var(--dark-gold);
+            transform: translateY(-1px);
+        }
+
+        /* Container & Layout */
+        .document-container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 60px 80px;
+            background-color: #ffffff;
+            box-shadow: 0 0 40px rgba(0,0,0,0.03);
+            border: 1px solid var(--border-color);
+        }
+
+        /* Cover Header */
+        .cover-header {
+            border-bottom: 2px solid var(--primary-gold);
+            padding-bottom: 40px;
+            margin-bottom: 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .title-group h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 38px;
+            font-weight: 700;
+            color: var(--charcoal);
+            line-height: 1.2;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            color: var(--primary-gold);
+            font-weight: 700;
+        }
+
+        .meta-date {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: #8c857b;
+            font-weight: 500;
+        }
+
+        /* Typography */
+        h2 {
+            font-family: 'Playfair Display', serif;
+            color: var(--charcoal);
+            font-size: 24px;
+            margin-top: 50px;
+            margin-bottom: 20px;
+            font-weight: 700;
+            position: relative;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 80px;
+            height: 2px;
+            background-color: var(--primary-gold);
+        }
+
+        h3 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--charcoal);
+            font-size: 16px;
+            font-weight: 700;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h3::before {
+            content: '';
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            background-color: var(--primary-gold);
+            border-radius: 50%;
+        }
+
+        p {
+            margin-bottom: 20px;
+            color: var(--body-text);
+        }
+
+        strong {
+            color: var(--charcoal);
+        }
+
+        /* Lists */
+        ul, ol {
+            margin-bottom: 25px;
+            padding-left: 24px;
+        }
+
+        li {
+            margin-bottom: 10px;
+            color: var(--body-text);
+        }
+
+        li strong {
+            color: var(--charcoal);
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            font-size: 13px;
+        }
+
+        th {
+            background-color: var(--soft-white);
+            color: var(--charcoal);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border-bottom: 2px solid var(--primary-gold);
+            padding: 14px 18px;
+            text-align: left;
+        }
+
+        td {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--body-text);
+            vertical-align: middle;
+        }
+
+        tr:nth-child(even) td {
+            background-color: #fdfdfc;
+        }
+
+        /* Highlights & Callouts */
+        .highlight-box {
+            background-color: var(--soft-white);
+            border-left: 4px solid var(--primary-gold);
+            padding: 20px 25px;
+            margin: 25px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .highlight-box p {
+            margin-bottom: 0;
+            font-style: italic;
+            color: #5a5550;
+        }
+
+        .badge {
+            background-color: var(--soft-white);
+            border: 1px solid var(--border-color);
+            color: var(--dark-gold);
+            padding: 2px 8px;
+            font-family: monospace;
+            font-size: 12px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        /* Divider */
+        hr {
+            border: 0;
+            height: 1px;
+            background-color: var(--border-color);
+            margin: 45px 0;
+        }
+
+        /* Page breaks for physical printing */
+        .page-break {
+            page-break-before: always;
+        }
+
+        /* Print-specific overrides */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+
+            body {
+                background-color: #ffffff;
+                color: #000000;
+                padding-bottom: 0;
+            }
+
+            .document-container {
+                max-width: 100%;
+                margin: 0;
+                padding: 0;
+                border: none;
+                box-shadow: none;
+            }
+
+            h2 {
+                page-break-after: avoid;
+            }
+
+            table, pre, blockquote, figure {
+                page-break-inside: avoid;
+            }
+
+            .highlight-box {
+                background-color: #f9f9f9 !important;
+                border-left: 4px solid #b2883b !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="action-bar no-print">
+        <div class="action-logo">ZAHRAH LUXURY</div>
+        <button class="print-btn" onclick="window.print()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            Print Guide to PDF
+        </button>
+    </div>
+
+    <div class="document-container">
+        <!-- Cover Header -->
+        <div class="cover-header">
+            <div class="title-group">
+                <h1>Zahrah Luxury Boutique</h1>
+                <div class="subtitle">Complete Executive & Customer Operations Guide</div>
+            </div>
+            <div class="meta-date">May 2026</div>
+        </div>
+
+        <p class="lead-text">This comprehensive executive guide details the shipping fee structure, client navigation flows, role-based administrative capabilities, and high-performance technical systems powering <strong>Zahrah Luxury Boutique</strong>.</p>
+
+        <!-- SECTION 1 -->
+        <h2 id="shipping">SECTION 1: Dynamic Shipping Fee Calculation Model</h2>
+        <p>The Zahrah Luxury checkout engine dynamically calculates shipping fees in real-time during <strong>Step 2 (Information & Delivery)</strong> of the checkout process. Calculations are based on the client's selected delivery state and total order value.</p>
+
+        <h3>Shipping Fee Structure</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Delivery Method / Region</th>
+                    <th>Destination States</th>
+                    <th>Delivery Fee</th>
+                    <th>Expected Delivery Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Boutique Pickup</strong></td>
+                    <td>ASHLUXURY (22b Admiralty Way, Lekki Phase 1, Lagos)</td>
+                    <td><strong style="color: #2e7d32;">₦0 (Free)</strong></td>
+                    <td>Ready within 24 Hours</td>
+                </tr>
+                <tr>
+                    <td><strong>Elite Orders Threshold</strong></td>
+                    <td>Any State in Nigeria (Order value &ge; ₦500,000)</td>
+                    <td><strong style="color: #2e7d32;">₦0 (Complimentary)</strong></td>
+                    <td>1–3 Business Days (Expedited)</td>
+                </tr>
+                <tr>
+                    <td><strong>Lagos Delivery</strong></td>
+                    <td>Lagos State</td>
+                    <td><strong>₦5,000</strong></td>
+                    <td>1–2 Business Days</td>
+                </tr>
+                <tr>
+                    <td><strong>South-West Region</strong></td>
+                    <td>Ogun, Oyo, Osun, Ondo, Ekiti</td>
+                    <td><strong>₦8,000</strong></td>
+                    <td>2–3 Business Days</td>
+                </tr>
+                <tr>
+                    <td><strong>Rest of Nigeria</strong></td>
+                    <td>Abuja, Rivers, Kano, Enugu, Delta, and all other states</td>
+                    <td><strong>₦15,000</strong></td>
+                    <td>3–5 Business Days</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="highlight-box">
+            <p><strong>Special Delivery Enhancements:</strong><br>
+            • <strong>Free Shipping Threshold:</strong> Any single checkout totaling <strong>₦500,000 or above</strong> automatically activates free, premium white-glove shipping to any doorstep nationwide. A luxury progress bar in the bag summary informs clients how close they are to unlocking this complimentary service.<br>
+            • <strong>Complimentary Promo Codes:</strong> Applying the exclusive promotional code <span class="badge">FREESHIP</span> instantly waives the delivery fee, regardless of destination or order value.<br>
+            • <strong>Secure Cache Enforcements:</strong> Rates are computed on checkout before payment initialization to guarantee that there is never a mismatch between the paid total and database records.</p>
+        </div>
+
+        <div class="page-break"></div>
+
+        <!-- SECTION 2 -->
+        <h2 id="client-guide">SECTION 2: Client User Guide (How to Use the Webapp)</h2>
+        
+        <h3>Step 1: Navigating the Curated Collections</h3>
+        <ol>
+            <li><strong>Explore the Manor:</strong> Clients can browse the homepage to experience the flagship hero banners, curated picks tabs, and seasonal editorial lookbooks.</li>
+            <li><strong>Select & Modify Pieces:</strong>
+                <ul>
+                    <li>Clicking on a product opens a high-definition detailed view showcasing high-quality images, sizing options, color ways, and materials composition.</li>
+                    <li>Clients select their desired size and color before clicking <strong>Add to Bag</strong>.</li>
+                    <li>If a client adds an item from the list without specifying details, the webapp opens an elegant <strong>Variant Selection Modal</strong> to complete the choice.</li>
+                </ul>
+            </li>
+        </ol>
+
+        <h3>Step 2: Curating the Shopping Bag</h3>
+        <ol>
+            <li><strong>Open the Shopping Bag:</strong> Click on the shopping bag icon on the top right header to enter the cart review step.</li>
+            <li><strong>Review Selections:</strong> Clients can adjust quantities, modify sizes or colors, or delete items. Prices are updated instantly in Nigerian Naira (₦).</li>
+            <li><strong>Apply Promos:</strong> Clients can enter exclusive coupons in the promo section (e.g., <span class="badge">WELCOME10</span> for 10% off, <span class="badge">LUXURY5</span> for 5% off, <span class="badge">FREESHIP</span> for free shipping, or <span class="badge">ZAHRAH50K</span> for high-value orders) and watch their savings deduct in real-time.</li>
+            <li><strong>Proceed:</strong> Once fully satisfied, click <strong>Proceed to Checkout</strong>.</li>
+        </ol>
+
+        <h3>Step 3: Secure Shipping & Account Details</h3>
+        <ol>
+            <li><strong>Contact Details:</strong> Clients input their Email and Phone Number. If they already have an account, they can click <strong>Sign In</strong> to automatically load their saved addresses.</li>
+            <li><strong>Choose Delivery Method:</strong>
+                <ul>
+                    <li><strong>Ship to Address:</strong> Select the destination state (Lagos, Abuja, Rivers, etc.) and complete the street address. The system automatically computes the standard secure delivery fee and appends it to the Grand Total.</li>
+                    <li><strong>Store Pickup:</strong> Choose Store Pickup to collect the items directly from the Lekki boutique at no cost.</li>
+                </ul>
+            </li>
+            <li><strong>Review Grand Total:</strong> Verify the final invoice summary (items, shipping fee, applied discounts, and grand total in NGN).</li>
+        </ol>
+
+        <h3>Step 4: Secure Payment Gateway (Paystack)</h3>
+        <ol>
+            <li><strong>Initialize Gateway:</strong> Click <strong>Complete Purchase</strong>. A high-end secure loader will establish a connection to the Paystack checkout engine.</li>
+            <li><strong>Multiple Secure Payment Methods:</strong> Inside the secure gateway popup, clients can select their preferred medium:
+                <ul>
+                    <li><strong>Card:</strong> Input Visa, Mastercard, or Verve details. Transactions are fully secured with OTP (One-Time-Password) and 3D Secure verification.</li>
+                    <li><strong>Bank Transfer:</strong> Generate a temporary bank account number to make an instant transfer from any mobile banking app.</li>
+                    <li><strong>USSD:</strong> Dial a quick banking code on their mobile device.</li>
+                </ul>
+            </li>
+            <li><strong>Instant Order Processing:</strong> Once authorized, Paystack validates the payment. The client is immediately returned to a gorgeous <strong>Order Confirmed</strong> screen, and their pieces are locked in (decreasing store stock automatically).</li>
+        </ol>
+
+        <h3>Step 5: Official Receipt & Post-Purchase Curation</h3>
+        <ol>
+            <li><strong>Download Official Receipt:</strong> On the confirmation page, clients can click the <strong>Download Official Receipt</strong> button. The app generates and exports a beautifully styled, high-end PDF receipt containing invoice details, payment status, and order specifications.</li>
+            <li><strong>Automated Confirmation Email:</strong> A beautifully designed email receipt is sent directly to the client's inbox confirming their order, reference, and collection details.</li>
+            <li><strong>Experience Review:</strong> Clients can submit a structured star rating (1–5) and note down shopping feedback to help curate future experiences.</li>
+            <li><strong>Account Creation:</strong> Non-registered users can complete their signup from the confirmation page with one click. This lets them track order status (<span class="badge">Pending</span> &rarr; <span class="badge">Shipped</span> &rarr; <span class="badge">Delivered</span>) inside their customer dashboard.</li>
+        </ol>
+
+        <div class="page-break"></div>
+
+        <!-- SECTION 3 -->
+        <h2 id="admin-panel">SECTION 3: The Zahrah Luxury Executive Admin Panel</h2>
+        <p>The Admin Panel (<span class="badge">/admin</span>) is a premium, secure command center designed for store managers, inventory curators, and executive support staff. It features a complete <strong>Role-Based Access Control (RBAC)</strong> system and a real-time view of store status.</p>
+
+        <h3>1. Secure Access & Role Permissions</h3>
+        <p>Authorization is determined by Firebase Authentication verified emails matching a hardcoded security config. Changing database profiles does <strong>not</strong> bypass this check, ensuring total security.</p>
+        
+        <ul>
+            <li><strong>Super Admin (<span class="badge">super_admin</span>):</strong> Full, unrestricted access to all aspects of the store—financial analytics, inventory edits, page layouts, staff logs, and global settings.</li>
+            <li><strong>Manager (<span class="badge">manager</span>):</strong> Full control over products, orders, customers, and waitlists. Restricted from modifying core security settings or structural homepage layouts.</li>
+            <li><strong>Support (<span class="badge">support</span>):</strong> Access to view and process orders (updating shipping statuses) and review waitlists. Cannot edit catalog prices, delete data, or read financial analytics.</li>
+            <li><strong>Viewer (<span class="badge">viewer</span>):</strong> Complete read-only view of products, orders, and customer lists. Restricted from making any database writes, deletes, or exporting data.</li>
+        </ul>
+
+        <h3>2. Secure Audit Trail (Activity Logs)</h3>
+        <p>Every administrative action is recorded in the <span class="badge">/adminLogs</span> Firestore collection with details including: Admin Email address, Timestamp, Action performed, and Before & After State (JSON diff of exact values modified).</p>
+
+        <h3>3. Detailed Tab-by-Tab Operations</h3>
+        <ul>
+            <li><strong>📊 Dashboard:</strong> Real-time visual charts displaying gross revenue, total completed sales, waitlist size, and average order value. Compares growth rates month-over-month.</li>
+            <li><strong>👗 Products & Inventory:</strong> Curate product collections, stock levels (including multi-variant stock limits), visibility status, compositions, and pricing.</li>
+            <li><strong>📦 Orders & Shipping:</strong> Unified tracking of all guest and registered checkouts. Admins can transition order statuses sequentially: <span class="badge">Pending</span> &rarr; <span class="badge">Shipped</span> &rarr; <span class="badge">Delivered</span>.</li>
+            <li><strong>👥 Customers:</strong> View list of registered store clients, check their purchase history, and configure administrative staff roles.</li>
+            <li><strong>🔔 Waitlist (Restock Requests):</strong> Monitors high-demand requests from clients for out-of-stock items, including customer contact channel (Email or WhatsApp).</li>
+            <li><strong>🛒 Abandoned Checkouts:</strong> Automatically records cart sessions that have remained inactive for over <strong>30 minutes</strong>, helping run customer outreach or retargeting.</li>
+            <li><strong>🎨 Homepage Layout Curation (Visual Builder):</strong> Organize products, curate visual grids, and build vibrant lookbooks with clickable hotspots containing active product links.</li>
+            <li><strong>🏷️ Pricing & Promos:</strong> Create and configure discount codes (percentage, fixed value, or shipping waivers).</li>
+            <li><strong>📜 Page Content Manager:</strong> Edit static guidelines like Refund Policy, Shipping Guidelines, and Terms of Service.</li>
+            <li><strong>🔐 Activity Logs:</strong> Complete logs feed of all admin database actions to ensure pristine record integrity.</li>
+        </ul>
+
+        <div class="page-break"></div>
+
+        <!-- SECTION 4 -->
+        <h2 id="technical">SECTION 4: Technical & Under-the-Hood Site Functions</h2>
+        <p>The boutique uses a high-performance, resilient architecture designed to provide an ultra-speed shopping experience under high traffic, while securing client transactions.</p>
+
+        <h3>1. Speed & Cache: React client + IndexedDB Offline Caching</h3>
+        <ul>
+            <li><strong>Real-time Synchronization:</strong> Built on React and compiled using Vite, database reads are bound to Firestore observers. If a curator updates a price, color image, or stock number in the Admin panel, it changes instantly for all clients browsing the boutique.</li>
+            <li><strong>Offline Caching:</strong> The database uses <strong>IndexedDB Offline Persistence</strong>. The first time a client visits the site, their browser caches the store catalog. Subsequent loads are near-instantaneous. If a client's internet connection drops during checkout, the app stores their cart locally and syncs with store servers as soon as connection is recovered.</li>
+        </ul>
+
+        <h3>2. Secure Checkout Transactions (Anti-Race-Condition Engine)</h3>
+        <p>To prevent overselling during flash clothing drops:</p>
+        <ul>
+            <li><strong>Firestore Transaction Blocks:</strong> Checkouts execute concurrent Firestore transaction blocks.</li>
+            <li><strong>Read-Before-Write Verification:</strong> The database verifies that live stock is greater than or equal to the cart request before updating.</li>
+            <li><strong>Atomic Deduction:</strong> Stock levels are decremented and the order document is recorded in a single, atomic operation. If the stock falls below the cart count during payment, the transaction cancels safely to prevent double-selling.</li>
+        </ul>
+
+        <h3>3. Secure Gateway Integration (Paystack)</h3>
+        <ul>
+            <li><strong>Public Key Exchange:</strong> Checkouts utilize <span class="badge">VITE_PAYSTACK_PUBLIC_KEY</span> client-side, keeping server secret keys secure.</li>
+            <li><strong>Reference Anchoring:</strong> Every order is bound to a unique Paystack reference token, allowing instant verification on the merchant dashboard and preventing fake payment creation in database documents.</li>
+        </ul>
+
+        <h3>4. Automatic Customer Retention</h3>
+        <ul>
+            <li><strong>Abandoned Carts:</strong> Cart state changes register debounced draft sessions to <span class="badge">/abandonedCheckouts</span>. Successful checkouts instantly delete these drafts to keep data clean.</li>
+            <li><strong>Waitlists:</strong> Clicking "Notify Me" stores contact profiles under the <span class="badge">/restockRequests</span> collection, ready for automatic or manual notification when inventory updates.</li>
+        </ul>
+
+    </div>
+
+</body>
+</html>

@@ -1,34 +1,12 @@
 
 import { Product, FooterPage, HomeLayoutConfig } from './types';
 export const PRODUCT_CATEGORIES = [
-  'Clothing',
-  'T-shirts',
-  'Shirts',
-  'Boxers',
-  'Shorts',
-  'Jackets',
-  'Underwear',
-  'Chinos',
-  'Pant',
-  'Trousers',
-  'Jeans',
-  'Two Piece',
-  'Jerseys',
+  'Apparel',
   'Accessories',
-  'Belts',
-  'Headwear',
-  'Sunglasses',
-  'Dress',
-  'Top',
-  'Gown',
-  'Trouser',
   'Footwear',
-  'Beauty',
-  'Travel',
-  'Watches',
-  'Perfumes',
   'Bags',
-  'Slides',
+  'Beauty',
+  'Watches',
   'Other'
 ] as const;
 
@@ -108,7 +86,7 @@ export const INITIAL_FOOTER_PAGES: FooterPage[] = [
   { slug: 'my-account', title: 'My Account', category: 'Customer Services', content: 'Manage your personal archive and tracking information here.' },
 
   // Company
-  { slug: 'about-us', title: 'About Us', category: 'Company', content: 'Zarhrah Luxury is a premier fashion destination bridging London style and Lagos vibrance.' },
+  { slug: 'about', title: 'About Us', category: 'Company', content: `Welcome to Zahrah Luxury.\n\nZahrah Luxury is a premier fashion destination bridging London style and Lagos vibrance. We curate the finest quality apparel, blending contemporary streetwear with classic, timeless elegance.\n\nOur mission is to provide an elite, VIP shopping experience for our clientele, where every garment tells a story of craftsmanship, exclusivity, and superior design.\n\nAt Zahrah, luxury is not just a label—it is a lifestyle.` },
   { slug: 'careers', title: 'Careers', category: 'Company', content: 'Join our team of high-fashion curators and visionaries.' },
   { slug: 'contact-us', title: 'Contact Us', category: 'Company', content: 'Reach out via WhatsApp or email for personalized styling sessions.' },
   { slug: 'editorial', title: 'Editorial', category: 'Company', content: 'Read the latest stories from the heart of Zarhrah.' },
@@ -123,7 +101,8 @@ export const INITIAL_FOOTER_PAGES: FooterPage[] = [
   // Policies
   { slug: 'exchange-policy', title: 'Exchange Policy', category: 'Policies', content: 'Artifacts can be exchanged for size variations within 7 days of delivery. Please ensure all tags remain attached and garments are unworn.' },
   { slug: 'return-policy', title: 'Return Policy', category: 'Policies', content: 'Detailed terms for artifact returns and quality inspection. We pristine items in original packaging within 14 days of delivery. Custom-tailored items are non-refundable.' },
-  { slug: 'refund-policy', title: 'Refund Policy', category: 'Policies', content: 'Refunds are processed to original payment methods within 5-7 business days after our quality control team has inspected and approved the returned artifact.' },
+  { slug: 'refund-policy', title: 'Refund Policy', category: 'Policies', content: `**Effective Date:** March 2026\n\nAt Zahrah Luxury, we pride ourselves on delivering exclusive, high-quality artifacts to our esteemed clientele.\n\n### **1. All Sales Are Final**\nDue to the exclusive and limited nature of our collections, we operate a strict **NO RETURNS and NO REFUNDS** policy. All purchases made through Zahrah Luxury are considered final.\n\n### **2. Quality Assurance**\nEvery item undergoes rigorous quality control and inspection by our team before being dispatched. We ensure that every piece meets our exacting standards of luxury.\n\n### **3. Defective or Damaged Items**\nWhile we meticulously verify all artifacts, in the unlikely event that you receive a defective or damaged item straight out of the packaging, please contact our concierge team at admin@zahrah.com within 24 hours of delivery. Such exceptional cases will be reviewed entirely at our discretion, and we may offer an exchange or store credit, but no cash refunds.\n\n### **4. Sizing and Fit**\nPlease refer carefully to our sizing guides or consult our tailored concierge before placing an order to ensure the perfect fit, as we cannot accept returns for sizing issues.\n\nBy completing a purchase with Zahrah Luxury, you acknowledge and agree to this policy.` },
+  { slug: 'terms-of-service', title: 'Terms of Service', category: 'Policies', content: `**Effective Date:** March 2026\n\nWelcome to Zahrah Luxury.\n\nBy accessing or using our website and purchasing our luxury artifacts, you agree to be bound by the following Terms of Service.\n\n### **1. General Conditions**\nWe reserve the right to refuse service to anyone for any reason at any time. You agree not to reproduce, duplicate, copy, sell, resell, or exploit any portion of the Service, or our exclusive designs, without express written permission by us.\n\n### **2. Pricing and Availability**\nAll prices for our products are subject to change without notice. We reserve the right at any time to modify or discontinue a product without notice at any time. Given the limited nature of our drops, artifacts may sell out quickly; adding an item to your cart does not reserve it until checkout is completed.\n\n### **3. Orders and Payment**\nBy placing an order, you agree that all details you provide are accurate and that you are an authorized user of the payment method provided. We reserve the right to cancel any order we suspect to be fraudulent.\n\n### **4. Delivery**\nWe offer both local and international shipping. Delivery times are estimates and may be subject to delays outside of our control.\n\n### **5. Intellectual Property**\nAll content, including imagery, branding, and text, is the exclusive property of Zahrah Luxury. Unauthorized use of our intellectual property is strictly prohibited.\n\n### **6. Contact**\nFor any inquiries regarding these terms, please contact our concierge at admin@zahrah.com.` },
   { slug: 'privacy-policy', title: 'Privacy Policy', category: 'Policies', content: 'Please view our dedicated Privacy Policy page for comprehensive information regarding how we handle and protect your personal data.' },
   { slug: 'cookie-policy', title: 'Cookie Policy', category: 'Policies', content: `**Effective Date:** February 24, 2026\n\nAt **Zahrah Boutique**, we use cookies and similar tracking technologies to elevate your luxury shopping experience, analyze platform traffic, and serve tailored recommendations.\n\n### **1. What Are Cookies?**\nCookies are small text files stored on your device when you visit our website. They help the site function securely and smoothly, allowing us to remember your preferences (like your cart items or selected region).\n\n### **2. Types of Cookies We Use**\n*   **Strictly Necessary Cookies:** Essential for the website to function (e.g., secure login, shopping cart retention).\n*   **Performance & Analytics Cookies:** Help us understand how visitors interact with our boutique (e.g., Google Analytics) so we can improve the user experience.\n*   **Functionality Cookies:** Remember your choices (such as language or region sorting) to provide a more personalized visit.\n*   **Targeting & Advertising Cookies:** Used to deliver relevant advertisements to you based on your browsing interests on our site.\n\n### **3. Managing Your Preferences**\nUnder the NDPA, you have the right to accept or decline non-essential cookies. You can update your preferences using the "Cookie Preferences" banner at the bottom of your screen, or by adjusting your browser settings to block cookies entirely.\n\n### **4. Contact Us**\nIf you have any questions about our use of cookies, please contact us at **admin@zahrah.com**.` },
 ];

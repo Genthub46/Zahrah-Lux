@@ -1,7 +1,8 @@
 import { initializeApp } from "firebase/app";
 import { getStorage } from "firebase/storage";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, enableIndexedDbPersistence } from "firebase/firestore";
 import { getMessaging } from "firebase/messaging";
+import { getFunctions } from "firebase/functions";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBAI9Tdd_NJAgBxr1f7YnM8t9ss9fKt6XE",
@@ -17,5 +18,16 @@ import { getAuth } from "firebase/auth";
 const app = initializeApp(firebaseConfig);
 export const storage = getStorage(app);
 export const db = getFirestore(app);
+
+// Enable browser-side cache and offline persistence for ultra-speed and data saving
+enableIndexedDbPersistence(db).catch((err) => {
+    if (err.code === 'failed-precondition') {
+        console.warn("Firestore persistence precondition failed (multiple tabs open)");
+    } else if (err.code === 'unimplemented') {
+        console.warn("Firestore persistence is unimplemented in this browser");
+    }
+});
+
 export const auth = getAuth(app);
 export const messaging = getMessaging(app);
+export const functions = getFunctions(app);

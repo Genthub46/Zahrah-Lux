@@ -5,43 +5,91 @@ HOW TO ACCESS THE ADMIN PANEL
 1. Go to the website URL.
 2. Append `?admin=true` to the URL (e.g., `zahrah-boutique.web.app/?admin=true`).
 3. Enter the secret passcode when prompted.
+(Note: Ensure you keep the passcode secure. Only share with authorized staff.)
 
-(Note: Ensure you keep the passcode secure.)
+---
+THE ADMIN DASHBOARD & ITS USES
+---
+The Admin Panel is divided into several sections (tabs) that allow you to manage every aspect of your online boutique.
 
-MANAGING PRODUCTS
------------------
-1. Once logged in as Admin, you will see the "Products" tab.
-2. **Add Product**: Fill in the form at the top (Name, Brand, Price, etc.).
-   - Images: Upload image via the "Add Image" button.
-   - Variations: Add colors and sizes.
-   - Click "Create Product".
-3. **Edit Product**: Find the product in the list and click "Edit".
-4. **Delete Product**: Click the Trash icon next to a product to remove it.
+1. DASHBOARD (ANALYTICS & OVERVIEW)
+-----------------------------------
+- Serves as the central hub for your business metrics.
+- View "Total Period Yield" to track your total revenue.
+- Monitor "Most Viewed Products" and "Recent Activity" to understand customer interest and behavior.
+- Use this daily to get a quick snapshot of store performance.
 
-MANAGING ORDERS
+2. PRODUCTS TAB
 ---------------
-1. Switch to the "Orders" tab.
-2. You will see a list of all customer orders.
-3. Click "View Details" to see shipping address and items.
-4. Update Status: You can change status from "Pending" to "Shipped" or "Delivered".
+- Manage your entire inventory here.
+- **Add Product**: Fill in the form (Name, Brand, Price, etc.). Upload images via the "Add Image" button. Add variations (colors, sizes) and set stock levels.
+- **Edit/Delete**: Find products in the list to update their details or remove them from the store completely.
+- **Visibility**: You can temporarily hide products without deleting them.
 
-VIEWING ANALYTICS
------------------
-1. Switch to the "Analytics" tab.
-2. View "Total Period Yield" to see total revenue.
-3. See "Most Viewed Products" to understand customer interest.
+3. ORDERS TAB (CUSTOMER PLACEMENTS & CHECKOUT)
+----------------------------------------------
+- **Checkout Process**: When a customer places an order on the storefront, the web app securely captures their shipping details and order items, saving the "placement" directly to your database.
+- Track and manage all these customer purchases here.
+- Click "View Details" on any order to see the shipping address, items ordered, and customer notes.
+- **Update Status**: Change the status from "Pending" to "Shipped" or "Delivered".
+- *Note on Order Emails*: Depending on your exact payment gateway setup, order confirmation emails are typically handled automatically by the backend or the payment provider (e.g., Paystack/Flutterwave).
 
-NEWSLETTER
-----------
-1. Customer emails captured via the footer "Join the inner circle" form are saved to the database.
-2. Ask your developer to export this list for your marketing campaigns.
+4. CUSTOMERS TAB
+----------------
+- View a directory of all users who have created an account or placed an order.
+- Track customer purchase history and total spend.
+- Useful for identifying VIP clients for special outreach.
 
-CUSTOMER WISHLIST & CART
-------------------------
-- Customers can save items to Wishlist (Heart icon).
-- Cart items are saved even if they leave and come back.
-- When they log in, their Guest Cart merges with their Account Cart.
+5. LAYOUT TAB (MANAGING HOME PAGE SECTIONS)
+-------------------------------------------
+This is where you control the visual appearance and curated collections on your storefront. The Home Page is built using modular sections:
+
+- **Boutique Banner**: Update the large hero image and text at the top of the homepage.
+- **Manor Collection / Styling Ideas**: Select specific, high-end pieces to feature prominently. You can hand-pick the exact products that appear here.
+- **Bundles Deals / Last Chance To Buy**: 
+  * Used for clearance sales, special promotions, or grouped item discounts.
+  * You MUST explicitly select products for this section to make it appear.
+  * If no products are selected, the entire "Bundles Deals" section automatically hides itself to keep the homepage clean.
+- **Lifestyle Showcase**: Update the atmospheric/editorial images that give your brand its luxury feel.
+- **Toggle Visibility**: Every section has a toggle switch. If you want to temporarily hide the "Styling Ideas" section, just toggle it off.
+
+6. PAGES TAB
+------------
+- Manage textual content across the site.
+- Create or edit footer pages like "About Us", "Shipping Policy", "Terms of Service", etc.
+
+7. REQUESTS & ACTIVITY LOGS (WAITLISTS & COMMUNICATIONS)
+--------------------------------------------------------
+- **Waitlist Intelligence (Restock Requests)**: 
+  * If a product is out of stock, customers can click to join a priority "Waitlist" on the storefront.
+  * The web app captures their Name, Email, or WhatsApp number and saves it here.
+  * *Sending Mail & Notifications*: In this tab, you will see a list of everyone waiting for specific items. Next to their name are quick-action buttons. 
+  * Clicking the **Email icon** automatically opens your default email app (like Gmail or Outlook) with a pre-written message ("Good news! The item is back in stock...").
+  * Clicking the **WhatsApp icon** opens WhatsApp Web/App with a pre-written message to send directly to their verified Nigerian phone number.
+  * Once notified, you can change their status from "Pending" to "Notified" to keep track.
+  * You can also click "Export Report" to generate a PDF of your waitlist for inventory planning.
+- **Client Feedback (Reviews)**: View and manage customer reviews.
+- **Activity Log**: An audit trail showing what actions were taken in the admin panel (e.g., who changed a price, who deleted a product). Good for accountability.
+
+8. PRICING TAB
+--------------
+- Allows for bulk adjustments or advanced pricing strategies across your catalog without editing products one by one.
+
+---
+GENERAL STOREFRONT FEATURES
+---
+
+NEWSLETTER & MARKETING
+----------------------
+1. Customer emails captured via the "Join the inner circle" form on the storefront are automatically saved to your secure database.
+2. **Exporting your list**: You no longer need a developer to export this list! Simply go to the **Customers Tab** in your Admin Panel and click the "Export Newsletter List" button at the top right to download a CSV file ready for Mailchimp or your preferred marketing tool.
+
+CUSTOMER WISHLIST & CART ABANDONMENT
+------------------------------------
+- **Wishlist**: Customers can save items to their personal Wishlist (Heart icon) to review or purchase later. 
+- **Persistent Cart**: Items added to the cart are saved securely. If a customer leaves the website and returns days later, their cart will be waiting for them.
+- **Account Syncing**: When a guest user creates an account or logs in, their temporary cart merges seamlessly with their main account cart, preventing data loss.
 
 SUPPORT
 -------
-For any technical issues, contact your developer.
+For any technical issues, platform upgrades, or forgotten passcodes, contact your developer.

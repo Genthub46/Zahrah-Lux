@@ -35,7 +35,7 @@ const ForgotPassword: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#FCFCFC] flex items-center justify-center relative overflow-hidden">
+        <div className="min-h-[100dvh] bg-[#FCFCFC] flex items-center justify-center relative overflow-hidden">
             {/* Background Decor */}
             <div className="absolute inset-0 z-0 opacity-5 pointer-events-none">
                 <div className="absolute -top-[20%] -left-[10%] w-[70vw] h-[70vw] bg-[#C5A059] rounded-full blur-[100px]" />

@@ -67,15 +67,10 @@ export const ROLE_PERMISSIONS: Record<AdminRole, Permission[]> = {
     customer: [],
 };
 
-// Admin users with their roles
-export const ADMIN_USERS: Record<string, AdminRole> = {
-    'admin@zahrah.com': 'super_admin',
-};
-
 /**
  * Check if a role has a specific permission
  */
-export function hasPermission(role: AdminRole | undefined, permission: Permission): boolean {
+export function hasPermission(role: AdminRole | undefined | null, permission: Permission): boolean {
     if (!role) return false;
     return ROLE_PERMISSIONS[role]?.includes(permission) ?? false;
 }
@@ -83,7 +78,7 @@ export function hasPermission(role: AdminRole | undefined, permission: Permissio
 /**
  * Check if a role can perform action on resource
  */
-export function canPerform(role: AdminRole | undefined, resource: Resource, action: PermissionAction): boolean {
+export function canPerform(role: AdminRole | undefined | null, resource: Resource, action: PermissionAction): boolean {
     return hasPermission(role, `${resource}:${action}` as Permission);
 }
 
@@ -94,18 +89,6 @@ export function getPermissions(role: AdminRole): Permission[] {
     return ROLE_PERMISSIONS[role] || [];
 }
 
-/**
- * Check if user email is an admin
- */
-export function isAdminEmail(email: string | null | undefined): boolean {
-    if (!email) return false;
-    return email in ADMIN_USERS;
-}
+// Admin users are now managed dynamically via Firestore (staff_members collection)
+// See staffService.ts for role fetching logic.
 
-/**
- * Get admin role for email
- */
-export function getAdminRole(email: string | null | undefined): AdminRole | null {
-    if (!email) return null;
-    return ADMIN_USERS[email] || null;
-}

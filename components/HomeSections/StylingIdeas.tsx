@@ -55,7 +55,7 @@ const StylingIdeas: React.FC<StylingIdeasProps> = ({
     // If look has specific IDs, match them. If not, fallback to slice/logic.
     const lookProducts = currentLook.productIds && currentLook.productIds.length > 0
         ? currentLook.productIds.map(id => products.find(p => p.id === id)).filter((p): p is Product => !!p)
-        : (activeLookIndex === 0 && selectedProductIds?.length ? selectedProductIds.map(id => products.find(p => p.id === id)).filter((p): p is Product => !!p) : products.slice(0, 5));
+        : (activeLookIndex === 0 && selectedProductIds?.length ? selectedProductIds.map(id => products.find(p => p.id === id)).filter((p): p is Product => !!p) : []);
 
     const changeLook = (direction: 'next' | 'prev') => {
         if (direction === 'next') {

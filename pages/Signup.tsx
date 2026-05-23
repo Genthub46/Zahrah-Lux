@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth, db } from '../services/firebaseConfig';
 import { doc, setDoc } from 'firebase/firestore';
@@ -8,13 +8,16 @@ import { Eye, EyeOff, Loader2, ArrowLeft } from 'lucide-react';
 import Logo from '../components/Logo';
 
 const Signup: React.FC = () => {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const prefillEmail = (location.state as any)?.email || '';
+    
     const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
+    const [email, setEmail] = useState(prefillEmail);
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const navigate = useNavigate();
 
     const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -54,7 +57,7 @@ const Signup: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
+        <div className="min-h-[100dvh] bg-white flex flex-col items-center justify-center p-4">
             <Link to="/" className="absolute top-8 left-8 flex items-center space-x-2 text-[10px] font-bold tracking-[0.3em] uppercase text-stone-400 hover:text-stone-900 transition-colors">
                 <ArrowLeft size={14} />
                 <span>Return to Boutique</span>

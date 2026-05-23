@@ -82,8 +82,9 @@ const ActivityLogTab: React.FC = () => {
                 ) : filteredLogs.length === 0 ? (
                     <div className="p-12 text-center text-stone-400 text-xs uppercase tracking-widest">No activity found.</div>
                 ) : (
-                    <div>
-                        <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-stone-50 border-b border-stone-100 text-[10px] font-black uppercase tracking-widest text-stone-400">
+                    <div className="overflow-x-auto">
+                        <div className="min-w-[600px]">
+                            <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-stone-50 border-b border-stone-100 text-[10px] font-black uppercase tracking-widest text-stone-400">
                             <div className="col-span-3 lg:col-span-2">Time</div>
                             <div className="col-span-3 lg:col-span-2">User</div>
                             <div className="col-span-6 lg:col-span-8">Action Summary</div>
@@ -116,10 +117,10 @@ const ActivityLogTab: React.FC = () => {
 
                                         <div className="col-span-6 lg:col-span-8 flex items-center gap-3">
                                             <span className={`px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest border ${getActionStyle(log.action)}`}>
-                                                {log.action}
+                                                {log.action.replace(/_/g, ' ')}
                                             </span>
                                             <span className="text-xs text-stone-500 truncate hidden sm:block">
-                                                {log.details.replace(/^Updated.*:/, '')}
+                                                {log.details}
                                             </span>
                                         </div>
                                     </div>
@@ -161,6 +162,7 @@ const ActivityLogTab: React.FC = () => {
                             ))}
                         </div>
                     </div>
+                </div>
                 )}
             </div>
 

@@ -1,14 +1,15 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ShoppingBag, Menu, X, Heart, User as UserIcon, ChevronDown, ChevronRight, LogOut } from 'lucide-react';
+import { ShoppingBag, Menu, X, Heart, User as UserIcon, ChevronDown, ChevronRight, LogOut, ShieldCheck } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Logo from './Logo';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User } from 'firebase/auth';
 import { auth } from '../services/firebaseConfig';
 import { signOut } from 'firebase/auth';
-import { subscribeToBrands, subscribeToCategories } from '../services/dbUtils';
+import { subscribeToBrands, subscribeToCategories, subscribeToProducts } from '../services/dbUtils';
 import { ADMIN_EMAILS } from '../constants';
+import { Product } from '../types';
 
 interface NavbarProps {
   cartCount: number;
@@ -16,48 +17,14 @@ interface NavbarProps {
   user: User | null;
 }
 
-const MENU_HIERARCHY = {
+const FALLBACK_MENU_HIERARCHY = {
   Men: [
-    { label: 'All', path: '/' },
-    {
-      label: 'Clothing',
-      subItems: [
-        { label: 'T-shirts', path: '/?tag=men&category=t-shirts' },
-        { label: 'Shirts', path: '/?tag=men&category=shirts' },
-        { label: 'Boxers', path: '/?tag=men&category=boxers' },
-        { label: 'Shorts', path: '/?tag=men&category=shorts' },
-        { label: 'Jackets', path: '/?tag=men&category=jackets' },
-        { label: 'Underwear', path: '/?tag=men&category=underwear' },
-        { label: 'Chinos', path: '/?tag=men&category=chinos' },
-        { label: 'Pant', path: '/?tag=men&category=pant' },
-        { label: 'Trousers', path: '/?tag=men&category=trousers' },
-        { label: 'Jeans', path: '/?tag=men&category=jeans' },
-        { label: 'Two Piece', path: '/?tag=men&category=two-piece' },
-      ]
-    },
-    { label: 'Jerseys', path: '/?tag=men&category=jerseys' },
-    {
-      label: 'Accessories',
-      subItems: [
-        { label: 'Belts', path: '/?tag=men&category=belts' },
-        { label: 'Headwears', path: '/?tag=men&category=headwears' },
-        { label: 'Sunglasses', path: '/?tag=men&category=sunglasses' },
-      ]
-    }
+    { label: 'All', path: '/?tag=men' },
   ],
   Women: [
-    { label: 'All', path: '/' },
-    { label: 'Dress', path: '/?tag=women&category=dress' },
-    { label: 'Top', path: '/?tag=women&category=top' },
-    { label: 'Gown', path: '/?tag=women&category=gown' },
-    { label: 'Trouser', path: '/?tag=women&category=trouser' },
+    { label: 'All', path: '/?tag=women' },
   ],
-  Collections: [
-    { label: 'Zara', path: '/?brand=zara' },
-    { label: 'Boohooman', path: '/?brand=boohooman' },
-    { label: 'Pull & Bear', path: '/?brand=pull-bear' },
-    { label: 'Bershka', path: '/?brand=bershka' },
-  ]
+  Collections: []
 };
 
 const Navbar: React.FC<NavbarProps> = ({ cartCount, wishlistCount, user }) => {
@@ -68,6 +35,7 @@ const Navbar: React.FC<NavbarProps> = ({ cartCount, wishlistCount, user }) => {
   const [expandedMobileMenu, setExpandedMobileMenu] = useState<string | null>(null);
   const [brands, setBrands] = useState<{ id: string; name: string }[]>([]);
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
 
   const navRef = useRef<HTMLElement>(null);
@@ -90,13 +58,68 @@ const Navbar: React.FC<NavbarProps> = ({ cartCount, wishlistCount, user }) => {
     const unsubCats = subscribeToCategories((data) => {
       setCategories(data.sort((a, b) => a.name.localeCompare(b.name)));
     });
+    const unsubProducts = subscribeToProducts((data) => {
+      setProducts(data);
+    });
     return () => {
       unsubBrands();
       unsubCats();
+      unsubProducts();
     };
   }, []);
 
+  const MENU_HIERARCHY = React.useMemo(() => {
+    if (!products || products.length === 0) return FALLBACK_MENU_HIERARCHY;
 
+    const buildHierarchy = (deptTag: string) => {
+      const deptProducts = products.filter(p => p.tags && p.tags.map(t => t.toLowerCase()).includes(deptTag.toLowerCase()));
+      const hierarchy: any[] = [{ label: 'All', path: `/?tag=${deptTag}` }];
+      
+      const categoriesSet = new Set(deptProducts.map(p => p.category).filter(Boolean));
+      
+      Array.from(categoriesSet).sort().forEach(cat => {
+        const catProds = deptProducts.filter(p => p.category === cat);
+        const subTags = new Set<string>();
+        
+        catProds.forEach(p => {
+          (p.tags || []).forEach(t => {
+            const tl = t.toLowerCase();
+            if (tl !== 'men' && tl !== 'women' && tl !== 'unisex') {
+              subTags.add(t);
+            }
+          });
+        });
+
+        if (subTags.size > 0) {
+          hierarchy.push({
+            label: cat,
+            subItems: Array.from(subTags).sort().map(t => ({
+              label: t,
+              path: `/?tag=${deptTag}&category=${encodeURIComponent(cat as string)}&tag=${encodeURIComponent(t)}`
+            }))
+          });
+        } else {
+          hierarchy.push({
+            label: cat,
+            path: `/?tag=${deptTag}&category=${encodeURIComponent(cat as string)}`
+          });
+        }
+      });
+      
+      return hierarchy;
+    };
+
+    const collectionsMenu = brands.map(b => ({
+      label: b.name,
+      path: `/?brand=${encodeURIComponent(b.name)}`
+    }));
+
+    return {
+      Men: buildHierarchy('men'),
+      Women: buildHierarchy('women'),
+      Collections: collectionsMenu.length > 0 ? collectionsMenu : FALLBACK_MENU_HIERARCHY.Collections
+    };
+  }, [products, brands]);
 
   useEffect(() => {
     // Close menus on route change
@@ -365,6 +388,11 @@ const Navbar: React.FC<NavbarProps> = ({ cartCount, wishlistCount, user }) => {
                       <p className="text-[10px] font-bold uppercase tracking-widest text-stone-900 truncate">{isAdminUser ? 'Admin' : (user.displayName?.split(' ')[0] || 'Member')}</p>
                       <p className="text-[9px] text-stone-400 truncate mt-1">{user.email}</p>
                     </div>
+                    {isAdminUser && (
+                      <button onClick={() => handleLinkClick('/admin')} className="w-full text-left px-6 py-4 text-[9px] font-bold tracking-[0.2em] uppercase text-[#C5A059] hover:bg-stone-50 transition-colors flex items-center gap-3 border-b border-stone-50">
+                        <ShieldCheck size={12} className="text-[#C5A059]" /> Executive Panel
+                      </button>
+                    )}
                     <button onClick={() => handleLinkClick('/orders')} className="w-full text-left px-6 py-4 text-[9px] font-bold tracking-[0.2em] uppercase text-stone-500 hover:bg-stone-50 hover:text-stone-900 transition-colors flex items-center gap-3 border-b border-stone-50">
                       <ShoppingBag size={12} /> My Orders
                     </button>
@@ -614,6 +642,17 @@ const Navbar: React.FC<NavbarProps> = ({ cartCount, wishlistCount, user }) => {
                       <p className="text-[8px] font-black uppercase tracking-widest text-stone-300">Signed In As</p>
                       <p className="text-[10px] font-bold text-stone-900 mt-1 truncate">{user.email}</p>
                     </div>
+                    {isAdminUser && (
+                      <button
+                        onClick={() => handleLinkClick('/admin')}
+                        className="flex items-center space-x-4 w-full px-6 py-4 rounded-xl text-[10px] font-bold tracking-widest uppercase text-[#C5A059] bg-[#C5A059]/5 hover:bg-[#C5A059] hover:text-white transition-all group"
+                      >
+                        <div className="bg-white p-2 rounded-lg group-hover:bg-white/20 transition-all">
+                          <ShieldCheck size={16} className="text-[#C5A059] group-hover:text-white" />
+                        </div>
+                        <span>Executive Panel</span>
+                      </button>
+                    )}
                     <button
                       onClick={() => handleLinkClick('/orders')}
                       className="flex items-center space-x-4 w-full px-6 py-4 rounded-xl text-[10px] font-bold tracking-widest uppercase text-stone-400 hover:bg-stone-50 hover:text-stone-900 transition-all group"

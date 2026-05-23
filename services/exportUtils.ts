@@ -438,3 +438,215 @@ export const exportWaitlistToPDF = async (requests: RestockRequest[], products: 
 
     doc.save(`ZAHRAH_WAITLIST_${new Date().toISOString().split('T')[0]}.pdf`);
 };
+
+export const exportCustomerInvoiceToPDF = async (order: Order) => {
+    const doc = new jsPDF();
+
+    // Re-use SVG Logic
+    const GOLD_LOGO_SVG = `
+      <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#8C6E33" />
+            <stop offset="50%" style="stop-color:#C5A059" />
+            <stop offset="100%" style="stop-color:#E2C285" />
+          </linearGradient>
+          <path id="topArc" d="M65 110 A 35 35 0 0 1 135 110" />
+          <path id="bottomArc" d="M65 125 A 35 35 0 0 0 135 125" />
+        </defs>
+        <circle cx="100" cy="110" r="65" stroke="url(#goldGradient)" stroke-width="1" opacity="0.5" />
+        <g stroke="url(#goldGradient)" stroke-width="1.5" stroke-linecap="round" opacity="0.8">
+          <path d="M60 145C45 130 45 90 60 75" fill="none" />
+          <path d="M55 75 L45 70" /><path d="M55 90 L45 85" /><path d="M55 105 L45 100" />
+          <path d="M55 120 L45 115" /><path d="M55 135 L45 130" />
+          <path d="M140 145C155 130 155 90 140 75" fill="none" />
+          <path d="M145 75 L155 70" /><path d="M145 90 L155 85" /><path d="M145 105 L155 100" />
+          <path d="M145 120 L155 115" /><path d="M145 135 L155 130" />
+        </g>
+        <g fill="url(#goldGradient)">
+          <path d="M80 55 L75 40 L90 48 L100 35 L110 48 L125 40 L120 55 H80Z" />
+          <circle cx="75" cy="38" r="2" /><circle cx="100" cy="33" r="2.5" /><circle cx="125" cy="38" r="2" />
+        </g>
+        <circle cx="100" cy="110" r="55" stroke="url(#goldGradient)" stroke-width="2.5" fill="none" />
+        <circle cx="100" cy="110" r="50" stroke="url(#goldGradient)" stroke-width="1" fill="none" />
+        <text x="100" y="125" text-anchor="middle" fill="url(#goldGradient)" style="font-size:42px;font-weight:bold;font-family:'Times New Roman', serif;">ZL</text>
+        <text fill="url(#goldGradient)" style="font-size:8px;font-weight:bold;letter-spacing:2px;font-family:sans-serif;">
+          <textPath href="#topArc" startOffset="50%" text-anchor="middle">ZARHRAH</textPath>
+        </text>
+        <text fill="url(#goldGradient)" style="font-size:8px;font-weight:bold;letter-spacing:2px;font-family:sans-serif;">
+          <textPath href="#bottomArc" startOffset="50%" text-anchor="middle">LUXURY</textPath>
+        </text>
+        <path d="M60 155 Q100 175 140 155" stroke="url(#goldGradient)" stroke-width="8" stroke-linecap="round" opacity="0.9" fill="none" />
+        <text x="100" y="166" text-anchor="middle" fill="white" style="font-size:7px;font-weight:900;letter-spacing:1px;font-family:sans-serif;">COLLECTIONS</text>
+      </svg>
+    `;
+    try {
+        const svgBase64 = `data:image/svg+xml;base64,${btoa(GOLD_LOGO_SVG)}`;
+        const logoImg = await toBase64(svgBase64);
+        doc.addImage(logoImg, 'PNG', 14, 10, 25, 25);
+    } catch (e) {
+        console.warn("Logo load failed", e);
+    }
+
+    // Invoice Header
+    doc.setFontSize(22);
+    doc.setTextColor(28, 25, 23); // Stone 900
+    doc.text('INVOICE', 196, 20, { align: 'right' });
+
+    doc.setFontSize(10);
+    doc.setTextColor(150); // Stone 500
+    doc.text(`Reference: ${order.id.slice(-8).toUpperCase()}`, 196, 28, { align: 'right' });
+    doc.text(`Date: ${new Date(order.date).toLocaleDateString()}`, 196, 34, { align: 'right' });
+
+    // Brand Details
+    doc.setFontSize(12);
+    doc.setTextColor(197, 160, 89); // Gold
+    doc.text('ZARHRAH LUXURY COLLECTIONS', 45, 20);
+    doc.setFontSize(9);
+    doc.setTextColor(100);
+    doc.text('alerts@zarhrahluxurycollections.com', 45, 26);
+    doc.text('Lagos, Nigeria', 45, 32);
+
+    // Bill To
+    doc.setFontSize(10);
+    doc.setTextColor(150);
+    doc.text('BILL TO:', 14, 55);
+    
+    doc.setFontSize(11);
+    doc.setTextColor(28, 25, 23);
+    doc.text(order.customerName, 14, 62);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(order.customerEmail, 14, 68);
+    doc.text(order.customerPhone, 14, 74);
+    
+    // Handle multi-line address
+    const splitAddress = doc.splitTextToSize(order.customerAddress, 80);
+    doc.text(splitAddress, 14, 80);
+
+    // Items Table
+    const tableData = await Promise.all(order.items.map(async (item) => {
+        let productImgData: any = null;
+        if (item.images && item.images[0]) {
+            try {
+                const b64 = await toBase64(item.images[0]);
+                if (b64) productImgData = b64;
+            } catch (e) { /* ignore */ }
+        }
+
+        let variantText = '';
+        if (item.selectedSize) variantText += `Size: ${item.selectedSize} `;
+        if (item.selectedColor) variantText += `Color: ${item.selectedColor}`;
+
+        return [
+            { content: '', image: productImgData },
+            variantText ? `${item.name}\n(${variantText.trim()})` : item.name,
+            item.quantity.toString(),
+            `N${item.price.toLocaleString()}`,
+            `N${(item.price * item.quantity).toLocaleString()}`
+        ];
+    }));
+
+    autoTable(doc, {
+        head: [["", "ITEM DESCRIPTION", "QTY", "PRICE", "TOTAL"]],
+        body: tableData,
+        startY: 100,
+        theme: 'plain',
+        styles: {
+            fontSize: 9,
+            cellPadding: 4,
+            valign: 'middle',
+            font: 'helvetica'
+        },
+        headStyles: {
+            fillColor: [250, 250, 249], // Stone 50
+            textColor: [100, 100, 100], // Stone 500
+            fontStyle: 'bold',
+            halign: 'left'
+        },
+        columnStyles: {
+            0: { cellWidth: 15, minCellHeight: 15 }, // Image
+            2: { halign: 'center' }, // Qty
+            3: { halign: 'right' }, // Price
+            4: { halign: 'right', fontStyle: 'bold' } // Total
+        },
+        didDrawCell: (data) => {
+            if (data.column.index === 0 && data.section === 'body') {
+                const cellData = data.cell.raw as any;
+                if (cellData && cellData.image) {
+                    const imgSize = 10;
+                    const x = data.cell.x + (data.cell.width - imgSize) / 2;
+                    const y = data.cell.y + (data.cell.height - imgSize) / 2;
+                    doc.addImage(cellData.image, 'JPEG', x, y, imgSize, imgSize);
+                }
+            }
+        }
+    });
+
+    // Totals Section
+    const finalY = (doc as any).lastAutoTable.finalY + 15;
+    
+    doc.setFontSize(10);
+    doc.setTextColor(150);
+    doc.text('SUBTOTAL', 140, finalY);
+    doc.text('LOGISTICS', 140, finalY + 8);
+    
+    doc.setTextColor(28, 25, 23);
+    doc.text(`N${order.total.toLocaleString()}`, 196, finalY, { align: 'right' });
+    doc.text('Included', 196, finalY + 8, { align: 'right' });
+    
+    // Total Line
+    doc.setDrawColor(231, 229, 228); // Stone 200
+    doc.line(140, finalY + 12, 196, finalY + 12);
+    
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text('GRAND TOTAL', 140, finalY + 22);
+    doc.setTextColor(197, 160, 89); // Gold Total
+    doc.text(`N${order.total.toLocaleString()}`, 196, finalY + 22, { align: 'right' });
+
+    // Footer
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text('Thank you for shopping with Zarhrah Luxury Collections.', 100, 280, { align: 'center' });
+    doc.text('For returns or inquiries, please email alerts@zarhrahluxurycollections.com', 100, 285, { align: 'center' });
+
+    doc.save(`Zarhrah_Invoice_${order.id.slice(-8)}.pdf`);
+};
+
+export const exportNewsletterToCSV = (subscribers: { email: string, date: string }[]) => {
+    // Deduplicate subscribers by email
+    const uniqueSubs: { email: string, date: string }[] = [];
+    const emailsSeen = new Set<string>();
+    
+    for (const sub of subscribers) {
+        if (!sub.email) continue;
+        const normalizedEmail = sub.email.trim().toLowerCase();
+        if (!emailsSeen.has(normalizedEmail)) {
+            emailsSeen.add(normalizedEmail);
+            uniqueSubs.push(sub);
+        }
+    }
+
+    const headers = ['Email', 'Date Subscribed'];
+    const rows = uniqueSubs.map(sub => [
+        sub.email,
+        new Date(sub.date).toLocaleDateString()
+    ]);
+
+    const csvContent = [
+        headers.join(','),
+        ...rows.map(r => r.join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `zahrah_newsletter_subscribers_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};

@@ -616,6 +616,91 @@ const StylingLooksEditor: React.FC<EditorProps> = ({ layoutConfig, products, onU
     );
 };
 
+const HeroCarouselEditor: React.FC<EditorProps> = ({ layoutConfig, onUpdate }) => {
+    const isVisible = layoutConfig.showHero ?? true;
+    const images = layoutConfig.heroImages || (layoutConfig.heroImage ? [layoutConfig.heroImage] : []);
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
+
+    const updateImages = async (newImages: string[]) => {
+        await onUpdate(
+            { heroImages: newImages, heroImage: newImages[0] || '' },
+            `Updated Hero Carousel images`
+        );
+    };
+
+    const handleUpload = async (file: File) => {
+        try {
+            setUploadingIndex(images.length);
+            const url = await uploadImageToCloudinary(file);
+            await updateImages([...images, url]);
+        } catch (error) {
+            console.error(error);
+            alert("Upload failed");
+        } finally {
+            setUploadingIndex(null);
+        }
+    };
+
+    const removeImage = async (index: number) => {
+        const newImages = images.filter((_, i) => i !== index);
+        await updateImages(newImages);
+    };
+
+    if (!isVisible) return <StaticSectionControl title="Hero Carousel" visibilityKey="showHero" layoutConfig={layoutConfig} products={[]} onUpdate={onUpdate} />;
+
+    return (
+        <div className="bg-white border border-stone-100 rounded-3xl p-6 shadow-sm">
+            <div className="flex justify-between items-center">
+                <div className="flex items-center gap-4">
+                    <button onClick={() => onUpdate({ showHero: !isVisible }, `Toggled visibility of Hero Carousel`)} className="p-2 rounded-full bg-stone-900 text-white shadow-md">
+                        <Eye size={16} />
+                    </button>
+                    <h4 className="font-bold text-stone-900 text-sm">Hero Carousel</h4>
+                </div>
+                <button onClick={() => setIsExpanded(!isExpanded)} className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all ${isExpanded ? 'bg-stone-50 border-stone-200 text-stone-900' : 'bg-white border-stone-100 text-stone-400 hover:border-stone-300'}`}>
+                    {isExpanded ? 'Close Editor' : 'Edit Slides'}
+                </button>
+            </div>
+
+            <AnimatePresence>
+                {isExpanded && (
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                        <div className="pt-6 border-t border-stone-100 mt-6 space-y-4">
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-stone-400">Carousel Slides ({images.length})</p>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                {images.map((img, idx) => (
+                                    <div key={idx} className="relative aspect-[16/9] md:aspect-auto md:h-32 rounded-xl overflow-hidden bg-stone-100 group border border-stone-200">
+                                        <img src={img} className="w-full h-full object-cover" />
+                                        <button onClick={() => removeImage(idx)} className="absolute top-2 right-2 bg-white/90 text-red-500 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-sm">
+                                            <Trash2 size={12} />
+                                        </button>
+                                        <div className="absolute bottom-0 inset-x-0 bg-black/60 p-1">
+                                            <p className="text-[8px] text-white text-center">Slide {idx + 1}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                                
+                                <label className="relative aspect-[16/9] md:aspect-auto md:h-32 rounded-xl border-2 border-dashed border-stone-200 hover:border-[#C5A059] flex flex-col items-center justify-center cursor-pointer transition-colors bg-stone-50 group">
+                                    <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])} disabled={uploadingIndex !== null} />
+                                    {uploadingIndex !== null ? (
+                                        <Loader2 className="animate-spin text-[#C5A059]" size={20} />
+                                    ) : (
+                                        <>
+                                            <Plus className="text-stone-400 group-hover:text-[#C5A059] mb-2" size={20} />
+                                            <span className="text-[10px] font-bold uppercase tracking-widest text-stone-400 group-hover:text-[#C5A059]">Add Slide</span>
+                                        </>
+                                    )}
+                                </label>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+};
+
 interface LayoutTabProps {
     layoutConfig: HomeLayoutConfig;
     setLayoutConfig: React.Dispatch<React.SetStateAction<HomeLayoutConfig>>;
@@ -728,10 +813,7 @@ const LayoutTab: React.FC<LayoutTabProps> = ({ layoutConfig, setLayoutConfig, pr
 
                 {/* Core Sections Visibility Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <StaticSectionControl
-                        title="Hero Banner"
-                        visibilityKey="showHero"
-                        bannerImageKey="heroImage"
+                    <HeroCarouselEditor
                         layoutConfig={layoutConfig}
                         products={products}
                         onUpdate={handleUpdate}

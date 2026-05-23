@@ -1,18 +1,21 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { signInWithEmailAndPassword, setPersistence, browserLocalPersistence, browserSessionPersistence } from 'firebase/auth';
 import { auth } from '../services/firebaseConfig';
 import { Eye, EyeOff, Loader2, ArrowLeft, Check } from 'lucide-react';
 import Logo from '../components/Logo';
+import { getStaffRole } from '../services/staffService';
 
 const Login: React.FC = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
-    const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [rememberMe, setRememberMe] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
+    const prefillEmail = (location.state as any)?.email || '';
+    const [email, setEmail] = useState(prefillEmail);
+    const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -22,7 +25,12 @@ const Login: React.FC = () => {
         try {
             await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
             await signInWithEmailAndPassword(auth, email, password);
-            navigate('/');
+            const role = await getStaffRole(email);
+            if (role) {
+                navigate('/admin');
+            } else {
+                navigate('/');
+            }
         } catch (err: any) {
             console.error(err);
             if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
@@ -36,7 +44,7 @@ const Login: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
+        <div className="min-h-[100dvh] bg-white flex flex-col items-center justify-center p-4">
             <Link to="/" className="absolute top-8 left-8 flex items-center space-x-2 text-[10px] font-bold tracking-[0.3em] uppercase text-stone-400 hover:text-stone-900 transition-colors">
                 <ArrowLeft size={14} />
                 <span>Return to Boutique</span>

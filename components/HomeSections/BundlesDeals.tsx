@@ -31,9 +31,11 @@ const BundlesDeals: React.FC<BundlesDealsProps> = ({
 
     const bundleProducts = selectedProductIds && selectedProductIds.length > 0
         ? products.filter(p => selectedProductIds.includes(p.id))
-        : products
-            .slice(0, 8)
-            .sort(() => 0.5 - Math.random()); // Shuffle for variety
+        : [];
+
+    if (bundleProducts.length === 0) {
+        return null;
+    }
 
     const scroll = (direction: 'left' | 'right') => {
         if (scrollRef.current) {

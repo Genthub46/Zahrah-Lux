@@ -1,22 +1,48 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Package, Clock, CheckCircle, AlertTriangle, ArrowRight, ShoppingBag, Loader2 } from 'lucide-react';
+import { Package, Clock, CheckCircle, AlertTriangle, ArrowRight, ShoppingBag, Loader2, Download } from 'lucide-react';
 import { Order } from '../types';
 import { subscribeToUserOrders } from '../services/dbUtils';
 import { auth } from '../services/firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
+import html2canvas from 'html2canvas';
+import ReceiptTemplate from '../components/ReceiptTemplate';
 
 const Orders: React.FC = () => {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     const [userEmail, setUserEmail] = useState<string | null>(null);
+    const [downloadingOrderId, setDownloadingOrderId] = useState<string | null>(null);
     const navigate = useNavigate();
+
+    const downloadReceipt = async (order: Order) => {
+        const element = document.getElementById(`premium-receipt-${order.id}`);
+        if (!element) return;
+        
+        setDownloadingOrderId(order.id);
+        try {
+            const canvas = await html2canvas(element, {
+                useCORS: true,
+                scale: 2,
+                backgroundColor: '#ffffff'
+            });
+            const image = canvas.toDataURL('image/jpeg', 0.9);
+            const link = document.createElement('a');
+            link.href = image;
+            link.download = `Zarhrah-Receipt-${order.id}.jpg`;
+            link.click();
+        } catch (error) {
+            console.error('Error downloading receipt:', error);
+        } finally {
+            setDownloadingOrderId(null);
+        }
+    };
 
     useEffect(() => {
         const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
             if (user && user.email) {
-                setUserEmail(user.email);
+                setUserEmail(user.email.toLowerCase());
             } else {
                 setLoading(false);
                 navigate('/login');
@@ -93,18 +119,29 @@ const Orders: React.FC = () => {
             ) : (
                 <div className="space-y-8">
                     {orders.map((order) => (
-                        <div key={order.id} className="bg-white border border-stone-100 shadow-sm hover:shadow-md transition-shadow duration-300 group overflow-hidden rounded-sm">
+                        <div key={order.id} id={`order-receipt-${order.id}`} className="bg-white border border-stone-100 shadow-sm hover:shadow-md transition-shadow duration-300 group overflow-hidden rounded-sm relative">
                             {/* Order Header */}
                             <div className="bg-stone-50/50 px-6 py-4 border-b border-stone-100 flex flex-wrap items-center justify-between gap-4">
                                 <div className="flex items-center gap-4">
-                                    <span className="text-sm font-bold text-stone-900 tracking-wider">{order.id}</span>
+                                    <span className="text-sm font-bold text-stone-900 tracking-wider">Order #{order.id}</span>
                                     <span className="text-[10px] text-stone-400 uppercase tracking-widest px-2 py-1 bg-white border border-stone-200 rounded-full">
                                         {new Date(order.date).toLocaleDateString()}
                                     </span>
                                 </div>
-                                <div className={`flex items-center space-x-2 px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest border ${getStatusColor(order.status)}`}>
-                                    {getStatusIcon(order.status)}
-                                    <span>{order.status}</span>
+                                <div className="flex items-center space-x-3">
+                                    <button 
+                                        onClick={() => downloadReceipt(order)}
+                                        disabled={downloadingOrderId === order.id}
+                                        className="flex items-center space-x-2 text-[10px] font-bold text-stone-500 hover:text-[#C5A059] uppercase tracking-widest transition-colors mr-2"
+                                        title="Download Receipt"
+                                    >
+                                        {downloadingOrderId === order.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                                        <span className="hidden sm:inline">Receipt</span>
+                                    </button>
+                                    <div className={`flex items-center space-x-2 px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest border ${getStatusColor(order.status)}`}>
+                                        {getStatusIcon(order.status)}
+                                        <span>{order.status}</span>
+                                    </div>
                                 </div>
                             </div>
 
@@ -159,6 +196,11 @@ const Orders: React.FC = () => {
                     ))}
                 </div>
             )}
+            
+            {/* Hidden Premium Receipts for Download */}
+            {orders.map(order => (
+                <ReceiptTemplate key={`receipt-${order.id}`} order={order} userEmail={userEmail || ''} />
+            ))}
         </div>
     );
 };
