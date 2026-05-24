@@ -78,7 +78,7 @@ const CuratedSection: React.FC<CuratedSectionProps> = ({
     };
 
     return (
-        <div className="mb-24 last:mb-0">
+        <div className="mb-12 last:mb-0">
             {/* Header & Tabs */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 md:mb-12 gap-6 md:gap-8">
                 <div className="flex gap-x-8 items-baseline overflow-x-auto no-scrollbar w-full md:w-auto">
@@ -178,7 +178,7 @@ const CuratedPicks: React.FC<CuratedPicksProps> = (props) => {
     }
 
     return (
-        <section className="py-24 bg-stone-50/50 border-t border-stone-100">
+        <section className="py-12 bg-stone-50/50 border-t border-stone-100">
             <div className="px-4 sm:px-6 lg:px-12 max-w-[1800px] mx-auto">
                 {categoryGroups.map((group, idx) => (
                     <CuratedSection
