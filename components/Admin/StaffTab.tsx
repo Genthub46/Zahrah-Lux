@@ -107,7 +107,6 @@ const StaffTab: React.FC = () => {
                                 onChange={(e) => setNewRole(e.target.value as AdminRole)}
                                 className="w-full bg-stone-50 border border-stone-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#C5A059]/20 focus:border-[#C5A059]"
                             >
-                                <option value="super_admin">Super Admin (Full Access)</option>
                                 <option value="manager">Manager (Products & Orders)</option>
                                 <option value="support">Support (Orders & Waitlist)</option>
                                 <option value="viewer">Viewer (Read Only)</option>
