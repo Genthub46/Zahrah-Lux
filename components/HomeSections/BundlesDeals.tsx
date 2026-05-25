@@ -46,7 +46,7 @@ const BundlesDeals: React.FC<BundlesDealsProps> = ({
     };
 
     return (
-        <section className="py-20 bg-white border-t border-stone-100">
+        <section className="py-10 bg-white border-t border-stone-100">
             <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12">
                 <div className="flex flex-row justify-between items-center mb-10">
                     <div>
