@@ -35,7 +35,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
 }) => {
     // Desktop Sidebar (Always visible on lg screens)
     const DesktopSidebar = (
-        <aside className="hidden lg:flex w-72 bg-white/80 backdrop-blur-md border-r border-stone-100 fixed h-full flex-col z-[100]">
+        <aside className="hidden lg:flex w-72 bg-white/80 backdrop-blur-md border-r border-stone-100 fixed top-0 left-0 bottom-0 h-full flex-col z-[100]">
             <Link to="/" className="h-24 flex items-center justify-center border-b border-stone-100 hover:bg-stone-50 transition-colors">
                 <Logo size={70} className="text-stone-900" />
             </Link>
