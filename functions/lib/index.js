@@ -5,7 +5,13 @@ const functions = require("firebase-functions");
 const fs = require("fs");
 const path = require("path");
 const resend_1 = require("resend");
-const resend = new resend_1.Resend(process.env.RESEND_API_KEY || '');
+const getResendClient = () => {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+        throw new functions.https.HttpsError('failed-precondition', 'RESEND_API_KEY environment variable is not configured.');
+    }
+    return new resend_1.Resend(apiKey);
+};
 exports.sendAutomatedEmail = functions.https.onCall(async (data, context) => {
     var _a;
     const { to, subject, html } = data;
@@ -13,6 +19,7 @@ exports.sendAutomatedEmail = functions.https.onCall(async (data, context) => {
         throw new functions.https.HttpsError('invalid-argument', 'Missing email parameters.');
     }
     try {
+        const resend = getResendClient();
         const response = await resend.emails.send({
             from: 'Zarhrah Luxury Collections <onboarding@resend.dev>',
             to,

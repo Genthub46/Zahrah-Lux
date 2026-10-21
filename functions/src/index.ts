@@ -3,7 +3,13 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY || '');
+const getResendClient = () => {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+        throw new functions.https.HttpsError('failed-precondition', 'RESEND_API_KEY environment variable is not configured.');
+    }
+    return new Resend(apiKey);
+};
 
 export const sendAutomatedEmail = functions.https.onCall(async (data, context) => {
 
@@ -14,6 +20,7 @@ export const sendAutomatedEmail = functions.https.onCall(async (data, context) =
     }
 
     try {
+        const resend = getResendClient();
         const response = await resend.emails.send({
             from: 'Zarhrah Luxury Collections <onboarding@resend.dev>',
             to,
