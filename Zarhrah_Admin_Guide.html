@@ -448,7 +448,7 @@
       <li><strong>Google Analytics 4 Live Intelligence Hub</strong> — Real-Time Stream, Telemetry &amp; E-Commerce</li>
       <li><strong>Managing Artifacts &amp; Dynamic Size Pricing</strong> — Products, Sizing Price Overrides &amp; Stock Velocity</li>
       <li><strong>Order Fulfillment &amp; Paystack Reconciliation</strong> — Lifecycle, Verification &amp; Exports</li>
-      <li><strong>Home Layout &amp; Intelligent Product Selector</strong> — Searchable Grid, Manor &amp; Styling Looks</li>
+      <li><strong>Theme &amp; Home Layout CMS (Deep Dive)</strong> — Visual Merchandising, Searchable Picker, Manor, Lookbooks &amp; Custom Carousels</li>
       <li><strong>Client Retention &amp; Abandoned Checkouts</strong> — Automated Luxury Email Engine</li>
       <li><strong>Restock Requests &amp; Demand Forecasting</strong> — VIP Demand Alerts &amp; Direct Restock Triggers</li>
       <li><strong>Staff Governance &amp; Multi-Tier Access</strong> — Roles, Permissions &amp; Security Audits</li>
@@ -645,32 +645,281 @@
   <div class="section">
     <div class="section-header">
       <div class="section-number">6</div>
-      <h2>Theme &amp; Home Layout Configuration</h2>
+      <h2>Theme &amp; Home Layout CMS (Deep Dive)</h2>
     </div>
+
+    <!-- 6.1 CONCEPT & ARCHITECTURE -->
+    <h3>What "Theme &amp; Layout" Means — The Visual Storefront CMS</h3>
     <p>
-      The <strong>Theme &amp; Layout</strong> tab acts as the visual Content Management System (CMS) for the storefront landing page.
+      In standard e-commerce setups, rearranging a storefront landing page requires developer intervention, template code edits, or heavy third-party page builders that degrade site performance. 
+      In Zahrah, the <strong>Theme &amp; Layout</strong> tab is an enterprise-grade, in-house <strong>visual Content Management System (CMS)</strong> that puts complete creative control into the hands of boutique directors, brand stylists, and merchandisers.
+    </p>
+    <p>
+      Every toggle, image upload, and product curation in this tab is backed by Cloud Firestore real-time persistence (<code>layoutConfig</code>). Changes sync <strong>instantly with zero downtime</strong> across all active client browsers—no code deployments, rebuilds, or server restarts are required.
     </p>
 
-    <h3>Intelligent Searchable Product Selector</h3>
-    <p>
-      Every curated section (Manor Collection, Bundles &amp; Deals, New Arrivals, Custom Carousels) now uses a searchable product picker:
-    </p>
-    <ul>
-      <li><strong>Live Search Bar:</strong> Instantly filter 250+ products by title, designer brand, or category.</li>
-      <li><strong>Category Filter Pills:</strong> Quick-toggle between <em>All</em>, <em>Clothing</em>, <em>Shoes</em>, and <em>Bags</em>.</li>
-      <li><strong>Selected Counter:</strong> Toggle to view only currently selected pieces.</li>
-      <li><strong>Checkmark Cards:</strong> Clear gold indicators showing which products are active in that carousel.</li>
-    </ul>
+    <div class="callout callout-gold">
+      <div class="callout-title">⚜ Strategic Merchandising Purpose</div>
+      The primary objective of the Theme &amp; Layout tab is <strong>visual storytelling and conversion pacing</strong>. Luxury customers do not simply browse raw database inventories; they respond to curated aesthetics, seasonal drops, editorial model pairings, and narrative hierarchies. This tab allows you to sculpt that journey turn-by-turn.
+    </div>
 
-    <h3>Full-Width Styling Ideas (Looks)</h3>
+    <!-- 6.2 GLOBAL CATALOG VISIBILITY -->
+    <h3>Global Storefront Mode: The Catalog Visibility Switch</h3>
     <p>
-      The <strong>Styling Ideas</strong> section allows merchants to create curated lookbooks. It is housed in a dedicated full-width card with an accordion header:
+      At the top of the Theme &amp; Layout dashboard sits the master <strong>Home Page Configuration</strong> control. Clicking this switch toggles between two distinct retail presentations:
     </p>
-    <ul>
-      <li>Upload a high-fashion styled look photograph.</li>
-      <li>Select the specific catalog pieces that comprise the outfit.</li>
-      <li>Customers clicking the look on the storefront can preview and add all outfit pieces directly to their shopping bag.</li>
-    </ul>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">A</div>
+        <div class="step-content">
+          <strong>Catalog Visible (Standard Retail Mode — Default)</strong>
+          <p>
+            When enabled (<span class="badge badge-green">Catalog Visible</span> with a gold indicator), the full product catalog displays at the bottom of the landing page, complete with category tabs, search filtering, and pagination. Ideal for day-to-day shopping when customers expect broad inventory exploration.
+          </p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">B</div>
+        <div class="step-content">
+          <strong>Catalog Hidden (Exclusive Editorial / Lookbook Mode)</strong>
+          <p>
+            When disabled (<span class="badge badge-dark">Catalog Hidden</span>), the generic product grid is completely suppressed from the home page. The storefront transforms into a minimalist, magazine-style editorial experience consisting exclusively of your curated carousels, muse banners, and styling lookbooks. Ideal for exclusive fashion drops, private atelier events, or campaign launches.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6.3 INVENTORY OF 9 CONFIGURED SECTIONS -->
+    <h3>Master Inventory: All 9 Configurable Storefront Sections</h3>
+    <p>
+      The Zahrah landing page is built from modular, independently toggleable sections. Administrators can show, hide, re-title, or customize every component:
+    </p>
+
+    <table class="corr-table">
+      <thead>
+        <tr>
+          <th>Section Name</th>
+          <th>Configuration Key</th>
+          <th>Storefront Visual Role &amp; Available Controls</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>1. Hero Carousel</strong></td>
+          <td><code>showHero</code> &bull; <code>heroImages</code></td>
+          <td>
+            <strong>Flagship Above-the-Fold Showcase:</strong> Rotating multi-slide banner for high-fashion campaigns.<br />
+            &bull; <em>Controls:</em> Eye toggle, "Edit Slides" drawer, Cloudinary image upload, direct URL input, per-slide trash deletion, and "Add Slide" button.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>2. Features Bar</strong></td>
+          <td><code>showFeatures</code></td>
+          <td>
+            <strong>Boutique Service Pillars:</strong> Highlights brand guarantees (100% Authentic Luxury, Complimentary Concierge Delivery, Secure Paystack Checkout).<br />
+            &bull; <em>Controls:</em> One-click visibility toggle.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>3. Boutique Banner</strong></td>
+          <td><code>showBoutique</code> &bull; <code>boutiqueBannerImage</code> &bull; <code>boutiqueBannerTitle</code></td>
+          <td>
+            <strong>Mid-Page Editorial Statement:</strong> Full-width horizontal banner separating carousels.<br />
+            &bull; <em>Controls:</em> Eye toggle, uppercase custom title input (e.g. <code>AUTUMN COUTURE '26</code>), Cloudinary image uploader, direct URL input.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>4. Lifestyle Showcase</strong></td>
+          <td><code>showLifestyle</code> &bull; <code>lifestyleImages</code></td>
+          <td>
+            <strong>Dual-Muse Split Editorial:</strong> Paired visual banners (Left: Accessories / Right: Streetwear) showcasing model styling.<br />
+            &bull; <em>Controls:</em> Eye toggle, "Edit Muses" drawer with independent uploaders and direct URL fields for both left and right muse images.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>5. Manor Collection</strong></td>
+          <td><code>showManor</code> &bull; <code>manorProductIds</code></td>
+          <td>
+            <strong>VIP / Royal Tier Carousel:</strong> Exclusive showcase for the brand's most prestigious, limited-run garments.<br />
+            &bull; <em>Controls:</em> Eye toggle, "Select Products" drawer with Intelligent Searchable Product Selector.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>6. Bundles &amp; Deals</strong></td>
+          <td><code>showBundles</code> &bull; <code>bundlesProductIds</code></td>
+          <td>
+            <strong>Curated Value &amp; Gift Carousel:</strong> Promotional carousel designed for matching sets, accessories pairings, and promotional edits.<br />
+            &bull; <em>Controls:</em> Eye toggle, Searchable Product Selector with live checkmarks.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>7. Curated Categories</strong></td>
+          <td><code>curatedCategories</code> &bull; <code>curatedPicks</code></td>
+          <td>
+            <strong>Interactive Tabbed Collection:</strong> Tabbed carousel supporting T-Shirts, Pants, Jackets, Shorts, Slides, and Bags.<br />
+            &bull; <em>Controls:</em> "Edit Tabs" modal (rename tabs, toggle visibility, customize slug), "Assign Products" drawer to curate pieces per active tab.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>8. Styling Ideas (Lookbooks)</strong></td>
+          <td><code>showStyling</code> &bull; <code>stylingLooks</code></td>
+          <td>
+            <strong>Complete Outfit Ensembles:</strong> Full-width interactive lookbook cards linking styled photography to direct-to-bag catalog pieces.<br />
+            &bull; <em>Controls:</em> Add Look, image upload, title, total price, compact product picker, reorder looks (&uarr;/&darr;), reorder pieces (&larr;/&rarr;), delete look.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>9. Dynamic Custom Sections</strong></td>
+          <td><code>sections</code> (Array)</td>
+          <td>
+            <strong>On-Demand Bespoke Carousels:</strong> Create unlimited seasonal carousels (e.g. "Paris Couture Week", "Ramadan Silk Edit").<br />
+            &bull; <em>Controls:</em> "Deploy Section" creator bar, independent visibility toggle, trash deletion, and Searchable Product Selector.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- 6.4 INTELLIGENT SEARCHABLE PRODUCT SELECTOR -->
+    <h3>How to Use the Intelligent Searchable Product Selector</h3>
+    <p>
+      Previously, selecting products for a carousel required scrolling through an unorganized list of hundreds of SKUs. The upgraded <strong>Intelligent Searchable Product Selector</strong> makes curation seamless, fast, and visual:
+    </p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <strong>Real-Time Live Search</strong>
+          <p>
+            Type any search term into the search bar. The selector instantly filters the catalog across <strong>Product Title</strong>, <strong>Designer Brand</strong>, and <strong>Custom Tags</strong>. Type <code>"silk"</code>, <code>"black"</code>, or a designer name to narrow results immediately. Clear your search instantly with the <code>✕</code> button.
+          </p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <strong>Instant Category Filter Pills</strong>
+          <p>
+            Click any category pill (<span class="badge badge-dark">ALL</span>, <span class="badge badge-gold">Clothing</span>, <span class="badge badge-gold">Shoes</span>, <span class="badge badge-gold">Bags</span>) to restrict the view to that specific department without losing your active selections.
+          </p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <strong>The "Selected (X)" Audit Filter</strong>
+          <p>
+            Click the <span class="badge badge-dark">Selected (X)</span> pill in the top-right corner. The grid instantly collapses to display <strong>only</strong> the pieces currently linked to that section. This provides an immediate, foolproof visual audit of what will appear on the storefront. Click it again to return to the full catalog.
+          </p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <strong>One-Click Checkmark Selection &amp; Auto-Save</strong>
+          <p>
+            Click any product card to toggle it on or off. Selected items immediately illuminate with a high-contrast <strong>gold checkmark badge</strong> (<span style="color:#C5A059; font-weight:bold;">&#10004;</span>) in the top-right corner, a refined dark border ring, and an info overlay showing item title and formatted Naira price (<code>₦XX,XXX</code>). Every click writes straight to Firestore in the background—no "Save All" button required.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6.5 STYLING IDEAS LOOKBOOK TUTORIAL -->
+    <h3>How to Create &amp; Curate "Styling Ideas" (Lookbooks)</h3>
+    <p>
+      The <strong>Styling Ideas</strong> module is one of Zahrah's highest-converting features. Rather than selling standalone garments, it allows merchants to present holistic luxury outfits that shoppers can purchase in a single click:
+    </p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <strong>Expand the Styling Ideas Section</strong>
+          <p>Locate the full-width <em>Styling Ideas</em> card in the Curated Collections area and click <strong>"Manage Looks"</strong> to expand the editor.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <strong>Spawn a New Look</strong>
+          <p>Click the gold <strong>"Add New Look"</strong> button at the bottom. A new ensemble card appears labeled <code>Look 0X</code>.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <strong>Upload the Editorial Photograph</strong>
+          <p>Hover over the image preview box and click the upload icon to upload a high-resolution, full-body styled model photo (3:4 portrait ratio recommended). The image uploads directly to Cloudinary and links to the look.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <strong>Configure Title &amp; Total Ensemble Price</strong>
+          <p>Set an evocative, high-fashion title in the <em>Look Title</em> field (e.g., <code>"Mayfair Evening Velvet Ensemble"</code>) and enter the combined package price in the <em>Total Price</em> field (e.g., <code>₦245,000</code>).</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <strong>Link Matching Catalog Artifacts</strong>
+          <p>
+            Under <em>"Products in Look"</em>, use the embedded compact product selector to search and click the exact items comprising the outfit (e.g. velvet blazer + tailored trousers + leather loafers). Linked pieces appear in the <strong>Matched Products</strong> preview bar.
+          </p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-content">
+          <strong>Sequence &amp; Reorder</strong>
+          <p>
+            &bull; <strong>Reorder Look Priority:</strong> Use the vertical <strong>&uarr;</strong> and <strong>&darr;</strong> buttons on the left of each look card to determine which outfit appears first on the storefront.<br />
+            &bull; <strong>Reorder Garment Sequence:</strong> Hover over any item in the <em>Matched Products</em> bar and click the <strong>&larr;</strong> or <strong>&rarr;</strong> arrows to adjust how pieces are presented in the customer checkout popover.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6.6 DEPLOYING DYNAMIC SECTIONS -->
+    <h3>Deploying On-Demand Dynamic Custom Carousels</h3>
+    <p>
+      Need a special carousel for a flash promotion or fashion week? You do not need developer assistance:
+    </p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <strong>Enter Section Title</strong>
+          <p>Scroll down to the <em>"Deploy Section"</em> card. Type your desired carousel heading into the input bar (e.g., <code>"SUMMER LINEN EDIT"</code> or <code>"PRIVATE VAULT SELECTIONS"</code>).</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <strong>Deploy Instantly</strong>
+          <p>Click the black <strong>"Deploy Section"</strong> button. The section immediately appears in the layout hierarchy and in the admin audit log.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <strong>Curate &amp; Control</strong>
+          <p>Use the section's embedded Searchable Product Selector to pick the items to showcase. Toggle visibility with the eye icon, or permanently remove the section anytime with the trash icon.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6.7 MERCHANDISING BEST PRACTICES -->
+    <div class="callout callout-info">
+      <div class="callout-title">💎 Visual Merchandising Rules of Thumb</div>
+      <ul>
+        <li><strong>Optimal Carousel Density:</strong> Curate between <strong>6 and 12 pieces</strong> per carousel. Fewer than 4 pieces makes the carousel look sparse on large desktop screens; more than 16 pieces causes customer scroll fatigue.</li>
+        <li><strong>Portrait Aspect Ratio (3:4):</strong> Ensure all catalog and lookbook images follow a consistent 3:4 portrait aspect ratio (e.g. 1200 &times; 1600 px) with neutral or studio backgrounds for uniform visual luxury.</li>
+        <li><strong>Graceful Fallback Logic:</strong> If a merchant leaves a section visible but selects 0 products, the storefront automatically falls back to displaying the newest catalog arrivals for that category, ensuring the site never shows a blank void.</li>
+        <li><strong>Pre-Campaign Audit:</strong> Before launching promotional newsletters or influencer links, open each active section in the Theme &amp; Layout tab, click <span class="badge badge-dark">Selected (X)</span>, and verify that all featured items are currently in stock with positive inventory counts.</li>
+      </ul>
+    </div>
   </div>
 
   <!-- SECTION 7 -->
