@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Zarhrah Luxury — Mobile Email Setup Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #f7f6f4;
+      color: #1a1a1a;
+      font-size: 13.5px;
+      line-height: 1.6;
+      padding: 30px 20px;
+    }
+
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1px solid #e8e4dc;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    /* TOP BAR ACTIONS */
+    .top-actions {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 12px;
+      background: #0f0d0c;
+      padding: 12px 30px;
+    }
+
+    .btn-print {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #C5A059;
+      color: #0c0a09;
+      border: none;
+      padding: 8px 18px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 3px;
+      transition: background 0.2s ease;
+    }
+
+    .btn-print:hover {
+      background: #dfb96c;
+    }
+
+    /* LUXURY HEADER */
+    .header {
+      background: linear-gradient(135deg, #12100e 0%, #1f1b17 100%);
+      color: #ffffff;
+      padding: 45px 50px 35px;
+      text-align: center;
+      border-bottom: 2px solid #C5A059;
+      position: relative;
+    }
+
+    .brand-subtitle {
+      color: #C5A059;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .brand-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      margin-bottom: 8px;
+      color: #ffffff;
+    }
+
+    .brand-title em {
+      font-style: italic;
+      color: #C5A059;
+    }
+
+    .doc-subtitle {
+      color: #a8a29e;
+      font-size: 12px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-top: 6px;
+    }
+
+    /* BODY PADDING */
+    .content {
+      padding: 35px 50px 45px;
+    }
+
+    /* SECTION TITLES */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 30px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #e7e2d7;
+    }
+
+    .section-header:first-of-type {
+      margin-top: 0;
+    }
+
+    .section-number {
+      background: #1f1b17;
+      color: #C5A059;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 2px;
+      letter-spacing: 0.05em;
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 19px;
+      font-weight: 700;
+      color: #1c1917;
+    }
+
+    /* ACCOUNTS SUMMARY TABLE */
+    .table-container {
+      margin: 15px 0 25px;
+      border: 1px solid #e7e2d7;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 12.5px;
+    }
+
+    th {
+      background: #f4efe6;
+      color: #1c1917;
+      padding: 10px 14px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid #ded7ca;
+    }
+
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f0ece3;
+      color: #292524;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .account-badge {
+      display: inline-block;
+      font-family: monospace;
+      font-weight: 600;
+      color: #0c0a09;
+      background: #faf6ed;
+      padding: 2px 7px;
+      border: 1px solid #dcd3bf;
+      border-radius: 3px;
+    }
+
+    /* PARAMETERS GRID */
+    .specs-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 18px 0 25px;
+    }
+
+    .spec-card {
+      background: #faf9f6;
+      border: 1px solid #e8e3d8;
+      border-left: 3px solid #C5A059;
+      padding: 16px 18px;
+      border-radius: 3px;
+    }
+
+    .spec-card h4 {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #78716c;
+      margin-bottom: 10px;
+    }
+
+    .spec-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      font-size: 12px;
+      border-bottom: 1px dashed #e9e4d9;
+    }
+
+    .spec-row:last-child {
+      border-bottom: none;
+    }
+
+    .spec-label {
+      color: #57534e;
+    }
+
+    .spec-val {
+      font-weight: 600;
+      font-family: monospace;
+      color: #1c1917;
+    }
+
+    /* INSTRUCTION CARDS */
+    .guide-card {
+      background: #ffffff;
+      border: 1px solid #e7e2d7;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      overflow: hidden;
+      page-break-inside: avoid;
+    }
+
+    .guide-header {
+      background: #f7f4ee;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid #e7e2d7;
+    }
+
+    .guide-icon {
+      font-size: 16px;
+    }
+
+    .guide-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1c1917;
+    }
+
+    .steps-list {
+      padding: 16px 20px 16px 36px;
+      font-size: 12.5px;
+    }
+
+    .steps-list li {
+      margin-bottom: 10px;
+      color: #292524;
+      line-height: 1.55;
+    }
+
+    .steps-list li:last-child {
+      margin-bottom: 0;
+    }
+
+    .highlight-pill {
+      background: #f3ece0;
+      color: #78350f;
+      font-weight: 600;
+      font-family: monospace;
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-size: 11.5px;
+    }
+
+    /* CALLOUT BOX */
+    .callout {
+      background: #fefce8;
+      border: 1px solid #fef08a;
+      border-left: 4px solid #ca8a04;
+      padding: 14px 16px;
+      border-radius: 3px;
+      margin: 20px 0;
+      font-size: 12px;
+      color: #713f12;
+      page-break-inside: avoid;
+    }
+
+    .callout strong {
+      color: #854d0e;
+    }
+
+    /* FOOTER */
+    .doc-footer {
+      border-top: 1px solid #e7e2d7;
+      padding-top: 20px;
+      margin-top: 30px;
+      text-align: center;
+      font-size: 11px;
+      color: #78716c;
+      letter-spacing: 0.05em;
+    }
+
+    /* PRINT RULES */
+    @media print {
+      body {
+        background: #ffffff !important;
+        padding: 0 !important;
+      }
+
+      .container {
+        border: none !important;
+        box-shadow: none !important;
+        max-width: 100% !important;
+      }
+
+      .no-print, .top-actions {
+        display: none !important;
+      }
+
+      .header {
+        padding: 30px 40px 25px !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .content {
+        padding: 25px 35px !important;
+      }
+
+      .guide-card, .spec-card, .table-container, .callout {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        page-break-inside: avoid;
+      }
+
+      @page {
+        size: A4 portrait;
+        margin: 12mm 12mm 15mm 12mm;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- TOP ACTIONS (HIDDEN IN PRINT) -->
+    <div class="top-actions no-print">
+      <button class="btn-print" onclick="window.print()">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2m-12 0h12v4H6v-4z"></path></svg>
+        Print / Save to PDF
+      </button>
+    </div>
+
+    <!-- HEADER -->
+    <div class="header">
+      <div class="brand-subtitle">Zahrah Luxury Collections</div>
+      <h1 class="brand-title">Official Staff Email <em>Setup Guide</em></h1>
+      <div class="doc-subtitle">Mobile Phone Configuration &amp; Direct Webmail Instructions</div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="content">
+
+      <!-- SECTION 1: PROVISIONED ACCOUNTS -->
+      <div class="section-header">
+        <span class="section-number">01</span>
+        <h2 class="section-title">Active Corporate Email Accounts</h2>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Mailbox Address</th>
+              <th>Designated Purpose</th>
+              <th>Default Access</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="account-badge">admin@zarhrahluxurycollections.com</span></td>
+              <td>Executive &amp; Store Management</td>
+              <td>Webmail &amp; Mobile IMAP</td>
+            </tr>
+            <tr>
+              <td><span class="account-badge">info@zarhrahluxurycollections.com</span></td>
+              <td>Customer Inquiries &amp; VIP Support</td>
+              <td>Webmail &amp; Mobile IMAP</td>
+            </tr>
+            <tr>
+              <td><span class="account-badge">alerts@zarhrahluxurycollections.com</span></td>
+              <td>Online Orders, Payment Receipts &amp; System Alerts</td>
+              <td>Automated &amp; Staff Monitored</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- SECTION 2: CONNECTION PARAMETERS -->
+      <div class="section-header">
+        <span class="section-number">02</span>
+        <h2 class="section-title">Technical Connection Settings</h2>
+      </div>
+
+      <div class="specs-grid">
+        <div class="spec-card">
+          <h4>Incoming Mail Server (IMAP)</h4>
+          <div class="spec-row">
+            <span class="spec-label">Server Host:</span>
+            <span class="spec-val">mail.zarhrahluxurycollections.com</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-label">Protocol:</span>
+            <span class="spec-val">IMAP</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-label">Port:</span>
+            <span class="spec-val">993</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-label">Security:</span>
+            <span class="spec-val">SSL / TLS (Mandatory)</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-label">Username:</span>
+            <span class="spec-val">Your Full Email Address</span>
+          </div>
+        </div>
+
+        <div class="spec-card">
+          <h4>Outgoing Mail Server (SMTP)</h4>
+          <div class="spec-row">
+            <span class="spec-label">Server Host:</span>
+            <span class="spec-val">mail.zarhrahluxurycollections.com</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-label">Protocol:</span>
+            <span class="spec-val">SMTP</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-label">Port:</span>
+            <span class="spec-val">465 (or 587)</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-label">Security:</span>
+            <span class="spec-val">SSL / TLS (Mandatory)</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-label">Authentication:</span>
+            <span class="spec-val">Required (Same as Incoming)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 3: STEP-BY-STEP MOBILE SETUP -->
+      <div class="section-header">
+        <span class="section-number">03</span>
+        <h2 class="section-title">Step-by-Step Mobile Configuration</h2>
+      </div>
+
+      <!-- APPLE MAIL -->
+      <div class="guide-card">
+        <div class="guide-header">
+          <span class="guide-icon">🍎</span>
+          <span class="guide-title">Option A: Apple iPhone &amp; iPad (Apple Mail App)</span>
+        </div>
+        <ol class="steps-list">
+          <li>Open <strong>Settings</strong> on your iPhone and scroll down to tap <strong>Mail</strong>.</li>
+          <li>Tap <strong>Accounts</strong> &rarr; <strong>Add Account</strong> &rarr; Select <strong>Other</strong> &rarr; Tap <strong>Add Mail Account</strong>.</li>
+          <li>
+            Enter your basic details:
+            <br>&bull; <strong>Name</strong>: Zahrah Luxury Admin
+            <br>&bull; <strong>Email</strong>: <span class="highlight-pill">admin@zarhrahluxurycollections.com</span>
+            <br>&bull; <strong>Password</strong>: <em>Your assigned mailbox password</em>
+            <br>&bull; <strong>Description</strong>: Zahrah Corporate Mail
+          </li>
+          <li>Tap <strong>Next</strong>. Make sure <strong>IMAP</strong> is highlighted at the top tab.</li>
+          <li>
+            Under <strong>INCOMING MAIL SERVER</strong>:
+            <br>&bull; Host Name: <span class="highlight-pill">mail.zarhrahluxurycollections.com</span>
+            <br>&bull; User Name: Enter your full email address (e.g. <span class="highlight-pill">admin@zarhrahluxurycollections.com</span>)
+            <br>&bull; Password: <em>Your assigned password</em>
+          </li>
+          <li>
+            Under <strong>OUTGOING MAIL SERVER</strong> (Do not leave username or password blank even if marked optional):
+            <br>&bull; Host Name: <span class="highlight-pill">mail.zarhrahluxurycollections.com</span>
+            <br>&bull; User Name: Enter your full email address
+            <br>&bull; Password: <em>Your assigned password</em>
+          </li>
+          <li>Tap <strong>Next</strong> (the device will verify the SSL certificate), ensure <strong>Mail</strong> is toggled ON, and tap <strong>Save</strong>.</li>
+        </ol>
+      </div>
+
+      <!-- ANDROID SETUP -->
+      <div class="guide-card">
+        <div class="guide-header">
+          <span class="guide-icon">🤖</span>
+          <span class="guide-title">Option B: Android Phone (Gmail App or Samsung Email)</span>
+        </div>
+        <ol class="steps-list">
+          <li>Open the <strong>Gmail</strong> or <strong>Samsung Email</strong> app on your Android device.</li>
+          <li>Tap your profile avatar (top right corner) &rarr; tap <strong>Add another account</strong>.</li>
+          <li>Choose <strong>Other</strong> from the email provider list.</li>
+          <li>Type your full corporate email address &rarr; tap <strong>Manual setup</strong> &rarr; select <strong>Personal (IMAP)</strong>.</li>
+          <li>Enter your account password and tap <strong>Next</strong>.</li>
+          <li>
+            In <strong>Incoming server settings</strong>:
+            <br>&bull; Server: <span class="highlight-pill">mail.zarhrahluxurycollections.com</span>
+            <br>&bull; Port: <span class="highlight-pill">993</span> &nbsp;|&nbsp; Security: <span class="highlight-pill">SSL/TLS</span>
+          </li>
+          <li>
+            In <strong>Outgoing server settings</strong>:
+            <br>&bull; Require signin: <strong>YES (Checked)</strong>
+            <br>&bull; SMTP Server: <span class="highlight-pill">mail.zarhrahluxurycollections.com</span>
+            <br>&bull; Port: <span class="highlight-pill">465</span> &nbsp;|&nbsp; Security: <span class="highlight-pill">SSL/TLS</span>
+          </li>
+          <li>Tap <strong>Next</strong> &rarr; select your sync frequency &rarr; finish by naming the account.</li>
+        </ol>
+      </div>
+
+      <!-- INSTANT WEBMAIL -->
+      <div class="guide-card">
+        <div class="guide-header">
+          <span class="guide-icon">🌐</span>
+          <span class="guide-title">Option C: Instant Webmail Access (Any Mobile Browser)</span>
+        </div>
+        <ol class="steps-list">
+          <li>Open <strong>Safari</strong> or <strong>Google Chrome</strong> on your phone.</li>
+          <li>Navigate directly to: <span class="highlight-pill">https://rogue.hkdns.host/roundcube</span></li>
+          <li>Enter your full email address and password to immediately view inboxes, compose emails, and manage contacts with zero configuration.</li>
+        </ol>
+      </div>
+
+      <!-- SECURITY NOTE -->
+      <div class="callout">
+        <strong>Security &amp; Best Practices:</strong> Always ensure <strong>SSL/TLS</strong> is enabled for both Incoming and Outgoing servers. If sending fails on standard port 587 due to mobile cellular network restrictions, switch Outgoing Port to <strong>465</strong> with SSL/TLS. Never share mailbox credentials through unencrypted channels.
+      </div>
+
+      <!-- FOOTER -->
+      <div class="doc-footer">
+        Zahrah Luxury Collections &copy; 2026 &bull; Infrastructure Management &amp; IT Administration &bull; Confidential
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

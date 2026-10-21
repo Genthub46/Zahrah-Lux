@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     DollarSign, ShoppingCart, Users, Package, TrendingUp,
-    AlertTriangle, Plus, FileSpreadsheet, Eye, ArrowUpRight
+    AlertTriangle, Plus, FileSpreadsheet, Eye, ArrowUpRight, Activity
 } from 'lucide-react';
 import { Order, Product, UserProfile } from '../../types';
 import { AdminRole } from '../../services/adminPermissions';
@@ -16,6 +17,7 @@ interface DashboardTabProps {
 }
 
 const DashboardTab: React.FC<DashboardTabProps> = ({ orders, products, users, onNavigate, onNavigateToProductsWithFilter, role }) => {
+    const navigate = useNavigate();
     // Calculate stats
     const stats = useMemo(() => {
         const today = new Date();
@@ -266,6 +268,18 @@ const DashboardTab: React.FC<DashboardTabProps> = ({ orders, products, users, on
                                 <Users size={18} />
                             </div>
                             <span className="text-xs font-bold text-stone-700">Manage Customers</span>
+                        </button>
+                        <button
+                            onClick={() => navigate('/stress-test')}
+                            className="w-full flex items-center gap-3 px-4 py-3 bg-stone-50 rounded-xl hover:bg-stone-100 transition-colors group border border-dashed border-[#C5A059]/20 hover:border-[#C5A059]/50"
+                        >
+                            <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center text-amber-600 group-hover:bg-amber-600 group-hover:text-white transition-colors">
+                                <Activity size={18} />
+                            </div>
+                            <div className="text-left">
+                                <p className="text-xs font-bold text-stone-700">System Stress Tester</p>
+                                <p className="text-[9px] text-stone-400">Benchmarking & Concurrency</p>
+                            </div>
                         </button>
                     </div>
                 </div>

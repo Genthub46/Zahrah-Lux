@@ -16,7 +16,8 @@ import {
   subscribeToBrands,
   subscribeToReviews,
   subscribeToUsers,
-  wipeDatabase
+  wipeDatabase,
+  restoreDatabase
 } from '../services/dbUtils';
 import { INITIAL_PRODUCTS, INITIAL_FOOTER_PAGES, INITIAL_HOME_LAYOUT } from '../constants';
 import { canPerform, AdminRole } from '../services/adminPermissions';
@@ -27,6 +28,8 @@ import { useSessionTimeout } from '../hooks/useSessionTimeout';
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, Eye } from 'lucide-react';
+import { exportOrdersToPDF, exportWaitlistToPDF } from '../services/exportUtils';
+import { useSEO } from '../hooks/useSEO';
 
 // Sub-components
 import AdminLogin from '../components/Admin/AdminLogin';
@@ -89,6 +92,12 @@ const Admin: React.FC<AdminProps> = ({
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
   const [adminRole, setAdminRole] = useState<AdminRole | null>(null);
+  const [deleteProductId, setDeleteProductId] = useState<string | null>(null);
+
+  useSEO({
+    title: 'Admin Dashboard',
+    description: 'Zarhrah Luxury Admin Portal',
+  });
 
   // UI State
   const [searchParams, setSearchParams] = useSearchParams();
@@ -163,20 +172,20 @@ const Admin: React.FC<AdminProps> = ({
   }, [navigate]);
 
   const handleRepairDatabase = () => {
-    if (!window.confirm("CAUTION: This will RESET all products, orders, and layout settings to their initial defaults. Are you sure you want to proceed?")) {
+    if (!window.confirm("Restore Last Wipe: This will instantly restore the transactional data (orders, abandoned checkouts, etc.) that you previously wiped. Are you sure?")) {
       return;
     }
 
-    seedInitialData(INITIAL_PRODUCTS, INITIAL_HOME_LAYOUT, INITIAL_FOOTER_PAGES)
-      .then(() => showToast("Database Repaired Successfully!", { type: 'success' }))
+    restoreDatabase()
+      .then(() => showToast("Database Restored Successfully!", { type: 'success' }))
       .catch(err => {
         console.error(err);
-        showToast("Database Repair Failed.", { type: 'error' });
+        showToast("Database Restore Failed.", { type: 'error' });
       });
   };
 
   const handleWipeDatabase = async () => {
-    if (!window.confirm("CRITICAL WARNING: This will permanently DELETE ALL DATA (products, orders, customers, pages, layout) from the database. Only Admin login details will remain. Are you absolutely sure?")) {
+    if (!window.confirm("SOFT RESET: This will wipe your transactional data (orders, view logs, abandoned carts) for a fresh start. Products, Users, and Settings will NOT be affected. A backup will be stored automatically, which you can restore at any time using the Restore Database button. Are you absolutely sure?")) {
       return;
     }
 

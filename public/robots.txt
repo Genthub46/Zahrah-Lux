@@ -1,0 +1,12 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /checkout
+Disallow: /orders
+Disallow: /stress-test
+
+# Sitemaps
+Sitemap: https://zahrahluxury.com/sitemap.xml
+Sitemap: https://zahrah-boutique.web.app/sitemap.xml

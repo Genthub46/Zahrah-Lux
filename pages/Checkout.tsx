@@ -6,6 +6,7 @@ import { REVIEWS_STORAGE_KEY } from '../constants';
 import { saveReview, saveAbandonedCheckout, deleteAbandonedCheckout } from '../services/dbUtils';
 import { exportCustomerInvoiceToPDF } from '../services/exportUtils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSEO } from '../hooks/useSEO';
 import Logo from '../components/Logo';
 
 import { usePaystackPayment } from 'react-paystack';
@@ -14,6 +15,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../services/firebaseConfig';
 import { sendAutomatedEmail } from '../services/emailUtils';
 import { getOrderConfirmationTemplate, getAbandonedCartTemplate } from '../services/emailTemplates';
+import { trackBeginCheckout, trackPurchase } from '../services/analytics';
 
 const VisaIcon = () => (
   <div className="w-9 h-6 bg-white border border-stone-200 rounded flex items-center justify-center p-0.5 shadow-sm">
@@ -56,6 +58,13 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, onRemoveFromCart, onUpdateCar
   const [deliveryMethod, setDeliveryMethod] = useState<'Ship' | 'Pickup'>('Ship');
   const [saveInfo, setSaveInfo] = useState(false);
   const [step, setStep] = useState<'cart' | 'checkout'>('cart');
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'transfer' | 'crypto'>('card');
+  const [useShippingForBilling, setUseShippingForBilling] = useState(true);
+
+  useSEO({
+    title: 'Secure Checkout',
+    description: 'Complete your purchase securely. Zarhrah Luxury Collections checkout.',
+  });
 
   // Load saved info on mount
   useEffect(() => {
@@ -90,9 +99,22 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, onRemoveFromCart, onUpdateCar
     }
   };
 
+  // Calculate Total First
+  const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
   // Abandoned checkout session tracking
   const sessionId = useRef(`session_${Date.now()}_${Math.floor(Math.random() * 1000000)}`).current;
   const abandonedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Google Analytics 4: Track begin_checkout
+  const hasTrackedBeginCheckout = useRef(false);
+  useEffect(() => {
+    if (cart.length > 0 && !hasTrackedBeginCheckout.current) {
+      trackBeginCheckout(cart, total);
+      hasTrackedBeginCheckout.current = true;
+    }
+  }, [cart, total]);
 
   useEffect(() => {
     if (!email || cart.length === 0) return;
@@ -105,7 +127,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, onRemoveFromCart, onUpdateCar
         email: email.toLowerCase(),
         name: name || email,
         cart,
-        total: cart.reduce((s, i) => s + i.price * i.quantity, 0),
+        total: total,
         timestamp: Date.now(),
         sessionId,
       }).catch(() => {}); // Silently fail to not disrupt UX
@@ -114,11 +136,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, onRemoveFromCart, onUpdateCar
     return () => {
       if (abandonedTimer.current) clearTimeout(abandonedTimer.current);
     };
-  }, [email, firstName, lastName, cart, sessionId]);
-
-  // Calculate Total First
-  const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  }, [email, firstName, lastName, cart, sessionId, total]);
 
 
   // --- Coupon State & Logic ---
@@ -374,6 +392,9 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, onRemoveFromCart, onUpdateCar
     
     // We no longer call createPublicNotification to maintain a premium feel
     
+    // Google Analytics 4: Log conversion purchase event
+    trackPurchase(newOrder.id, newOrder.total, newOrder.items);
+
     setCompletedOrder(newOrder);
     setPaymentSuccess(true);
     onClearCart();
@@ -390,7 +411,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, onRemoveFromCart, onUpdateCar
     
     console.log(`[Email Service Trigger] Sending abandoned checkout email to ${email}`);
     
-    const fallbackHtml = getAbandonedCartTemplate(name);
+    const fallbackHtml = getAbandonedCartTemplate(name, 'https://zahrah-boutique.web.app/checkout', cart);
     sendAutomatedEmail(email, "Need help with your order?", fallbackHtml).catch(err => console.error("Email failed", err));
 
     setFallbackEmailSent(true);
@@ -421,11 +442,18 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, onRemoveFromCart, onUpdateCar
     handleSaveInfo(); // Save info to localStorage if checkbox is checked
     setIsProcessing(true);
 
-    try {
-      // 1. Backend Validates Stock & Price (Serverless Firestore check)
-      let calculatedTotal = 0;
-      for (const item of cart) {
-        const productDoc = await getDoc(doc(db, 'products', item.id));
+    // 1. Backend Validates Stock & Price (Serverless Firestore check)
+    let calculatedTotal = 0;
+    for (const item of cart) {
+      if (!item.id) {
+        setPaymentError(`Item ${item.name || 'Unknown'} is invalid. Please remove it from your cart.`);
+        setIsProcessing(false);
+        return;
+      }
+      
+      try {
+        console.log(`[Checkout] Validating stock for item:`, item.id, typeof item.id);
+        const productDoc = await getDoc(doc(db, 'products', String(item.id)));
         if (!productDoc.exists()) {
           setPaymentError(`Item ${item.name} is no longer available.`);
           setIsProcessing(false);
@@ -437,19 +465,22 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, onRemoveFromCart, onUpdateCar
           setIsProcessing(false);
           return;
         }
-        calculatedTotal += productData.price * item.quantity;
-      }
-
-      if (Math.abs(calculatedTotal - total) > 0.01) {
-        setPaymentError("Price mismatch detected. Please refresh the page to get the latest prices.");
+        const effectivePrice = (productData.sizePrices && item.selectedSize && productData.sizePrices[item.selectedSize])
+          ? productData.sizePrices[item.selectedSize]
+          : productData.price;
+        calculatedTotal += effectivePrice * item.quantity;
+      } catch (error: any) {
+        console.error("Validation error for item", item.id, ":", error);
+        setPaymentError(`Failed to validate stock for "${item.name}" (ID: ${item.id}): ${error.message || "Unknown error"}. Please try again.`);
         setIsProcessing(false);
         return;
       }
-    } catch (error) {
-       console.error("Validation error:", error);
-       setPaymentError("Failed to validate stock. Please try again.");
-       setIsProcessing(false);
-       return;
+    }
+
+    if (Math.abs(calculatedTotal - total) > 0.01) {
+      setPaymentError("Price mismatch detected. Please refresh the page to get the latest prices.");
+      setIsProcessing(false);
+      return;
     }
 
     // 2. Save the order as 'Pending' before redirecting to Paystack

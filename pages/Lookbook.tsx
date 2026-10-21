@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import { useLocation } from 'react-router-dom';
+import { useSEO } from '../hooks/useSEO';
 import { subscribeToLayout, subscribeToProducts } from '../services/dbUtils';
 import { HomeLayoutConfig, Product } from '../types';
 import { ArrowLeft, ShoppingBag, Plus } from 'lucide-react';
@@ -44,6 +46,11 @@ const getHotspotPosition = (index: number) => {
 };
 
 const Lookbook = ({ onAddToCart }: LookbookProps) => {
+    useSEO({
+        title: 'Lookbook',
+        description: 'Explore the latest fashion collections and seasonal lookbooks at Zarhrah Luxury.',
+    });
+
     const [layoutConfig, setLayoutConfig] = useState<HomeLayoutConfig | null>(null);
     const [products, setProducts] = useState<Product[]>([]);
     const [activeLookId, setActiveLookId] = useState<string | null>(null); // For mobile tap vs desktop hover

@@ -4,6 +4,7 @@ import { RestockRequest, Product, Review } from '../../types';
 import { deleteRestockRequest, updateRestockRequestStatus, deleteReview } from '../../services/dbUtils';
 import { exportWaitlistToPDF } from '../../services/exportUtils';
 import { sendAutomatedEmail } from '../../services/emailUtils';
+import { getRestockAlertTemplate } from '../../services/emailTemplates';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface RequestsTabProps {
@@ -93,16 +94,7 @@ const RequestsTab: React.FC<RequestsTabProps> = ({ restockRequests, products, re
                                                             try {
                                                                 setSendingProductId(pid);
                                                                 const emails = reqs.map(r => r.customerEmail);
-                                                                const htmlMessage = `
-                                                                    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-                                                                        <h2 style="color: #C5A059; text-transform: uppercase; letter-spacing: 2px;">Zarhrah Luxury Collections</h2>
-                                                                        <p>Good news!</p>
-                                                                        <p>The <strong>${p?.name}</strong> you requested is finally back in stock.</p>
-                                                                        <p>Visit our website to secure yours before it sells out again.</p>
-                                                                        <br/>
-                                                                        <p style="font-size: 12px; color: #888;">Thank you for shopping with Zarhrah Luxury Collections.</p>
-                                                                    </div>
-                                                                `;
+                                                                const htmlMessage = getRestockAlertTemplate('', p, `https://zahrah-boutique.web.app/product/${p?.id || ''}`);
                                                                 await sendAutomatedEmail(emails, `Back in Stock: ${p?.name}`, htmlMessage);
                                                                 
                                                                 // Mark all as notified
@@ -164,16 +156,7 @@ const RequestsTab: React.FC<RequestsTabProps> = ({ restockRequests, products, re
                                                                 onClick={async () => {
                                                                     try {
                                                                         setSendingRequestId(req.id);
-                                                                        const htmlMessage = `
-                                                                            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-                                                                                <h2 style="color: #C5A059; text-transform: uppercase; letter-spacing: 2px;">Zarhrah Luxury Collections</h2>
-                                                                                <p>Dear ${req.customerName},</p>
-                                                                                <p>Good news! The <strong>${p?.name}</strong> you requested is finally back in stock.</p>
-                                                                                <p>Visit our website to secure yours before it sells out again.</p>
-                                                                                <br/>
-                                                                                <p style="font-size: 12px; color: #888;">Thank you for shopping with Zarhrah Luxury Collections.</p>
-                                                                            </div>
-                                                                        `;
+                                                                        const htmlMessage = getRestockAlertTemplate(req.customerName, p, `https://zahrah-boutique.web.app/product/${p?.id || ''}`);
                                                                         await sendAutomatedEmail(req.customerEmail, `Back in Stock: ${p?.name}`, htmlMessage);
                                                                         await updateRestockRequestStatus(req.id, 'Notified');
                                                                         alert(`Notification sent to ${req.customerEmail}`);

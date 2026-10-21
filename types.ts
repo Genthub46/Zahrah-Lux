@@ -4,6 +4,7 @@ export interface Product {
   name: string;
   brand: string;
   price: number;
+  basePrice?: number;
   images: string[];
   description: string;
   category: string;
@@ -11,6 +12,7 @@ export interface Product {
   tags: string[];
   colors?: { name: string; hex: string; image?: string }[];
   sizes?: string[];
+  sizePrices?: Record<string, number>;
   features?: string[];
   composition?: string[];
   specifications?: string[];
@@ -22,6 +24,7 @@ export interface CartItem extends Product {
   quantity: number;
   selectedColor?: string;
   selectedSize?: string;
+  basePrice?: number;
 }
 
 export interface Order {

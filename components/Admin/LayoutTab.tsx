@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { uploadImageToCloudinary } from '../../services/cloudinary';
-import { Eye, EyeOff, Trash2, CheckCircle2, LayoutTemplate, Plus, Upload, Loader2, Image as ImageIcon, ArrowUp, ArrowDown, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Eye, EyeOff, Trash2, CheckCircle2, LayoutTemplate, Plus, Upload, Loader2, Image as ImageIcon, ArrowUp, ArrowDown, ChevronRight, ChevronLeft, ChevronDown, Search, X } from 'lucide-react';
 import { HomeLayoutConfig, SectionConfig, Product } from '../../types';
 import { saveLayoutConfig, logAdminAction } from '../../services/dbUtils';
 import { auth } from '../../services/firebaseConfig';
@@ -13,6 +13,177 @@ interface EditorProps {
     products: Product[];
     onUpdate: (updates: Partial<HomeLayoutConfig>, logDetail?: string) => Promise<void>;
 }
+
+// --- Reusable Searchable Product Selector ---
+interface SearchableProductSelectorProps {
+    products: Product[];
+    selectedIds: string[];
+    onToggle: (productId: string) => void;
+    placeholder?: string;
+    compact?: boolean;
+}
+
+const SearchableProductSelector: React.FC<SearchableProductSelectorProps> = ({
+    products,
+    selectedIds,
+    onToggle,
+    placeholder = "Search by name, brand, or tag...",
+    compact = false
+}) => {
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+    const [showSelectedOnly, setShowSelectedOnly] = useState(false);
+
+    // Extract unique categories
+    const categories = useMemo(() => {
+        const cats = new Set<string>();
+        products.forEach(p => {
+            if (p.category) cats.add(p.category);
+        });
+        return ['ALL', ...Array.from(cats)];
+    }, [products]);
+
+    // Filter products
+    const filteredProducts = useMemo(() => {
+        const query = searchQuery.trim().toLowerCase();
+        return products.filter(p => {
+            if (showSelectedOnly && !selectedIds.includes(p.id)) {
+                return false;
+            }
+            if (selectedCategory !== 'ALL' && p.category?.toLowerCase() !== selectedCategory.toLowerCase()) {
+                return false;
+            }
+            if (query) {
+                const matchName = p.name?.toLowerCase().includes(query);
+                const matchBrand = p.brand?.toLowerCase().includes(query);
+                const matchTags = p.tags?.some(t => t.toLowerCase().includes(query));
+                if (!matchName && !matchBrand && !matchTags) return false;
+            }
+            return true;
+        });
+    }, [products, searchQuery, selectedCategory, showSelectedOnly, selectedIds]);
+
+    return (
+        <div className="space-y-4">
+            {/* Control Bar: Search + Category Pills + Selected Only */}
+            <div className="space-y-2.5 bg-stone-50/80 p-3 rounded-2xl border border-stone-100">
+                <div className="flex flex-col sm:flex-row gap-2 items-center justify-between">
+                    <div className="relative flex-1 w-full">
+                        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
+                            placeholder={placeholder}
+                            className="w-full pl-9 pr-8 py-2 bg-white border border-stone-200 rounded-xl text-[11px] font-medium text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-stone-900 transition-colors"
+                        />
+                        {searchQuery && (
+                            <button
+                                type="button"
+                                onClick={() => setSearchQuery('')}
+                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 p-0.5"
+                            >
+                                <X size={12} />
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Show Selected Only Toggle */}
+                    <button
+                        type="button"
+                        onClick={() => setShowSelectedOnly(prev => !prev)}
+                        className={`px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all whitespace-nowrap ${
+                            showSelectedOnly
+                                ? 'bg-stone-900 text-white shadow-sm'
+                                : 'bg-white border border-stone-200 text-stone-600 hover:border-stone-400'
+                        }`}
+                    >
+                        <CheckCircle2 size={12} className={showSelectedOnly ? 'text-[#C5A059]' : 'text-stone-400'} />
+                        <span>Selected ({selectedIds.length})</span>
+                    </button>
+                </div>
+
+                {/* Category Pills */}
+                {categories.length > 2 && (
+                    <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none items-center text-[9px]">
+                        <span className="text-stone-400 font-bold uppercase tracking-widest text-[8px] mr-1">Filter:</span>
+                        {categories.map(cat => (
+                            <button
+                                key={cat}
+                                type="button"
+                                onClick={() => setSelectedCategory(cat)}
+                                className={`px-2.5 py-1 rounded-lg font-bold uppercase tracking-wider transition-colors whitespace-nowrap ${
+                                    selectedCategory === cat
+                                        ? 'bg-stone-900 text-white'
+                                        : 'bg-white border border-stone-200 text-stone-500 hover:bg-stone-100'
+                                }`}
+                            >
+                                {cat}
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* Empty state vs Grid */}
+            {filteredProducts.length === 0 ? (
+                <div className="text-center py-8 bg-stone-50/50 rounded-2xl border border-dashed border-stone-200">
+                    <p className="text-xs text-stone-500 font-bold">No products match your search or filter.</p>
+                    <button
+                        type="button"
+                        onClick={() => { setSearchQuery(''); setSelectedCategory('ALL'); setShowSelectedOnly(false); }}
+                        className="mt-2 text-[10px] text-[#C5A059] font-bold uppercase tracking-widest hover:underline"
+                    >
+                        Clear Filters
+                    </button>
+                </div>
+            ) : (
+                <div className={compact 
+                    ? "grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 max-h-48 overflow-y-auto p-1"
+                    : "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 max-h-[460px] overflow-y-auto p-1"
+                }>
+                    {filteredProducts.map(p => {
+                        const isActive = selectedIds.includes(p.id);
+                        return (
+                            <button
+                                key={p.id}
+                                type="button"
+                                onClick={() => onToggle(p.id)}
+                                className={`relative group aspect-[3/4] rounded-xl border-2 transition-all duration-200 p-1 overflow-hidden flex flex-col text-left ${
+                                    isActive
+                                        ? 'border-stone-900 bg-stone-50 ring-2 ring-stone-900/10 shadow-sm'
+                                        : 'border-stone-100 bg-white opacity-70 hover:opacity-100 hover:border-stone-300'
+                                }`}
+                                title={p.name}
+                            >
+                                <div className="w-full h-full rounded-lg overflow-hidden relative bg-stone-100">
+                                    {p.images?.[0] ? (
+                                        <img src={p.images[0]} alt={p.name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-[10px] text-stone-300">No Image</div>
+                                    )}
+
+                                    {/* Selection Checkmark */}
+                                    {isActive && (
+                                        <div className="absolute top-1.5 right-1.5 bg-stone-900 text-white p-1 rounded-full shadow-md z-10">
+                                            <CheckCircle2 size={10} className="text-[#C5A059]" />
+                                        </div>
+                                    )}
+
+                                    {/* Info Overlay at bottom */}
+                                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-stone-950/90 via-stone-950/60 to-transparent p-1.5 pt-4 text-white">
+                                        <p className="text-[9px] font-bold truncate leading-tight">{p.name}</p>
+                                        <p className="text-[8px] text-[#C5A059] font-black tracking-wider">₦{p.price.toLocaleString()}</p>
+                                    </div>
+                                </div>
+                            </button>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+};
 
 // --- Extracted Components ---
 
@@ -88,28 +259,40 @@ const StaticSectionControl: React.FC<{
             }
         };
 
+        const canExpand = Boolean(productKey && isVisible);
+
         return (
             <div className="bg-white border border-stone-100 rounded-3xl p-6 shadow-sm">
-                <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-4">
+                <div 
+                    onClick={() => {
+                        if (canExpand) setIsExpanded(!isExpanded);
+                    }}
+                    className={`flex flex-wrap sm:flex-nowrap justify-between items-center gap-4 ${canExpand ? 'cursor-pointer group select-none' : ''}`}
+                >
+                    <div className="flex items-center gap-4 min-w-0">
                         <button
-                            onClick={toggleVisibility}
-                            className={`p-2 rounded-full transition-all duration-300 ${isVisible ? 'bg-stone-900 text-white shadow-md' : 'bg-stone-100 text-stone-400'}`}
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                toggleVisibility();
+                            }}
+                            className={`p-2 rounded-full transition-all duration-300 shrink-0 ${isVisible ? 'bg-stone-900 text-white shadow-md' : 'bg-stone-100 text-stone-400'}`}
+                            title={isVisible ? `Hide ${title}` : `Show ${title}`}
                         >
                             {isVisible ? <Eye size={16} /> : <EyeOff size={16} />}
                         </button>
-                        <div>
-                            <h4 className="font-bold text-stone-900 text-sm">{title}</h4>
+                        <div className="min-w-0">
+                            <h4 className={`font-bold text-stone-900 text-sm truncate ${canExpand ? 'group-hover:text-[#C5A059] transition-colors' : ''}`}>{title}</h4>
                             {productKey && (
                                 <p className="text-[9px] font-black text-[#C5A059] uppercase tracking-widest mt-0.5">
-                                    {selectedIds.length} Products Selected
+                                    {selectedIds.length} Products Selected {canExpand && `• Click to ${isExpanded ? 'Close' : 'Select'}`}
                                 </p>
                             )}
                         </div>
                     </div>
 
                     {bannerImageKey && isVisible && (
-                        <div className="flex-1 ml-6 flex items-center gap-2">
+                        <div onClick={(e) => e.stopPropagation()} className="flex-1 ml-0 sm:ml-4 flex items-center gap-2 min-w-[180px]">
                             <div className="relative flex-1">
                                 <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" size={14} />
                                 <input
@@ -130,7 +313,7 @@ const StaticSectionControl: React.FC<{
                     )}
 
                     {textInputKey && isVisible && (
-                        <div className="flex-1 ml-4">
+                        <div onClick={(e) => e.stopPropagation()} className="flex-1 ml-0 sm:ml-4 min-w-[140px]">
                             <input
                                 type="text"
                                 placeholder="BANNER TITLE"
@@ -143,10 +326,15 @@ const StaticSectionControl: React.FC<{
 
                     {productKey && isVisible && (
                         <button
-                            onClick={() => setIsExpanded(!isExpanded)}
-                            className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all ${isExpanded ? 'bg-stone-50 border-stone-200 text-stone-900' : 'bg-white border-stone-100 text-stone-400 hover:border-stone-300'}`}
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsExpanded(!isExpanded);
+                            }}
+                            className={`shrink-0 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all flex items-center gap-2 ${isExpanded ? 'bg-stone-900 text-white border-stone-900 shadow-md' : 'bg-stone-50 border-stone-200 text-stone-800 hover:border-[#C5A059] hover:text-[#C5A059]'}`}
                         >
-                            {isExpanded ? 'Close Selector' : 'Select Products'}
+                            <span>{isExpanded ? 'Close Selector' : 'Select Products'}</span>
+                            <ChevronDown size={13} className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
                         </button>
                     )}
                 </div>
@@ -163,34 +351,12 @@ const StaticSectionControl: React.FC<{
                                 <p className="text-xs text-stone-400 mb-4 italic">
                                     Select products to feature in {title}. Default logic applies if none selected.
                                 </p>
-                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                                    {products.map(p => {
-                                        const isActive = selectedIds.includes(p.id);
-                                        return (
-                                            <button
-                                                key={p.id}
-                                                onClick={() => toggleProduct(p.id)}
-                                                className={`relative group aspect-[3/4] rounded-xl border transition-all duration-300 p-1 overflow-hidden
-                                                ${isActive
-                                                        ? 'border-stone-900 bg-stone-50 ring-2 ring-stone-900/10'
-                                                        : 'border-stone-100 opacity-60 hover:opacity-100 hover:border-stone-300'
-                                                    }`}
-                                            >
-                                                <div className="w-full h-full rounded-lg overflow-hidden relative">
-                                                    {p.images[0] && <img src={p.images[0]} className="w-full h-full object-cover" />}
-                                                    <div className="absolute inset-x-0 bottom-0 bg-black/60 p-1">
-                                                        <p className="text-[6px] text-white font-bold truncate">{p.name}</p>
-                                                    </div>
-                                                </div>
-                                                {isActive && (
-                                                    <div className="absolute top-2 right-2 bg-stone-900 text-white p-0.5 rounded-full shadow-lg z-10">
-                                                        <CheckCircle2 size={8} />
-                                                    </div>
-                                                )}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
+                                <SearchableProductSelector
+                                    products={products}
+                                    selectedIds={selectedIds}
+                                    onToggle={toggleProduct}
+                                    placeholder={`Filter products for ${title}...`}
+                                />
                             </div>
                         </motion.div>
                     )}
@@ -232,15 +398,45 @@ const LifestyleEditor: React.FC<EditorProps> = ({ layoutConfig, onUpdate }) => {
 
     return (
         <div className="bg-white border border-stone-100 rounded-3xl p-6 shadow-sm">
-            <div className="flex justify-between items-center">
-                <div className="flex items-center gap-4">
-                    <button onClick={() => onUpdate({ showLifestyle: !isVisible }, `Toggled visibility of Lifestyle Showcase`)} className="p-2 rounded-full bg-stone-900 text-white shadow-md">
+            <div 
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="flex flex-wrap sm:flex-nowrap justify-between items-center gap-4 cursor-pointer group select-none"
+            >
+                <div className="flex items-center gap-4 min-w-0">
+                    <button 
+                        type="button"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onUpdate({ showLifestyle: !isVisible }, `Toggled visibility of Lifestyle Showcase`);
+                        }} 
+                        className="p-2 rounded-full bg-stone-900 text-white shadow-md shrink-0 hover:scale-105 transition-transform"
+                        title={isVisible ? "Hide Lifestyle Showcase" : "Show Lifestyle Showcase"}
+                    >
                         <Eye size={16} />
                     </button>
-                    <h4 className="font-bold text-stone-900 text-sm">Lifestyle Showcase</h4>
+                    <div className="min-w-0">
+                        <h4 className="font-bold text-stone-900 text-sm group-hover:text-[#C5A059] transition-colors truncate">
+                            Lifestyle Showcase
+                        </h4>
+                        <p className="text-[9px] font-black text-[#C5A059] uppercase tracking-widest mt-0.5">
+                            Dual Muse Banners &bull; Click to {isExpanded ? 'Close' : 'Edit'}
+                        </p>
+                    </div>
                 </div>
-                <button onClick={() => setIsExpanded(!isExpanded)} className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all ${isExpanded ? 'bg-stone-50 border-stone-200 text-stone-900' : 'bg-white border-stone-100 text-stone-400 hover:border-stone-300'}`}>
-                    {isExpanded ? 'Close Editor' : 'Edit Muses'}
+                <button 
+                    type="button"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setIsExpanded(!isExpanded);
+                    }} 
+                    className={`shrink-0 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all flex items-center gap-2 ${
+                        isExpanded 
+                            ? 'bg-stone-900 text-white border-stone-900 shadow-md' 
+                            : 'bg-stone-50 border-stone-200 text-stone-800 hover:border-[#C5A059] hover:text-[#C5A059]'
+                    }`}
+                >
+                    <span>{isExpanded ? 'Close Editor' : 'Edit Muses'}</span>
+                    <ChevronDown size={14} className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
                 </button>
             </div>
 
@@ -317,17 +513,39 @@ const CuratedPicksEditor: React.FC<EditorProps> = ({ layoutConfig, products, onU
 
     return (
         <div className="bg-white border border-stone-100 rounded-3xl p-6 shadow-sm">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h4 className="font-bold text-stone-900 text-sm">Curated Categories</h4>
-                    <p className="text-[10px] text-stone-400">Manage tabs and assign products</p>
+            <div 
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="flex flex-wrap sm:flex-nowrap justify-between items-center gap-4 cursor-pointer group select-none"
+            >
+                <div className="min-w-0">
+                    <h4 className="font-bold text-stone-900 text-sm group-hover:text-[#C5A059] transition-colors truncate">
+                        Curated Categories
+                    </h4>
+                    <p className="text-[10px] text-stone-400">
+                        {categories.filter(c => c.isVisible !== false).length} Tabs Active &bull; Click to {isExpanded ? 'Close' : 'Assign Products'}
+                    </p>
                 </div>
-                <div className="flex gap-2">
-                    <button onClick={() => setIsManagingCats(!isManagingCats)} className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all ${isManagingCats ? 'bg-stone-900 text-white border-stone-900' : 'bg-white border-stone-100 text-stone-400 hover:border-stone-300'}`}>
+                <div className="flex items-center gap-2 shrink-0">
+                    <button 
+                        type="button"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setIsManagingCats(!isManagingCats);
+                        }} 
+                        className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all ${isManagingCats ? 'bg-stone-900 text-white border-stone-900' : 'bg-white border-stone-200 text-stone-600 hover:border-stone-400'}`}
+                    >
                         {isManagingCats ? 'Done' : 'Edit Tabs'}
                     </button>
-                    <button onClick={() => setIsExpanded(!isExpanded)} className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all ${isExpanded ? 'bg-stone-50 border-stone-200 text-stone-900' : 'bg-white border-stone-100 text-stone-400 hover:border-stone-300'}`}>
-                        {isExpanded ? 'Close' : 'Products'}
+                    <button 
+                        type="button"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setIsExpanded(!isExpanded);
+                        }} 
+                        className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all flex items-center gap-2 ${isExpanded ? 'bg-stone-900 text-white border-stone-900 shadow-md' : 'bg-stone-50 border-stone-200 text-stone-800 hover:border-[#C5A059] hover:text-[#C5A059]'}`}
+                    >
+                        <span>{isExpanded ? 'Close' : 'Assign Products'}</span>
+                        <ChevronDown size={14} className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
                     </button>
                 </div>
             </div>
@@ -353,22 +571,12 @@ const CuratedPicksEditor: React.FC<EditorProps> = ({ layoutConfig, products, onU
                                 <span className="opacity-60 text-[10px]">Ensure products are tagged correctly if you don't select any here.</span>
                             </p>
 
-                            <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
-                                {products.map(p => {
-                                    const isActive = currentIds.includes(p.id);
-                                    return (
-                                        <button
-                                            key={p.id}
-                                            onClick={() => toggleProduct(p.id)}
-                                            className={`relative group aspect-[3/4] rounded-lg border p-1 overflow-hidden ${isActive ? 'border-stone-900 bg-stone-50 ring-1 ring-stone-900' : 'border-stone-100 opacity-60'}`}
-                                        >
-                                            {p.images[0] && <img src={p.images[0]} className="w-full h-full object-cover rounded-md" />}
-                                            {isActive && <div className="absolute top-1 right-1 bg-stone-900 text-white p-0.5 rounded-full"><CheckCircle2 size={8} /></div>}
-                                            <div className="absolute bottom-0 inset-x-0 bg-white/90 p-1 text-[8px] truncate font-bold text-center">{p.name}</div>
-                                        </button>
-                                    );
-                                })}
-                            </div>
+                            <SearchableProductSelector
+                                products={products}
+                                selectedIds={currentIds}
+                                onToggle={toggleProduct}
+                                placeholder={`Filter products for ${activeCategory.label}...`}
+                            />
                         </div>
                     </motion.div>
                 )}
@@ -487,13 +695,50 @@ const StylingLooksEditor: React.FC<EditorProps> = ({ layoutConfig, products, onU
 
     return (
         <div className="bg-white border border-stone-100 rounded-3xl p-6 shadow-sm">
-            <div className="flex justify-between items-center">
-                <div className="flex items-center gap-4">
-                    <button onClick={() => onUpdate({ showStyling: !isVisible }, `Toggled visibility of Styling Ideas`)} className="p-2 rounded-full bg-stone-900 text-white shadow-md"><Eye size={16} /></button>
-                    <h4 className="font-bold text-stone-900 text-sm">Styling Ideas ({looks.length} Looks)</h4>
+            <div 
+                onClick={() => setIsExpanded(!isExpanded)} 
+                className="flex flex-wrap sm:flex-nowrap justify-between items-center gap-4 cursor-pointer group select-none"
+            >
+                <div className="flex items-center gap-4 min-w-0">
+                    <button 
+                        type="button"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onUpdate({ showStyling: !isVisible }, `Toggled visibility of Styling Ideas`);
+                        }} 
+                        className="p-2 rounded-full bg-stone-900 text-white shadow-md shrink-0 hover:scale-105 transition-transform"
+                        title={isVisible ? "Hide Styling Ideas" : "Show Styling Ideas"}
+                    >
+                        <Eye size={16} />
+                    </button>
+                    <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                            <h4 className="font-bold text-stone-900 text-sm group-hover:text-[#C5A059] transition-colors truncate">
+                                Styling Ideas
+                            </h4>
+                            <span className="px-2 py-0.5 rounded-full bg-stone-100 text-stone-600 text-[10px] font-bold">
+                                {looks.length} {looks.length === 1 ? 'Look' : 'Looks'}
+                            </span>
+                        </div>
+                        <p className="text-[9px] font-black text-[#C5A059] uppercase tracking-widest mt-0.5">
+                            Curated Outfits & Lookbooks &bull; Click to {isExpanded ? 'Collapse' : 'Manage Looks'}
+                        </p>
+                    </div>
                 </div>
-                <button onClick={() => setIsExpanded(!isExpanded)} className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all ${isExpanded ? 'bg-stone-50 border-stone-200 text-stone-900' : 'bg-white border-stone-100 text-stone-400 hover:border-stone-300'}`}>
-                    {isExpanded ? 'Close Editor' : 'Manage Looks'}
+                <button 
+                    type="button"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setIsExpanded(!isExpanded);
+                    }} 
+                    className={`shrink-0 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all flex items-center gap-2 ${
+                        isExpanded 
+                            ? 'bg-stone-900 text-white border-stone-900 shadow-md' 
+                            : 'bg-stone-50 border-stone-200 text-stone-800 hover:border-[#C5A059] hover:text-[#C5A059]'
+                    }`}
+                >
+                    <span>{isExpanded ? 'Close Editor' : 'Manage Looks'}</span>
+                    <ChevronDown size={14} className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
                 </button>
             </div>
 
@@ -584,24 +829,14 @@ const StylingLooksEditor: React.FC<EditorProps> = ({ layoutConfig, products, onU
                                                     </div>
                                                 )}
 
-                                                <p className="text-[9px] uppercase font-bold text-stone-300 mb-2">Add Products</p>
-                                                <div className="grid grid-cols-5 gap-2 max-h-32 overflow-y-auto p-1 border border-stone-100 rounded-lg bg-stone-50/50">
-                                                    {products.map(p => {
-                                                        const isActive = look.productIds.includes(p.id);
-                                                        if (isActive) return null;
-                                                        return (
-                                                            <button
-                                                                key={p.id}
-                                                                onClick={() => toggleProductInLook(look.id, p.id)}
-                                                                className="aspect-[3/4] w-full rounded border border-stone-200 overflow-hidden opacity-80 hover:opacity-100 hover:border-[#C5A059] transition-all relative group"
-                                                                title={p.name}
-                                                            >
-                                                                <img src={p.images[0]} className="w-full h-full object-cover" />
-                                                                <div className="absolute inset-x-0 bottom-0 bg-white/90 p-0.5 text-[6px] truncate">{p.name}</div>
-                                                            </button>
-                                                        );
-                                                    })}
-                                                </div>
+                                                <p className="text-[9px] uppercase font-bold text-stone-400 mb-2">Products in Look</p>
+                                                <SearchableProductSelector
+                                                    products={products}
+                                                    selectedIds={look.productIds}
+                                                    onToggle={(pid) => toggleProductInLook(look.id, pid)}
+                                                    compact={true}
+                                                    placeholder="Search products for this look..."
+                                                />
                                             </div>
                                         </div>
                                     </div>
@@ -651,15 +886,45 @@ const HeroCarouselEditor: React.FC<EditorProps> = ({ layoutConfig, onUpdate }) =
 
     return (
         <div className="bg-white border border-stone-100 rounded-3xl p-6 shadow-sm">
-            <div className="flex justify-between items-center">
-                <div className="flex items-center gap-4">
-                    <button onClick={() => onUpdate({ showHero: !isVisible }, `Toggled visibility of Hero Carousel`)} className="p-2 rounded-full bg-stone-900 text-white shadow-md">
+            <div 
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="flex flex-wrap sm:flex-nowrap justify-between items-center gap-4 cursor-pointer group select-none"
+            >
+                <div className="flex items-center gap-4 min-w-0">
+                    <button 
+                        type="button"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onUpdate({ showHero: !isVisible }, `Toggled visibility of Hero Carousel`);
+                        }} 
+                        className="p-2 rounded-full bg-stone-900 text-white shadow-md shrink-0 hover:scale-105 transition-transform"
+                        title={isVisible ? "Hide Hero Carousel" : "Show Hero Carousel"}
+                    >
                         <Eye size={16} />
                     </button>
-                    <h4 className="font-bold text-stone-900 text-sm">Hero Carousel</h4>
+                    <div className="min-w-0">
+                        <h4 className="font-bold text-stone-900 text-sm group-hover:text-[#C5A059] transition-colors truncate">
+                            Hero Carousel
+                        </h4>
+                        <p className="text-[9px] font-black text-[#C5A059] uppercase tracking-widest mt-0.5">
+                            {images.length} {images.length === 1 ? 'Slide' : 'Slides'} &bull; Click to {isExpanded ? 'Close' : 'Edit'}
+                        </p>
+                    </div>
                 </div>
-                <button onClick={() => setIsExpanded(!isExpanded)} className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all ${isExpanded ? 'bg-stone-50 border-stone-200 text-stone-900' : 'bg-white border-stone-100 text-stone-400 hover:border-stone-300'}`}>
-                    {isExpanded ? 'Close Editor' : 'Edit Slides'}
+                <button 
+                    type="button"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setIsExpanded(!isExpanded);
+                    }} 
+                    className={`shrink-0 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all flex items-center gap-2 ${
+                        isExpanded 
+                            ? 'bg-stone-900 text-white border-stone-900 shadow-md' 
+                            : 'bg-stone-50 border-stone-200 text-stone-800 hover:border-[#C5A059] hover:text-[#C5A059]'
+                    }`}
+                >
+                    <span>{isExpanded ? 'Close Editor' : 'Edit Slides'}</span>
+                    <ChevronDown size={14} className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
                 </button>
             </div>
 
@@ -812,7 +1077,7 @@ const LayoutTab: React.FC<LayoutTabProps> = ({ layoutConfig, setLayoutConfig, pr
                 </div>
 
                 {/* Core Sections Visibility Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <HeroCarouselEditor
                         layoutConfig={layoutConfig}
                         products={products}
@@ -835,9 +1100,16 @@ const LayoutTab: React.FC<LayoutTabProps> = ({ layoutConfig, setLayoutConfig, pr
                         onUpdate={handleUpdate}
                     />
                     <LifestyleEditor layoutConfig={layoutConfig} products={products} onUpdate={handleUpdate} />
+                </div>
 
-                    {/* With Product Selection */}
-                    <div className="lg:col-span-3 grid grid-cols-1 lg:grid-cols-2 gap-6 pt-6 border-t border-stone-200 border-dashed">
+                {/* Curated Product Collections & Looks */}
+                <div className="space-y-6 pt-6 border-t border-stone-200 border-dashed">
+                    <div>
+                        <h3 className="font-serif font-black text-lg text-stone-900">Curated Collections & Looks</h3>
+                        <p className="text-xs text-stone-400">Manage featured collections, lookbook ensembles, and curated category tabs</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <StaticSectionControl
                             title="Manor Collection"
                             visibilityKey="showManor"
@@ -846,7 +1118,6 @@ const LayoutTab: React.FC<LayoutTabProps> = ({ layoutConfig, setLayoutConfig, pr
                             products={products}
                             onUpdate={handleUpdate}
                         />
-                        <StylingLooksEditor layoutConfig={layoutConfig} products={products} onUpdate={handleUpdate} />
                         <StaticSectionControl
                             title="Bundles & Deals"
                             visibilityKey="showBundles"
@@ -855,9 +1126,16 @@ const LayoutTab: React.FC<LayoutTabProps> = ({ layoutConfig, setLayoutConfig, pr
                             products={products}
                             onUpdate={handleUpdate}
                         />
-                        <div className="lg:col-span-2">
-                            <CuratedPicksEditor layoutConfig={layoutConfig} products={products} onUpdate={handleUpdate} />
-                        </div>
+                    </div>
+
+                    {/* Styling Ideas / Lookbooks - Full Width */}
+                    <div>
+                        <StylingLooksEditor layoutConfig={layoutConfig} products={products} onUpdate={handleUpdate} />
+                    </div>
+
+                    {/* Curated Categories - Full Width */}
+                    <div>
+                        <CuratedPicksEditor layoutConfig={layoutConfig} products={products} onUpdate={handleUpdate} />
                     </div>
                 </div>
 
@@ -921,42 +1199,13 @@ const LayoutTab: React.FC<LayoutTabProps> = ({ layoutConfig, setLayoutConfig, pr
                             </div>
 
                             {/* Product Grid Selector */}
-                            <div className="p-8 bg-white">
-                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
-                                    {products.map(p => {
-                                        const currentIds = section.productIds || []; // Defensive
-                                        const isActive = currentIds.includes(p.id);
-                                        return (
-                                            <button
-                                                key={p.id}
-                                                onClick={() => toggleProductInSection(section.id, p.id)}
-                                                className={`relative group aspect-[3/4] rounded-2xl border-2 transition-all duration-300 p-2 overflow-hidden
-                          ${isActive
-                                                        ? 'border-stone-900 bg-stone-50 shadow-md ring-2 ring-stone-900/10'
-                                                        : 'border-stone-100 opacity-50 grayscale hover:opacity-100 hover:grayscale-0 hover:border-stone-300'
-                                                    }`}
-                                            >
-                                                <div className="w-full h-full rounded-lg overflow-hidden relative">
-                                                    {p.images[0] ? (
-                                                        <img src={p.images[0]} className="w-full h-full object-cover" />
-                                                    ) : (
-                                                        <div className="w-full h-full bg-stone-200" />
-                                                    )}
-                                                    {/* Overlay Name */}
-                                                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        <p className="text-[7px] text-white font-bold truncate">{p.name}</p>
-                                                    </div>
-                                                </div>
-
-                                                {isActive && (
-                                                    <div className="absolute top-3 right-3 bg-stone-900 text-white p-1 rounded-full shadow-lg z-10">
-                                                        <CheckCircle2 size={10} />
-                                                    </div>
-                                                )}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
+                            <div className="p-8 bg-white border-t border-stone-100">
+                                <SearchableProductSelector
+                                    products={products}
+                                    selectedIds={section.productIds || []}
+                                    onToggle={(pid) => toggleProductInSection(section.id, pid)}
+                                    placeholder={`Filter products for ${section.title}...`}
+                                />
                             </div>
                         </motion.div>
                     ))}

@@ -1,0 +1,57 @@
+# Zahrah Luxury Boutique - Changelog
+
+## [2026-07-21] - Automated Emails & Checkout Fixes
+
+### Added & Improved
+- **Luxury Email Templates:** Designed and integrated beautiful, fully responsive HTML email templates for transactional emails (Order Confirmations, Restock Notifications, Abandoned Checkouts).
+- **Dynamic Email Data:** The automated emails now accurately pull product images, names, quantities, and prices dynamically instead of sending plain text.
+- **Admin Panel Integrations:** The Admin panel's "Restock Requests" and "Abandoned Checkouts" tabs now seamlessly use the new luxury email templates to dispatch beautiful notifications directly to customers.
+- **Smart Abandoned Checkouts:** Updated the checkout flow so that if a customer abandons a payment (e.g., closes the Paystack popup), the site immediately sends them an abandoned checkout email featuring the exact items they left in their bag.
+
+### Fixed
+- **Checkout Stock Validation Bug:** Fixed a critical bug where users attempting to checkout encountered a "FAILED TO VALIDATE STOCK: MISSING OR INSUFFICIENT PERMISSIONS" error. This was caused by Firestore security rules blocking read access to specific product variants. Updated the `firestore.rules` to correctly permit global read access to all product documents during the checkout validation step.
+- **Email Payload Missing Data:** Fixed a bug in `Checkout.tsx` where the automated abandoned cart email was triggering without the cart contents attached.
+
+### Deployed
+- Deployed updated `firestore.rules` to production.
+- Deployed frontend bug fixes and email template integrations to Firebase Hosting.
+
+## [2026-10-01] - Size-Based Pricing & Searchable Layout Product Selector
+
+### Added & Improved
+- **Size-Based Product Pricing (Optional Overrides):** Products can now have custom prices assigned to specific sizes (e.g., standard sizes remain at base price ₦50,000, while XXL or plus sizes can be set to ₦55,000). 100% backward compatible with existing products.
+- **Admin Size Price UI:** Under the "Sizing" toggle in the Admin product drawer, entering sizes dynamically generates clean optional price override inputs for each size tag.
+- **Dynamic Storefront Price Updates:** On the product page, selecting different size buttons smoothly animates and updates the displayed price in real time, with subtle price badges on variant buttons.
+- **Cart & Serverless Price Integrity:** Bag consolidation, size switching, and real-time Firestore checkout price verification now accurately calculate totals matching the size-specific price without triggering "Price mismatch" errors.
+- **Searchable Product Selector in Layout Tab:** Replaced the unsearchable grids in the Admin Layout Tab with an intelligent product picker featuring live search (name/brand/tag), quick category filter pills (All, Clothing, Shoes, Bags), a "Selected (X)" toggle, and legible product preview cards with gold pricing and checkmark badges. Applied across New Arrivals, Curated Collections / Manor Collection, Styling Ideas / Looks, and Dynamic Sections.
+- **Admin Layout Styling Ideas Placement & Clickability Fix:** Separated the core visibility grid from curated collection management. "Styling Ideas" (Looks) and "Curated Categories" are now given dedicated full-width cards (`w-full`) so they are never clipped or overflow off the screen. Made the entire header row interactively clickable to expand/collapse lookbooks and product pickers effortlessly, complete with smooth rotating `ChevronDown` indicators.
+
+## [2026-10-08] - Automated XML Sitemap & Robots.txt SEO Engine
+
+### Added & Improved
+- **Automated XML Sitemap Engine (`scripts/generate-sitemap.cjs`):** Generates an XML 0.9 sitemap directly referencing live Firestore catalog data. Indexes 282 URLs including primary store routes (Home, Lookbook, Wishlist, Policies), all 19 custom information pages, and all 259 active product URLs.
+- **Google Image Search Extensions:** Included image schemas (`<image:image>`) for all product entries, pulling Cloudinary high-resolution product photography and names into Google Images.
+- **Production `robots.txt`:** Added standard crawler instructions permitting store indexing and pointing crawlers to `https://zahrahluxury.com/sitemap.xml` and `https://zahrah-boutique.web.app/sitemap.xml`, while disallowing internal transaction routes (`/admin`, `/checkout`, `/orders`, `/stress-test`).
+- **Build Pipeline Integration:** Integrated `npm run sitemap` into `npm run build` so that every deployment automatically regenerates a synchronized sitemap.
+- **Zero-Downtime Deployment:** Deployed `sitemap.xml` and `robots.txt` directly to Firebase Hosting CDN with zero disruption to active functions or backend workflows.
+
+## [2026-10-21] - Google Analytics 4 (GA4) & Admin Intelligence Hub Integration
+
+### Added & Improved
+- **Dual-Dispatch Google Analytics Engine (`services/analytics.ts`):** Architected a unified tracking pipeline that dispatches events through both `window.gtag` and Firebase Analytics SDK (`logEvent`). Fully type-safe and resilient against ad-blockers or missing browser globals.
+- **SPA Page View Tracking (`App.tsx` & `index.html`):** Configured `gtag('config', 'G-N2CS95WEY2', { send_page_view: false })` in `index.html` to eliminate phantom duplicate hits, delegating routing telemetry to React Router via `FloatingFeatures` on every location transition with accurate page titles and URLs.
+- **Full E-Commerce Event Lifecycle:**
+  - `view_item`: Emitted whenever a customer explores a product page (`pages/ProductDetail.tsx`), capturing product ID, name, category, and price in NGN.
+  - `add_to_cart`: Emitted whenever items are added to the bag (`App.tsx`), capturing quantity, selected size, color, and dynamic size-override prices.
+  - `begin_checkout`: Emitted on checkout page entrance (`pages/Checkout.tsx`) with complete cart contents and monetary sum.
+  - `purchase`: Emitted upon successful Paystack payment confirmation with transaction ID, customer order total, and itemized bag contents.
+- **Streamlined Executive Analytics & Currency Fix:**
+  - Resolved typography bug where `N0` rendered as the English word "No", introducing proper `₦` Naira formatting (`₦0`) across all KPI cards, tooltips, and chart axes.
+  - Replaced the large developer telemetry card with a slim 1-line executive control bar in the header, keeping quick-access buttons for Google Analytics (*Real-Time*, *Traffic*, *Sales*) while elevating business metrics (Revenue, Profit, Margin, Orders) to the very top.
+  - Added interactive Time Range Filter (`7 Days`, `14 Days`, `30 Days`) with dynamic recalculation of profitability and sales velocity.
+  - Upgraded Profitability Model and Conversion Funnel charts with luxury rounded card frames, donut conversion rate indicators, and chart view toggles.
+  - Added "Catalog Performance: Most-Viewed Pieces" intelligence feed ranking customer catalog impressions with live thumbnails and boutique direct links.
+  - Replaced generic blue warning alert with an executive dark obsidian Privacy & Telemetry Footnote.
+- **Zero-Downtime Hosting Deployment:** Built and deployed frontend assets to Firebase Hosting (`https://zahrah-boutique.web.app/`) with zero disruption to Cloud Functions or running orders.
+
+

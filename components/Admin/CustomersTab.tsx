@@ -4,6 +4,7 @@ import { Search, User, Mail, Calendar, ShoppingBag, DollarSign, Download, Shoppi
 import { getNewsletterSubscribers } from '../../services/dbUtils';
 import { exportNewsletterToCSV } from '../../services/exportUtils';
 import { sendAutomatedEmail } from '../../services/emailUtils';
+import { getAbandonedCartTemplate } from '../../services/emailTemplates';
 
 interface CustomersTabProps {
     users: UserProfile[];
@@ -98,20 +99,13 @@ const CustomersTab: React.FC<CustomersTabProps> = ({ users, orders }) => {
                             
                             setIsRecovering(true);
                             try {
-                                const emails = abandonedCarts.map(u => u.email as string);
                                 const subject = "Your Zarhrah Luxury curated selections are waiting.";
-                                const htmlMessage = `
-                                    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-                                        <h2 style="color: #C5A059; text-transform: uppercase; letter-spacing: 2px;">Zarhrah Luxury Collections</h2>
-                                        <p>We noticed you left some beautiful pieces in your cart.</p>
-                                        <p>Complete your order today to secure them before they sell out.</p>
-                                        <br/>
-                                        <p style="font-size: 12px; color: #888;">Thank you for shopping with Zarhrah Luxury Collections.</p>
-                                    </div>
-                                `;
                                 
-                                // Send to all emails via Resend batching (BCC essentially)
-                                await sendAutomatedEmail(emails, subject, htmlMessage);
+                                // Send individualized emails
+                                await Promise.all(abandonedCarts.map(u => {
+                                    const htmlMessage = getAbandonedCartTemplate(u.name || u.email.split('@')[0], 'https://zahrah-boutique.web.app/checkout', u.cart);
+                                    return sendAutomatedEmail(u.email, subject, htmlMessage);
+                                }));
                                 alert("Abandoned cart emails sent successfully in the background!");
                             } catch (err) {
                                 console.error("Failed to send abandoned cart emails:", err);

@@ -80,20 +80,64 @@ Authorization is determined by Firebase Authentication verified emails matching 
 Every administrative action is recorded in `/adminLogs` Firestore collection with details including: Admin Email address, Timestamp, Action performed, and Before & After State (JSON diff of exact values modified).
 
 ### 3. Detailed Tab-by-Tab Operations
+
 * **📊 Dashboard:** Real-time visual charts displaying gross revenue, total completed sales, waitlist size, and average order value. Compares growth rates month-over-month.
 * **👗 Products & Inventory:** Curate product collections, stock levels (including multi-variant stock limits), visibility status, compositions, and pricing.
-* **📦 Orders & Shipping:** unified tracking of all guest and registered checkouts. Admins can transition order statuses sequentially: `Pending` &rarr; `Shipped` &rarr; `Delivered`.
-* **👥 Customers:** View list of registered store clients, check their purchase history, and configure administrative staff roles.
-* **🔔 Waitlist (Restock Requests):** Monitors high-demand requests from clients for out-of-stock items, including customer contact channel (Email or WhatsApp).
-* **🛒 Abandoned Checkouts:** Automatically records cart sessions that have remained inactive for over **30 minutes**, helping run customer outreach or retargeting.
-* **🎨 Homepage Layout Curation (Visual Builder):** Organize products, curate visual grids, and build vibrant lookbooks with clickable hotspots containing active product links.
+* **📦 Orders & Shipping:** Unified tracking of all guest and registered checkouts. Admins can transition order statuses sequentially: `Pending` &rarr; `Shipped` &rarr; `Delivered`.
+* **👥 Customers:** View list of registered store clients and check their purchase history.
+* **🤖 Pricing AI:** Acts as an AI-driven price optimization tool. It analyzes your store's data and provides recommendations for price increases (scarcity pricing) or discounts (liquidation) based on demand and inventory velocity.
+* **🛒 Abandoned Carts:** Tracks shopping sessions where a customer added items to their cart but left without completing the payment (after 30+ minutes). You can view the cart details and manually trigger beautifully formatted **Recovery Emails**.
+* **🔔 Restock Requests:**
+  * **Waitlist Intelligence:** Tracks customers who have requested notifications for out-of-stock items. When an item is restocked, you can notify all waiting customers at once via email or WhatsApp.
+  * **Client Feedback:** Allows you to view and moderate (delete) product reviews left by customers.
 * **🏷️ Pricing & Promos:** Create and configure discount codes (percentage, fixed value, or shipping waivers).
-* **📜 Page Content Manager:** Edit static guidelines like Refund Policy, Shipping Guidelines, and Terms of Service.
-* **🔐 Activity Logs:** Complete logs feed of all admin database actions to ensure pristine record integrity.
+* **📜 Pages & Footer:** Acts as a mini Content Management System (CMS) for your text-heavy pages. Create, edit, and delete standard pages (Shipping Policy, Terms of Service, FAQs) and organize them into footer categories.
+* **🔐 Activity Logs:** Provides a security and audit trail for your executive panel. It tracks every major action taken in the admin dashboard (e.g., who changed a price, who deleted a product), recording the timestamp, action summary, and staff email.
+* **🛡️ Staff Access:** Manage who has access to the executive admin panel. Invite new team members via email, assign them specific roles (Manager, Support, Viewer), and revoke access.
+* **⚙️ System Controls:**
+  * **Return to Boutique:** A quick shortcut to leave the admin panel and view the live customer-facing storefront.
+  * **Repair Database:** A developer/testing tool used to reset or populate the store with default placeholder products.
+  * **Wipe Database:** *(Only visible to Super Admins)* A dangerous action that completely erases the store's database.
+  * **End Session:** Logs you out of the admin panel securely.
+
+### 4. Deep Dive: Theme & Layout Operations
+
+Based on the **Theme & Layout** section, here is an explanation of what each of these configuration cards does. They allow you to dynamically customize the appearance and content of your live storefront's Home Page without touching any code:
+
+#### 1. Home Page Configuration (Catalog Toggle)
+The main toggle at the top (currently showing "CATALOG HIDDEN") allows you to completely hide or show the main product grid on the home page. This is useful if you want to temporarily turn your landing page into a purely promotional or "lookbook" style page without showing standard shopping grids.
+
+#### 2. Hero Carousel
+This controls the large, full-width image slider at the very top of your website. 
+*   **Edit Slides:** Allows you to upload new banner images, reorder them, or delete old ones.
+*   **Visibility Toggle (Eye Icon):** Lets you completely hide the top hero section.
+
+#### 3. Features
+*(As explained earlier)* This toggles the visibility of the "Signature Features" section (e.g., Bespoke Tailoring, Global Concierge, Authentic Luxury). The slash through the eye means it is currently hidden from your customers.
+
+#### 4. Boutique Banner
+This allows you to add a wide promotional banner midway down your home page.
+*   You can set a custom **Banner Title**.
+*   You can upload a background image for the banner.
+*   You can toggle it on or off for special promotions or archive sales.
+
+#### 5. Lifestyle Showcase
+This section creates a visual mood board on your home page.
+*   **Edit Muses:** Allows you to upload two side-by-side lifestyle or editorial images (usually representing different categories like "Accessories" and "Streetwear").
+*   It breaks up the product grids with high-quality brand imagery.
+
+#### 6. Manor Collection
+This is a dedicated, hand-curated product section on the home page.
+*   **Select Products:** Instead of showing products automatically (like "New Arrivals"), this lets you manually pick exactly which specific products from your inventory should be featured in this exclusive block.
+*   Currently, it shows you have **5 products selected** for this collection.
+
+#### 7. Styling Ideas
+This is a "Shop the Look" feature to inspire customers and encourage multi-item purchases.
+*   **Manage Looks:** You can create different outfits or ensembles. For each "Look", you upload an editorial photo of a model wearing the outfit, give it a title and total price, and then link the individual pieces from your catalog so customers can easily buy the whole outfit.
 
 ---
 
-## SECTION 4: Technical & Under-the-Hood Site Functions
+## SECTION 5: Technical & Under-the-Hood Site Functions
 
 The boutique uses a high-performance, resilient architecture designed to provide an ultra-speed shopping experience under high traffic, while securing client transactions.
 
@@ -114,3 +158,46 @@ To prevent overselling during flash clothing drops:
 ### 4. Automatic Customer Retention
 * **Abandoned Carts:** Cart state changes register debounced draft sessions to `/abandonedCheckouts`. Successful checkouts instantly delete these drafts to keep data clean.
 * **Waitlists:** Clicking "Notify Me" stores contact profiles under the `/restockRequests` collection, ready for automatic or manual notification when inventory updates.
+
+---
+
+## SECTION 6: Recent System Upgrades (May 2026)
+
+The boutique's digital infrastructure has recently been updated to enhance both the customer experience and administrative control:
+
+### 1. Luxury PDF Reporting
+The Admin dashboard's PDF exports (Executive Order Manifests, Waitlist Intelligence Reports, and Customer Invoices) have been significantly upgraded. They now feature elegant typography, a premium off-white background, structured table alignments, and a subtle watermark of the boutique's gold logo on every page.
+
+### 2. Mega-Menu Navigation
+The storefront's primary navigation has been completely overhauled. Hovering over main collection categories (e.g., "Women", "Men") now triggers a smooth, animated "mega-menu" that reveals sub-categories in a beautifully structured, split-column layout, replacing the old simple dropdowns.
+
+### 3. Database "Soft Reset" & Backups
+The dangerous "Wipe Database" system control has been refined into a **Soft Reset**. Instead of permanently deleting everything, it now only clears transactional data (orders, logs, abandoned carts) to prepare for a fresh season. Crucially, it automatically creates a secure backup of all wiped data, which can be instantly restored via a new `Restore Database` button.
+
+### 4. Homepage Premium Refinements
+The live storefront homepage has received subtle premium visual adjustments:
+* **Refined Copywriting:** Language has been updated to feel both exclusive and customer-friendly (e.g., "Curated Daily" to "Handpicked Daily", "Bespoke Tailoring" to "Custom Fit").
+* **Layout Scaling:** Product cards in the horizontal scrolling collections have been slightly widened to better showcase high-resolution product imagery on larger screens.
+
+---
+
+## SECTION 7: Advanced Telemetry & Operations Upgrades (October 2026)
+
+### 1. Google Analytics 4 (GA4) Dual-Dispatch & Live Intelligence Hub
+* **Unified Event Dispatcher:** Dispatches full e-commerce events (`page_view`, `view_item`, `add_to_cart`, `begin_checkout`, `purchase`) simultaneously to `window.gtag` (Measurement ID: `G-N2CS95WEY2`) and Firebase Analytics SDK.
+* **Executive 1-Line Control Strip:** Replaced heavy developer telemetry with a clean, luxury 1-line control bar offering direct 1-click links to Google Analytics *Real-Time Visitors ↗*, *Traffic Acquisition ↗*, and *E-Commerce Monetization ↗*.
+* **Dynamic Time-Window Filtering:** Allows store executives to toggle between 7 Days, 14 Days, and 30 Days of sales, revenue trends, and gross profit modeling in real time.
+
+### 2. Dynamic Size-Based Price Overrides
+* **Per-Variant Pricing:** Under the Sizing toggle in the product drawer, merchants can define custom prices per individual size (e.g., standard sizes at ₦50,000, while XXL/plus sizes are custom-priced at ₦55,000).
+* **Storefront Price Animation:** Size buttons on product detail pages dynamically transition and update the displayed price with real-time badges.
+* **Serverless Price Integrity:** Bag consolidation and Firestore checkout stock validation automatically compute totals against size-specific prices, completely eliminating price mismatch payment errors.
+
+### 3. Intelligent Searchable Product Selector in Layout
+* **Instant Filter & Search:** Replaced static product grids in the Theme & Layout tab with an interactive product picker featuring real-time title/brand search, category pills (*All, Clothing, Shoes, Bags*), and "Selected (X)" filters.
+* **Full-Width Styling Ideas:** "Styling Ideas" (Lookbook) and "Curated Categories" are housed in dedicated full-width cards with clickable expand/collapse headers for seamless outfit curation.
+
+### 4. Automated XML Sitemap & Robots.txt SEO Engine
+* **Dynamic Live Catalog Ingestion:** Build pipeline automatically reads all visible Firestore products and pages, generating `sitemap.xml` with 280+ indexed URLs and Google Image Search schemas.
+* **Crawler Protection (`robots.txt`):** Permits search engines to crawl public catalog and lookbook pages while strictly disallowing private administrative and checkout routes (`/admin`, `/checkout`, `/orders`).
+

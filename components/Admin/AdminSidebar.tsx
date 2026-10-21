@@ -76,14 +76,12 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
                 <button
                     onClick={() => {
-                        if (confirm("This will reset/populate the database with initial products. Continue?")) {
-                            onRepairDatabase();
-                        }
+                        onRepairDatabase();
                     }}
                     className="w-full px-4 py-3 text-[10px] font-bold tracking-widest uppercase text-stone-500 hover:text-[#C5A059] hover:bg-stone-50 rounded-xl flex items-center space-x-3 transition-all group"
                 >
                     <Activity size={16} className="text-stone-300 group-hover:text-[#C5A059] transition-colors" />
-                    <span>Repair Database</span>
+                    <span>Restore Database</span>
                 </button>
 
                 {role === 'super_admin' && (

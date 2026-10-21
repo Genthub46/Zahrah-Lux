@@ -13,6 +13,7 @@ import RestockModal from '../components/RestockModal';
 import Logo from '../components/Logo';
 import { getOptimizedImageUrl } from '../utils/imageOptimizer';
 import html2canvas from 'html2canvas';
+import { trackViewItem } from '../services/analytics';
 
 // Accordion Component for Product Information
 interface AccordionProps {
@@ -154,6 +155,14 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
   const needsSize = product?.sizes && product.sizes.length > 0;
   const isSelectionComplete = (!needsColor || selectedColor) && (!needsSize || selectedSize);
 
+  const currentPrice = useMemo(() => {
+    if (!product) return 0;
+    if (selectedSize && product.sizePrices && product.sizePrices[selectedSize]) {
+      return product.sizePrices[selectedSize];
+    }
+    return product.price;
+  }, [product, selectedSize]);
+
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'auto' });
     setActiveImgIdx(0); // Reset index on product change
@@ -165,6 +174,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
   useEffect(() => {
     if (product) {
       onLogView(product.id);
+      trackViewItem(product);
     }
   }, [id, product, onLogView]);
 
@@ -424,8 +434,8 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                 {product.name}
               </h1>
               <div className="flex flex-col md:flex-row md:items-baseline md:space-x-3 space-y-1 md:space-y-0">
-                <p className="text-3xl font-black text-stone-900">
-                  ₦{product.price.toLocaleString()}
+                <p className="text-3xl font-black text-stone-900 transition-all duration-300">
+                  ₦{currentPrice.toLocaleString()}
                 </p>
                 <span className="text-[10px] text-stone-400 font-bold uppercase tracking-widest">Global Sourcing • London VAT Incl.</span>
               </div>
@@ -467,15 +477,23 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                       <button className="text-[10px] font-black text-[#C5A059] border-b border-[#C5A059] uppercase tracking-widest">Sizing Guide</button>
                     </div>
                     <div className="flex flex-wrap gap-3">
-                      {product.sizes?.map((s) => (
-                        <button
-                          key={s}
-                          onClick={() => setSelectedSize(s)}
-                          className={`min-w-[4rem] px-4 py-4 text-[10px] font-black uppercase tracking-widest border-2 transition-all rounded-2xl flex-grow-0 text-center ${selectedSize === s ? 'border-stone-900 bg-stone-900 text-white shadow-xl' : 'border-stone-100 text-stone-400 hover:border-stone-300'}`}
-                        >
-                          {s}
-                        </button>
-                      ))}
+                      {product.sizes?.map((s) => {
+                        const customSizePrice = product.sizePrices?.[s];
+                        return (
+                          <button
+                            key={s}
+                            onClick={() => setSelectedSize(s)}
+                            className={`min-w-[4rem] px-4 py-3.5 text-[10px] font-black uppercase tracking-widest border-2 transition-all rounded-2xl flex-grow-0 text-center flex flex-col items-center justify-center gap-0.5 ${selectedSize === s ? 'border-stone-900 bg-stone-900 text-white shadow-xl' : 'border-stone-100 text-stone-400 hover:border-stone-300'}`}
+                          >
+                            <span>{s}</span>
+                            {customSizePrice && customSizePrice !== product.price && (
+                              <span className={`text-[8px] font-bold ${selectedSize === s ? 'text-[#C5A059]' : 'text-stone-500'}`}>
+                                ₦{customSizePrice.toLocaleString()}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -507,7 +525,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                       } else if (!isSelectionComplete) {
                         setShowNotification(true);
                       } else {
-                        onAddToCart(product, quantity, selectedColor, selectedSize);
+                        onAddToCart({ ...product, price: currentPrice, basePrice: product.price }, quantity, selectedColor, selectedSize);
                         setAddedToCartNotification(true);
                       }
                     }}
@@ -780,7 +798,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
               <span className="h-[2px] w-16 bg-[#C5A059]"></span>
             </div>
             <h2 className="text-6xl font-bold font-serif italic text-stone-900 px-12 leading-tight drop-shadow-sm">{product.name}</h2>
-            <p className="text-4xl font-black text-stone-900 tracking-wider">₦{product.price.toLocaleString()}</p>
+            <p className="text-4xl font-black text-stone-900 tracking-wider">₦{currentPrice.toLocaleString()}</p>
           </div>
 
           {/* Watermark / Footer URL */}

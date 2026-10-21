@@ -186,26 +186,68 @@ export const getOrderConfirmationTemplate = (order: Order, name: string) => {
     return baseTemplate(content, `Your Zahrah Luxury order ${order.paymentReference || order.id} is confirmed.`);
 };
 
-export const getAbandonedCartTemplate = (name: string, checkoutLink: string = 'https://zahrahluxury.com/checkout') => {
+export const getAbandonedCartTemplate = (name: string, checkoutLink: string = 'https://zahrahluxury.com/checkout', items?: any[]) => {
+    let itemsHtml = '';
+    if (items && items.length > 0) {
+        itemsHtml = `
+            <div style="margin: 30px 0;">
+                <h3 style="font-size: 14px; text-transform: uppercase; margin-bottom: 20px;">Items in Your Cart</h3>
+                ${items.map(item => `
+                    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 15px; border-bottom: 1px solid #eeeeee; padding-bottom: 15px;">
+                        <tr>
+                            <td width="80" valign="top">
+                                ${item.images && item.images[0] ? `<img src="${item.images[0]}" alt="${item.name}" style="width: 70px; height: 90px; object-fit: cover; background-color: #f8f8f8;" />` : ''}
+                            </td>
+                            <td valign="top" style="padding-left: 15px;">
+                                <p style="margin: 0 0 5px 0; font-weight: 600; font-size: 14px;">${item.name}</p>
+                                <p style="margin: 0; color: #666666; font-size: 12px;">Qty: ${item.quantity || 1}</p>
+                            </td>
+                            <td valign="top" align="right">
+                                <p style="margin: 0; font-weight: 600; font-size: 14px;">₦${((item.price || 0) * (item.quantity || 1)).toLocaleString()}</p>
+                            </td>
+                        </tr>
+                    </table>
+                `).join('')}
+            </div>
+        `;
+    }
+
     const content = `
         <h2 style="font-size: 20px; text-transform: uppercase;">You Left Something Behind.</h2>
         <p>Hi ${name || 'there'},</p>
         <p>We noticed you didn't complete your purchase. Your curated selections are still waiting for you in your cart.</p>
+        ${itemsHtml}
         <p>High-demand items sell out quickly. Secure your pieces before they are gone.</p>
-        <a href="${checkoutLink}" class="btn">Complete Checkout</a>
+        <div style="margin-top: 30px; text-align: center;">
+            <a href="${checkoutLink}" class="btn">Complete Checkout</a>
+        </div>
     `;
     return baseTemplate(content, "Your curated pieces are waiting.");
 };
 
-export const getRestockAlertTemplate = (name: string, productName: string, productUrl: string) => {
+export const getRestockAlertTemplate = (name: string, product: any, productUrl: string) => {
+    let productHtml = '';
+    if (product) {
+        productHtml = `
+            <div style="margin: 30px 0; text-align: center;">
+                ${product.images && product.images[0] ? `<img src="${product.images[0]}" alt="${product.name}" style="width: 200px; height: 250px; object-fit: cover; background-color: #f8f8f8; margin-bottom: 15px;" />` : ''}
+                <h3 style="font-size: 16px; margin: 0 0 5px 0;">${product.name}</h3>
+                <p style="font-size: 14px; font-weight: 600; color: #111111; margin: 0;">₦${(product.price || 0).toLocaleString()}</p>
+            </div>
+        `;
+    }
+
     const content = `
         <h2 style="font-size: 20px; text-transform: uppercase; color: #C5A059;">Back in Stock.</h2>
-        <p>Hi ${name},</p>
-        <p>The wait is over. <strong>${productName}</strong> is now back in stock.</p>
+        <p>Hi ${name || 'there'},</p>
+        <p>The wait is over. The piece you requested is now back in stock.</p>
+        ${productHtml}
         <p>Quantities are strictly limited. Secure yours now.</p>
-        <a href="${productUrl}" class="btn btn-gold">Shop Now</a>
+        <div style="margin-top: 30px; text-align: center;">
+            <a href="${productUrl}" class="btn btn-gold">Shop Now</a>
+        </div>
     `;
-    return baseTemplate(content, `${productName} is back in stock.`);
+    return baseTemplate(content, `${product ? product.name : 'Your item'} is back in stock.`);
 };
 
 export const getNewArrivalAlertTemplate = (name: string, collectionName: string, shopUrl: string) => {

@@ -69,45 +69,46 @@ const Navbar: React.FC<NavbarProps> = ({ cartCount, wishlistCount, user }) => {
   }, []);
 
   const MENU_HIERARCHY = React.useMemo(() => {
-    if (!products || products.length === 0) return FALLBACK_MENU_HIERARCHY;
-
     const buildHierarchy = (deptTag: string) => {
       const deptProducts = products.filter(p => p.tags && p.tags.map(t => t.toLowerCase()).includes(deptTag.toLowerCase()));
       const hierarchy: any[] = [{ label: 'All', path: `/?tag=${deptTag}` }];
       
-      const categoriesSet = new Set(deptProducts.map(p => p.category).filter(Boolean));
+      const dbCategories = categories.map(c => c.name);
+      const productCategories = deptProducts.map(p => p.category).filter(Boolean) as string[];
+      const categoriesSet = new Set([...dbCategories, ...productCategories]);
       
-      Array.from(categoriesSet).sort().forEach(cat => {
-        const catProds = deptProducts.filter(p => p.category === cat);
-        const subTags = new Set<string>();
-        
-        catProds.forEach(p => {
-          (p.tags || []).forEach(t => {
-            const tl = t.toLowerCase();
-            if (tl !== 'men' && tl !== 'women' && tl !== 'unisex') {
-              subTags.add(t);
-            }
-          });
-        });
+        const grouped: Record<string, any[]> = {
+          'Accessories': [],
+          'Clothing': [],
+          'Footwear': [],
+          'Other': []
+        };
+        const catMap: Record<string, string> = {
+          'bags': 'Accessories', 'beauty': 'Accessories', 'belts': 'Accessories', 'accessories': 'Accessories',
+          'boxers': 'Clothing', 'chinos': 'Clothing', 'dress': 'Clothing', 'gown': 'Clothing', 'jackets': 'Clothing', 'jeans': 'Clothing', 'jerseys': 'Clothing', 'apparel': 'Clothing', 'clothing': 'Clothing',
+          'footwear': 'Footwear', 'shoes': 'Footwear', 'sneakers': 'Footwear'
+        };
 
-        if (subTags.size > 0) {
-          hierarchy.push({
-            label: cat,
-            subItems: Array.from(subTags).sort().map(t => ({
-              label: t,
-              path: `/?tag=${deptTag}&category=${encodeURIComponent(cat as string)}&tag=${encodeURIComponent(t)}`
-            }))
-          });
-        } else {
-          hierarchy.push({
+        Array.from(categoriesSet).sort().forEach(cat => {
+          if (!cat) return;
+          const lowerCat = cat.toLowerCase();
+          const groupName = catMap[lowerCat] || 'Other';
+          grouped[groupName].push({
             label: cat,
             path: `/?tag=${deptTag}&category=${encodeURIComponent(cat as string)}`
           });
-        }
-      });
-      
-      return hierarchy;
-    };
+        });
+
+        ['Accessories', 'Clothing', 'Footwear', 'Other'].forEach(gName => {
+          hierarchy.push({
+            label: gName,
+            path: `/?tag=${deptTag}`, 
+            subItems: grouped[gName].length > 0 ? grouped[gName] : undefined
+          });
+        });
+        
+        return hierarchy;
+      };
 
     const collectionsMenu = brands.map(b => ({
       label: b.name,
@@ -119,7 +120,7 @@ const Navbar: React.FC<NavbarProps> = ({ cartCount, wishlistCount, user }) => {
       Women: buildHierarchy('women'),
       Collections: collectionsMenu.length > 0 ? collectionsMenu : FALLBACK_MENU_HIERARCHY.Collections
     };
-  }, [products, brands]);
+  }, [products, brands, categories]);
 
   useEffect(() => {
     // Close menus on route change
@@ -237,7 +238,7 @@ const Navbar: React.FC<NavbarProps> = ({ cartCount, wishlistCount, user }) => {
                                           variants={{ hidden: { opacity: 0, x: -10 }, visible: { opacity: 1, x: 0 } }}
                                           className="text-[9px] font-black uppercase tracking-[0.3em] text-[#C5A059] border-b border-stone-100 pb-3 mb-6"
                                         >
-                                          {item.label} Collection
+                                          {item.label}
                                         </motion.p>
                                         <ul className="grid grid-cols-2 gap-y-4 gap-x-2">
                                           {item.subItems.map((sub: any) => (
@@ -262,7 +263,7 @@ const Navbar: React.FC<NavbarProps> = ({ cartCount, wishlistCount, user }) => {
                               {!activeSubMenu && (
                                 <div className="absolute inset-0 left-8 flex flex-col items-center justify-center opacity-40 pointer-events-none">
                                   <div className="w-8 h-px bg-stone-300 mb-4" />
-                                  <span className="text-[8px] uppercase tracking-[0.4em] font-bold text-stone-400">Select a Category</span>
+                                  <span className="text-[8px] uppercase tracking-[0.4em] font-bold text-stone-400">Hover over a group</span>
                                 </div>
                               )}
                             </div>
@@ -274,7 +275,7 @@ const Navbar: React.FC<NavbarProps> = ({ cartCount, wishlistCount, user }) => {
                 </div>
 
                 {/* Women Dropdown */}
-                <div className="relative" onMouseEnter={() => setActiveMenu('Women')} onMouseLeave={() => setActiveMenu(null)}>
+                <div className="relative" onMouseEnter={() => setActiveMenu('Women')} onMouseLeave={() => { setActiveMenu(null); setActiveSubMenu(null); }}>
                   <button className={`${linkClass} flex items-center`}>
                     Women
                   </button>
@@ -286,13 +287,81 @@ const Navbar: React.FC<NavbarProps> = ({ cartCount, wishlistCount, user }) => {
                         exit={{ opacity: 0, y: 10 }}
                         className="absolute top-full left-1/2 -translate-x-1/2 pt-8"
                       >
-                        <div className="bg-white/95 backdrop-blur-xl border border-stone-100 shadow-2xl shadow-stone-200/50 p-8 min-w-[250px] space-y-2 rounded-sm">
-                          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#C5A059] mb-4 text-center">Collection</p>
-                          {MENU_HIERARCHY.Women.map((item: any) => (
-                            <button key={item.label} onClick={() => handleLinkClick(item.path)} className="block w-full text-center text-sm font-serif text-stone-500 hover:text-stone-900 hover:scale-105 transition-all py-1.5">
-                              {item.label}
-                            </button>
-                          ))}
+                        <div className="bg-white/95 backdrop-blur-xl border border-stone-100 shadow-2xl shadow-stone-200/50 w-[500px] flex rounded-sm overflow-hidden min-h-[420px]">
+                          {/* Inner Padding Wrapper */}
+                          <div className="flex flex-1 p-10">
+                            {/* Left Column - Main Categories */}
+                            <div className="w-48 space-y-5 pr-8 border-r border-stone-100 shrink-0">
+                              {MENU_HIERARCHY.Women.map((item: any, idx) => (
+                                <div
+                                  key={idx}
+                                  onMouseEnter={() => setActiveSubMenu(item.label)}
+                                >
+                                  {item.subItems ? (
+                                    <button className={`text-[10px] font-bold uppercase tracking-[0.25em] transition-all duration-300 text-left w-full pb-2 flex justify-between items-center cursor-default ${activeSubMenu === item.label ? 'text-stone-900 translate-x-2' : 'text-stone-400 hover:text-stone-900'}`}>
+                                      {item.label}
+                                      <ChevronRight size={14} className={`transition-transform duration-500 ease-out ${activeSubMenu === item.label ? 'translate-x-0 opacity-100 text-[#C5A059]' : 'opacity-0 -translate-x-4'}`} />
+                                    </button>
+                                  ) : (
+                                    <button onClick={() => handleLinkClick(item.path)} className="text-[10px] font-bold uppercase tracking-[0.25em] text-stone-400 hover:text-stone-900 hover:translate-x-2 transition-all duration-300 text-left w-full pb-2 group/btn">
+                                      {item.label}
+                                    </button>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Right Column - Sub Items */}
+                            <div className="flex-1 relative pl-8">
+                              <AnimatePresence>
+                                {MENU_HIERARCHY.Women.map((item: any) => {
+                                  if (item.label === activeSubMenu && item.subItems) {
+                                    return (
+                                      <motion.div
+                                        key={item.label}
+                                        initial="hidden"
+                                        animate="visible"
+                                        exit="hidden"
+                                        variants={{
+                                          hidden: { opacity: 0 },
+                                          visible: { opacity: 1, transition: { staggerChildren: 0.04 } }
+                                        }}
+                                        className="absolute top-0 left-8 right-0 pr-4"
+                                      >
+                                        <motion.p
+                                          variants={{ hidden: { opacity: 0, x: -10 }, visible: { opacity: 1, x: 0 } }}
+                                          className="text-[9px] font-black uppercase tracking-[0.3em] text-[#C5A059] border-b border-stone-100 pb-3 mb-6"
+                                        >
+                                          {item.label}
+                                        </motion.p>
+                                        <ul className="grid grid-cols-2 gap-y-4 gap-x-2">
+                                          {item.subItems.map((sub: any) => (
+                                            <motion.li
+                                              key={sub.label}
+                                              variants={{ hidden: { opacity: 0, y: 5 }, visible: { opacity: 1, y: 0 } }}
+                                            >
+                                              <button onClick={() => handleLinkClick(sub.path)} className="text-[13px] font-serif text-stone-500 hover:text-stone-900 hover:translate-x-1.5 transition-all duration-300 text-left w-full block">
+                                                {sub.label}
+                                              </button>
+                                            </motion.li>
+                                          ))}
+                                        </ul>
+                                      </motion.div>
+                                    );
+                                  }
+                                  return null;
+                                })}
+                              </AnimatePresence>
+
+                              {/* Empty State / Hint */}
+                              {!activeSubMenu && (
+                                <div className="absolute inset-0 left-8 flex flex-col items-center justify-center opacity-40 pointer-events-none">
+                                  <div className="w-8 h-px bg-stone-300 mb-4" />
+                                  <span className="text-[8px] uppercase tracking-[0.4em] font-bold text-stone-400">Hover over a group</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </motion.div>
                     )}
@@ -494,13 +563,13 @@ const Navbar: React.FC<NavbarProps> = ({ cartCount, wishlistCount, user }) => {
                         className="overflow-hidden bg-stone-50/50 rounded-xl mx-4 mb-2"
                       >
                         <div className="p-4 space-y-4">
-                          {MENU_HIERARCHY.Men.map(item => (
+                          {MENU_HIERARCHY.Men.map((item: any) => (
                             <div key={item.label} className="space-y-2">
                               {item.subItems ? (
                                 <>
                                   <p className="text-[8px] font-bold tracking-[0.2em] uppercase text-stone-400 pl-4">{item.label}</p>
                                   <div className="pl-6 space-y-3 mt-2 border-l border-stone-200 ml-4 py-1">
-                                    {item.subItems.map(subItem => (
+                                    {item.subItems.map((subItem: any) => (
                                       <button
                                         key={subItem.label}
                                         onClick={() => handleLinkClick(subItem.path)}
@@ -556,7 +625,7 @@ const Navbar: React.FC<NavbarProps> = ({ cartCount, wishlistCount, user }) => {
                                 <>
                                   <p className="text-[8px] font-bold tracking-[0.2em] uppercase text-stone-400 pl-4">{item.label}</p>
                                   <div className="pl-6 space-y-3 mt-2 border-l border-stone-200 ml-4 py-1">
-                                    {item.subItems.map(subItem => (
+                                    {item.subItems.map((subItem: any) => (
                                       <button
                                         key={subItem.label}
                                         onClick={() => handleLinkClick(subItem.path)}

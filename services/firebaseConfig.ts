@@ -3,6 +3,7 @@ import { getStorage } from "firebase/storage";
 import { getFirestore, enableIndexedDbPersistence } from "firebase/firestore";
 import { getMessaging } from "firebase/messaging";
 import { getFunctions } from "firebase/functions";
+import { getAnalytics, isSupported, Analytics } from "firebase/analytics";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBAI9Tdd_NJAgBxr1f7YnM8t9ss9fKt6XE",
@@ -10,7 +11,8 @@ const firebaseConfig = {
     projectId: "zahrah-boutique",
     storageBucket: "zahrah-boutique.firebasestorage.app",
     messagingSenderId: "463080028844",
-    appId: "1:463080028844:web:89dee11bbb24e2c46e7d09"
+    appId: "1:463080028844:web:89dee11bbb24e2c46e7d09",
+    measurementId: "G-N2CS95WEY2"
 };
 
 import { getAuth } from "firebase/auth";
@@ -31,3 +33,17 @@ enableIndexedDbPersistence(db).catch((err) => {
 export const auth = getAuth(app);
 export const messaging = getMessaging(app);
 export const functions = getFunctions(app);
+
+// Safe Firebase Analytics initialization (works in browser environments)
+let analyticsInstance: Analytics | null = null;
+if (typeof window !== 'undefined') {
+    isSupported().then((supported) => {
+        if (supported) {
+            analyticsInstance = getAnalytics(app);
+        }
+    }).catch(() => {
+        // Analytics not supported in this runtime
+    });
+}
+
+export const getAnalyticsInstance = () => analyticsInstance;

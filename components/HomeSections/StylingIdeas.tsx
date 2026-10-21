@@ -68,7 +68,7 @@ const StylingIdeas: React.FC<StylingIdeasProps> = ({
     };
 
     return (
-        <section className="py-16 bg-[#FCFCFC] overflow-hidden">
+        <section className="py-10 md:py-12 bg-[#FCFCFC] overflow-hidden">
             <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12">
 
                 {/* Section Header */}

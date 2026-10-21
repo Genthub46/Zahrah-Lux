@@ -27,7 +27,7 @@ service cloud.firestore {
     }
 
     // ─── Products ─────────────────────────────────────────────────────────────
-    match /products/{productId} {
+    match /products/{document=**} {
       allow read: if true;
       allow create, delete: if isManagerOrAbove();
       allow update: if isManagerOrAbove();

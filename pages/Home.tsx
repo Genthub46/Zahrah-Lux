@@ -6,12 +6,13 @@ import {
   Scissors, Globe, Award
 } from 'lucide-react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
+import { useScroll, useTransform, motion, AnimatePresence } from 'framer-motion';
+import { useSEO } from '../hooks/useSEO';
 import { Product, HomeLayoutConfig, FooterPage } from '../types';
 import ProductCard from '../components/ProductCard';
 import Logo from '../components/Logo';
 import WhatsAppBot from '../components/WhatsAppBot';
 import { subscribeToNewsletter } from '../services/dbUtils';
-import { motion, useScroll, useTransform } from 'framer-motion';
 import CuratedPicks from '../components/HomeSections/CuratedPicks';
 
 // Lazy Load Lower Sections
@@ -87,9 +88,21 @@ interface HomeProps {
 }
 
 const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footerPages = [], onAddToCart, onLogView, onToggleWishlist, wishlist }) => {
+  useSEO({
+    title: 'Zarhrah Luxury | Premium Boutique',
+    description: 'Experience premium luxury fashion at Zarhrah. Discover exclusive collections of tailored shirts, elegant apparels, and sophisticated accessories in London and Lagos.',
+    url: 'https://zahrahluxury.com'
+  });
+
   const [isAdmin, setIsAdmin] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(24);
   const location = useLocation();
   const navigate = useNavigate();
+
+  const uniqueCategories = useMemo(() => {
+    const cats = new Set(products.map(p => p.category).filter(Boolean));
+    return Array.from(cats).sort();
+  }, [products]);
 
   // Parallax Logic
   const { scrollY } = useScroll();
@@ -110,8 +123,10 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
   }, []);
 
   // Scroll to catalog when filters change
+  const tagsString = tagFilters.join(',');
   useEffect(() => {
-    if (brandFilter || tagFilters.length > 0 || categoryFilter) {
+    setVisibleCount(24);
+    if (brandFilter || tagsString.length > 0 || categoryFilter) {
       const el = document.getElementById('catalog');
       if (el) {
         setTimeout(() => {
@@ -119,14 +134,14 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
         }, 100);
       }
     }
-  }, [brandFilter, tagFilters, categoryFilter]);
+  }, [brandFilter, tagsString, categoryFilter]);
 
   const filteredCatalog = useMemo(() => {
     return products.filter(p => {
       if (p.isVisible === false) return false;
       const matchesBrand = !brandFilter || (p.brand && p.brand.toLowerCase() === brandFilter.toLowerCase());
       const matchesTag = tagFilters.length === 0 || tagFilters.every(tag => p.tags && p.tags.some(t => t.toLowerCase() === tag.toLowerCase()));
-      const matchesCategory = !categoryFilter || (p.category && p.category.toLowerCase() === categoryFilter.toLowerCase());
+      const matchesCategory = !categoryFilter || categoryFilter.toLowerCase() === 'all' || (p.category && p.category.toLowerCase() === categoryFilter.toLowerCase());
       return matchesBrand && matchesTag && matchesCategory;
     });
   }, [products, brandFilter, tagFilters, categoryFilter]);
@@ -196,7 +211,7 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
               Elite Status
             </span>
             <span className="text-2xl md:text-3xl lg:text-5xl text-white/90 font-serif italic font-light leading-none drop-shadow-lg">
-              Curated Daily
+              Handpicked Daily
             </span>
 
             <motion.a
@@ -227,17 +242,39 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
       <div id="catalog" className="min-h-screen">
         {(brandFilter || tagFilters.length > 0 || categoryFilter) ? (
           <div className="py-24 px-6 md:px-12 max-w-[1920px] mx-auto">
-            <div className="mb-16 md:mb-24 text-center">
+            <div className="mb-16 text-center">
               <span className="text-[#C5A059] text-[10px] uppercase tracking-macro mb-6 block font-medium">
-                {brandFilter ? 'Brand Collection' : tagFilters.length > 0 ? 'Curated Selection' : 'Category'}
+                {brandFilter ? 'Brand Collection' : tagFilters.length > 0 ? 'Special Selection' : 'Category'}
               </span>
               <h2 className="text-3xl md:text-5xl font-serif text-stone-900 mb-8 capitalize font-light tracking-wide">
-                {brandFilter || (tagFilters.length > 0 ? tagFilters.join(', ') : categoryFilter)}
+                {brandFilter || (tagFilters.length > 0 ? tagFilters.join(', ') : (categoryFilter === 'all' ? 'Full Collection' : categoryFilter))}
               </h2>
               <p className="text-stone-500 text-xs md:text-sm max-w-xl mx-auto font-light leading-relaxed tracking-wide">
                 Browsing our exclusive collection of {(brandFilter || (tagFilters.length > 0 ? tagFilters.join(', ') : categoryFilter))?.toLowerCase()}.
-                Each piece represents the pinnacle of luxury and craftsmanship.
+                Each piece represents the highest level of luxury and quality.
               </p>
+
+              {/* Dynamic Category Tabs */}
+              {categoryFilter && (
+                <div className="mt-8 md:mt-12 flex overflow-x-auto hide-scrollbar snap-x justify-start md:justify-center gap-3 md:gap-4 max-w-5xl mx-auto px-4 pb-4">
+                  <button
+                    onClick={() => navigate('/?category=all')}
+                    className={`shrink-0 snap-start px-5 py-2 md:px-6 md:py-2.5 rounded-full text-[10px] md:text-xs uppercase tracking-widest font-bold transition-all duration-300 ${categoryFilter.toLowerCase() === 'all' ? 'bg-[#C5A059] text-white shadow-md' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}
+                  >
+                    All
+                  </button>
+                  {uniqueCategories.map(cat => (
+                    <button
+                      key={cat}
+                      onClick={() => navigate(`/?category=${encodeURIComponent(cat!)}`)}
+                      className={`shrink-0 snap-start px-5 py-2 md:px-6 md:py-2.5 rounded-full text-[10px] md:text-xs uppercase tracking-widest font-bold transition-all duration-300 ${categoryFilter.toLowerCase() === cat!.toLowerCase() ? 'bg-[#C5A059] text-white shadow-md' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              )}
+
               <button
                 onClick={() => {
                   navigate('/');
@@ -250,8 +287,9 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
             </div>
 
             {filteredCatalog.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-12 md:gap-x-8 md:gap-y-16">
-                {filteredCatalog.map((product) => (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-12 md:gap-x-8 md:gap-y-16">
+                  {filteredCatalog.slice(0, visibleCount).map((product) => (
                   <ProductCard
                     key={product.id}
                     product={product}
@@ -261,7 +299,22 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
                     isWishlisted={isWishlisted(product.id)}
                   />
                 ))}
-              </div>
+                </div>
+                
+                {visibleCount < filteredCatalog.length && (
+                  <div className="mt-20 flex justify-center w-full">
+                    <button
+                      onClick={() => setVisibleCount(prev => prev + 24)}
+                      className="group flex flex-col items-center gap-4 text-stone-500 hover:text-[#C5A059] transition-colors duration-500"
+                    >
+                      <span className="text-[10px] uppercase tracking-widest font-bold">Load More</span>
+                      <div className="w-10 h-10 rounded-full border border-stone-200 group-hover:border-[#C5A059] flex items-center justify-center transition-all duration-500 group-hover:bg-[#C5A059] group-hover:text-white">
+                        <ChevronRight className="w-4 h-4 rotate-90" strokeWidth={1.5} />
+                      </div>
+                    </button>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="text-center py-32 border border-dashed border-stone-200 rounded-xl bg-stone-50">
                 <Ghost size={48} className="mx-auto text-stone-300 mb-6" />
@@ -273,7 +326,7 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
             )}
           </div>
         ) : (
-          <div id="collection-start" className="space-y-12 md:space-y-16 py-8 md:py-16">
+          <div id="collection-start" className="space-y-8 md:space-y-10 py-6 md:py-10">
             {layoutConfig.sections.filter(s => s.isVisible).map((section, idx) => {
               let sectionProducts: Product[] = [];
 
@@ -319,21 +372,34 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
                               <span>Edit</span>
                             </button>
                           )}
-                          <div className="flex space-x-4">
-                            <button
-                              onClick={() => scrollSection(section.id, 'left')}
-                              aria-label="Scroll left"
-                              className="text-stone-400 hover:text-stone-900 transition-colors duration-300"
-                            >
-                              <ChevronLeft size={24} strokeWidth={1} />
-                            </button>
-                            <button
-                              onClick={() => scrollSection(section.id, 'right')}
-                              aria-label="Scroll right"
-                              className="text-stone-400 hover:text-stone-900 transition-colors duration-300"
-                            >
-                              <ChevronRight size={24} strokeWidth={1} />
-                            </button>
+                          <div className="flex items-center gap-4">
+                            {section.title.toUpperCase() === 'NEW ARRIVALS' && (
+                              <button
+                                onClick={() => {
+                                  navigate('/?category=All');
+                                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }}
+                                className="text-[10px] font-bold uppercase tracking-widest text-stone-500 hover:text-[#C5A059] transition-colors whitespace-nowrap"
+                              >
+                                View All
+                              </button>
+                            )}
+                            <div className="flex space-x-4">
+                              <button
+                                onClick={() => scrollSection(section.id, 'left')}
+                                aria-label="Scroll left"
+                                className="text-stone-400 hover:text-stone-900 transition-colors duration-300"
+                              >
+                                <ChevronLeft size={24} strokeWidth={1} />
+                              </button>
+                              <button
+                                onClick={() => scrollSection(section.id, 'right')}
+                                aria-label="Scroll right"
+                                className="text-stone-400 hover:text-stone-900 transition-colors duration-300"
+                              >
+                                <ChevronRight size={24} strokeWidth={1} />
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -349,7 +415,7 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
                           </div>
                         ) : (
                           sectionProducts.map((product) => (
-                            <div key={product.id} className="w-[160px] md:w-[400px] flex-shrink-0 snap-start">
+                            <div key={product.id} className="w-[180px] md:w-[260px] lg:w-[280px] flex-shrink-0 snap-start">
                               <ProductCard
                                 product={product}
                                 onAddToCart={onAddToCart}
@@ -382,13 +448,13 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
 
       {/* Signature Features Section */}
       {(layoutConfig.showFeatures ?? true) && !brandFilter && tagFilters.length === 0 && !categoryFilter && (
-        <section className="py-16 bg-white border-t border-stone-100">
+        <section className="py-10 md:py-12 bg-white border-t border-stone-100">
           <div className="max-w-7xl mx-auto px-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-16 md:gap-24 text-center">
               {([
-                { icon: 'scissors', title: 'Bespoke Tailoring', description: 'Every garment is adjusted to your measurements by our master tailors.' },
-                { icon: 'globe', title: 'Global Concierge', description: 'Personalized styling advice for our exclusive clientele globally.' },
-                { icon: 'award', title: 'Authentic Luxury', description: 'Each piece comes with a verified certificate of authenticity.' }
+                { icon: 'scissors', title: 'Custom Fit', description: 'Every outfit is carefully adjusted to your exact size by our expert tailors.' },
+                { icon: 'globe', title: 'Personal Shopper', description: 'Get direct styling advice and support from our dedicated customer team.' },
+                { icon: 'award', title: '100% Original', description: 'Every item we sell is genuine and comes with proof of top quality.' }
               ]).map((feature, idx) => (
                 <div key={idx} className="px-4 flex flex-col items-center group">
                   <div className="mb-8 text-stone-300 group-hover:text-[#C5A059] transition-colors duration-500">
@@ -539,8 +605,8 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
             <div className="flex flex-col md:flex-row gap-4 items-center">
               <p className="text-[8px] text-stone-500 font-medium uppercase tracking-macro">© 2024 Zarhrah Luxury • All Rights Reserved</p>
               <span className="hidden md:block text-[8px] text-stone-800">•</span>
-              <a href="https://gentree-studio.web.app/" target="_blank" rel="noopener noreferrer" className="text-[8px] text-stone-500 font-medium uppercase tracking-macro hover:text-white transition-colors">
-                Built by Gentree Studio
+              <a href="https://the-meent.web.app/" target="_blank" rel="noopener noreferrer" className="text-[8px] text-stone-500 font-medium uppercase tracking-macro hover:text-white transition-colors">
+                Built by THE MEENT
               </a>
             </div>
             <div className="flex space-x-6 opacity-40 grayscale hover:grayscale-0 transition-all duration-500 items-center">

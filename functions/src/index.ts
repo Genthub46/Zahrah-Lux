@@ -1,7 +1,9 @@
 import * as functions from 'firebase-functions';
+import * as fs from 'fs';
+import * as path from 'path';
 import { Resend } from 'resend';
 
-const resend = new Resend('re_dkBKdpUH_BFRm3nWvdXbgUtKzukosZxbC');
+const resend = new Resend(process.env.RESEND_API_KEY || '');
 
 export const sendAutomatedEmail = functions.https.onCall(async (data, context) => {
 
@@ -13,12 +15,17 @@ export const sendAutomatedEmail = functions.https.onCall(async (data, context) =
 
     try {
         const response = await resend.emails.send({
-            from: 'Zarhrah Luxury Collections <alerts@zarhrahluxurycollections.com>',
+            from: 'Zarhrah Luxury Collections <onboarding@resend.dev>',
             to,
             subject,
             html,
             reply_to: 'alerts@zarhrahluxurycollections.com',
         });
+        
+        if (response.error) {
+            console.error("Resend API Error:", response.error);
+            throw new functions.https.HttpsError('internal', response.error.message);
+        }
         
         return { success: true, id: response.data?.id };
     } catch (error: any) {
@@ -102,5 +109,85 @@ export const paystackWebhook = functions.https.onRequest(async (req, res) => {
     } else {
         // Acknowledge other events without processing
         res.status(200).send('Event ignored');
+    }
+});
+
+export const renderProductPage = functions.https.onRequest(async (req, res) => {
+    try {
+        const pathParts = req.path.split('/').filter(p => p);
+        // req.path is usually something like "/product/123"
+        const productId = pathParts[pathParts.length - 1];
+
+        // 1. Read the base index.html
+        // We assume index.html is copied to functions/lib/index.html during build
+        const indexPath = path.resolve(__dirname, 'index.html');
+        let html = fs.readFileSync(indexPath, 'utf8');
+
+        // 2. Fetch the product from Firestore
+        if (productId) {
+            // Check if it's the id directly or prefixed with 'p-'
+            let docRef = db.collection('products').doc(productId);
+            let docSnap = await docRef.get();
+
+            if (!docSnap.exists && !productId.startsWith('p-')) {
+                docRef = db.collection('products').doc(`p-${productId}`);
+                docSnap = await docRef.get();
+            }
+
+            if (docSnap.exists) {
+                const product = docSnap.data();
+                if (product) {
+                    const title = `${product.name} | Zarhrah Luxury`;
+                    const description = product.description || 'Experience premium luxury fashion at Zarhrah.';
+                    const image = (product.images && product.images.length > 0) ? product.images[0] : 'https://images.unsplash.com/photo-1549439602-43ebca23d7bc?q=80&w=2070&auto=format&fit=crop';
+                    
+                    // 3. Inject meta tags
+                    html = html.replace(
+                        /<title>.*?<\/title>/,
+                        `<title>${title}</title>`
+                    );
+                    html = html.replace(
+                        /<meta name="description" content=".*?">/,
+                        `<meta name="description" content="${description}">`
+                    );
+                    html = html.replace(
+                        /<meta property="og:title" content=".*?">/,
+                        `<meta property="og:title" content="${title}">`
+                    );
+                    html = html.replace(
+                        /<meta property="og:description" content=".*?">/,
+                        `<meta property="og:description" content="${description}">`
+                    );
+                    html = html.replace(
+                        /<meta property="og:image" content=".*?">/,
+                        `<meta property="og:image" content="${image}">\n    <meta property="og:image:width" content="2160">\n    <meta property="og:image:height" content="2700">`
+                    );
+                    html = html.replace(
+                        /<meta name="twitter:title" content=".*?">/,
+                        `<meta name="twitter:title" content="${title}">`
+                    );
+                    html = html.replace(
+                        /<meta name="twitter:description" content=".*?">/,
+                        `<meta name="twitter:description" content="${description}">`
+                    );
+                    html = html.replace(
+                        /<meta name="twitter:image" content=".*?">/,
+                        `<meta name="twitter:image" content="${image}">`
+                    );
+                }
+            }
+        }
+
+        // 4. Return the modified (or original) HTML
+        res.status(200).send(html);
+    } catch (error) {
+        console.error("Error in renderProductPage:", error);
+        // Fallback to sending the original index.html or a 500 error
+        try {
+            const fallbackPath = path.resolve(__dirname, 'index.html');
+            res.status(200).send(fs.readFileSync(fallbackPath, 'utf8'));
+        } catch(e) {
+            res.status(500).send('Server Error');
+        }
     }
 });

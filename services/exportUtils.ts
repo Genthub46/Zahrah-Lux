@@ -150,7 +150,7 @@ const loadImage = (url: string): Promise<HTMLImageElement> => {
 };
 
 // Helper: Convert Image URL to Base64
-const toBase64 = (url: string): Promise<string> => {
+const toBase64 = (url: string, format: string = 'image/jpeg'): Promise<string> => {
     return new Promise((resolve, reject) => {
         const img = new Image();
         img.crossOrigin = 'Anonymous';
@@ -161,7 +161,7 @@ const toBase64 = (url: string): Promise<string> => {
             canvas.height = img.height;
             const ctx = canvas.getContext('2d');
             ctx?.drawImage(img, 0, 0);
-            resolve(canvas.toDataURL('image/jpeg'));
+            resolve(canvas.toDataURL(format));
         };
         img.onerror = () => resolve(''); // Resolve empty on error to not break flow
     });
@@ -219,20 +219,52 @@ export const exportOrdersToPDF = async (orders: Order[]) => {
     `;
 
     // --- Load Logo (From embedded SVG) ---
+    let logoImgToUse: string | null = null;
     try {
         const svgBase64 = `data:image/svg+xml;base64,${btoa(GOLD_LOGO_SVG)}`;
-        const logoImg = await toBase64(svgBase64); // Convert SVG data URI to PNG data URI (via canvas in helper)
-        const logoSize = 25;
-        doc.addImage(logoImg, 'PNG', 14, 10, logoSize, logoSize);
+        const logoImg = await toBase64(svgBase64, 'image/png'); // Convert SVG data URI to PNG data URI (via canvas in helper)
+        logoImgToUse = logoImg;
     } catch (e) {
         console.warn("Logo load failed", e);
     }
 
+    // Hook into addPage to draw background and watermark on every page
+    const addPageOrig = doc.addPage;
+    doc.addPage = function() {
+        addPageOrig.apply(this, arguments as any);
+        // Draw background
+        doc.setFillColor(250, 249, 246); // #FAF9F6
+        doc.rect(0, 0, doc.internal.pageSize.width, doc.internal.pageSize.height, 'F');
+        
+        // Draw Watermark
+        if (logoImgToUse) {
+            doc.setGState(new (doc.GState as any)({opacity: 0.05}));
+            doc.addImage(logoImgToUse, 'PNG', 45, 80, 120, 120);
+            doc.setGState(new (doc.GState as any)({opacity: 1}));
+        }
+        return this;
+    };
+
+    // Draw background for first page
+    doc.setFillColor(250, 249, 246);
+    doc.rect(0, 0, doc.internal.pageSize.width, doc.internal.pageSize.height, 'F');
+    if (logoImgToUse) {
+        doc.setGState(new (doc.GState as any)({opacity: 0.05}));
+        doc.addImage(logoImgToUse, 'PNG', 45, 80, 120, 120);
+        doc.setGState(new (doc.GState as any)({opacity: 1}));
+        
+        // Draw actual header logo
+        const logoSize = 25;
+        doc.addImage(logoImgToUse, 'PNG', 14, 10, logoSize, logoSize);
+    }
+
     // --- Header ---
-    doc.setFontSize(16);
+    doc.setFont("times", "bold");
+    doc.setFontSize(18);
     doc.setTextColor(197, 160, 89); // #C5A059
     doc.text('ZAHRAH LUXURY', 45, 20);
 
+    doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
     doc.setTextColor(100);
     doc.text('EXECUTIVE ORDER MANIFEST', 45, 26);
@@ -245,9 +277,11 @@ export const exportOrdersToPDF = async (orders: Order[]) => {
     doc.setTextColor(150); // Stone-500 equivalent for label
     doc.text('TOTAL PERIOD YIELD', 196, 20, { align: 'right' });
 
-    doc.setFontSize(16);
+    doc.setFont("times", "bold");
+    doc.setFontSize(18);
     doc.setTextColor(28, 25, 23); // Stone-900 for value
     doc.text(`N${totalYield.toLocaleString()}`, 196, 27, { align: 'right' });
+    doc.setFont("helvetica", "normal");
 
     // --- Prepare Table Data (Fetch Images) ---
     const tableData = await Promise.all(orders.map(async (order) => {
@@ -273,24 +307,24 @@ export const exportOrdersToPDF = async (orders: Order[]) => {
 
     // --- Render Table ---
     autoTable(doc, {
-        head: [["IMG", "ID", "DATE", "RECIPIENT", "ARTIFACTS", "STATUS", "YIELD"]],
+        head: [["", "ID", "DATE", "RECIPIENT", "ARTIFACTS", "STATUS", "YIELD"]],
         body: tableData,
         startY: 40,
         theme: 'plain',
         styles: {
-            fontSize: 7,
-            cellPadding: 3,
+            fontSize: 8,
+            cellPadding: 4,
             valign: 'middle',
             font: 'helvetica'
         },
         headStyles: {
-            fillColor: [28, 25, 23], // Stone 900
-            textColor: 255,
+            fillColor: [250, 249, 246], // Stone 50 transparent basically
+            textColor: [100, 100, 100], // Stone 500
             fontStyle: 'bold',
-            halign: 'center'
+            halign: 'left'
         },
         alternateRowStyles: {
-            fillColor: [250, 250, 249] // Stone 50
+            fillColor: [252, 252, 251] // Very light off-white
         },
         columnStyles: {
             0: { cellWidth: 15, minCellHeight: 15 }, // Image column
@@ -318,7 +352,7 @@ export const exportOrdersToPDF = async (orders: Order[]) => {
 export const exportWaitlistToPDF = async (requests: RestockRequest[], products: any[]) => {
     const doc = new jsPDF();
 
-    // --- Load Logo (From embedded SVG - Reuse logic) ---
+    let logoImgToUse: string | null = null;
     try {
         // Re-defining SVG locally or we could export CONST if we refactor, 
         // but for now direct copy for stability.
@@ -360,17 +394,45 @@ export const exportWaitlistToPDF = async (requests: RestockRequest[], products: 
       </svg>
       `;
         const svgBase64 = `data:image/svg+xml;base64,${btoa(GOLD_LOGO_SVG)}`;
-        const logoImg = await toBase64(svgBase64);
-        const logoSize = 25;
-        doc.addImage(logoImg, 'PNG', 14, 10, logoSize, logoSize);
+        const logoImg = await toBase64(svgBase64, 'image/png');
+        logoImgToUse = logoImg;
     } catch (e) {
         console.warn("Logo load failed", e);
     }
 
+    // Hook into addPage to draw background and watermark
+    const addPageOrig = doc.addPage;
+    doc.addPage = function() {
+        addPageOrig.apply(this, arguments as any);
+        doc.setFillColor(250, 249, 246);
+        doc.rect(0, 0, doc.internal.pageSize.width, doc.internal.pageSize.height, 'F');
+        if (logoImgToUse) {
+            doc.setGState(new (doc.GState as any)({opacity: 0.05}));
+            doc.addImage(logoImgToUse, 'PNG', 45, 80, 120, 120);
+            doc.setGState(new (doc.GState as any)({opacity: 1}));
+        }
+        return this;
+    };
+
+    // First page setup
+    doc.setFillColor(250, 249, 246);
+    doc.rect(0, 0, doc.internal.pageSize.width, doc.internal.pageSize.height, 'F');
+    if (logoImgToUse) {
+        doc.setGState(new (doc.GState as any)({opacity: 0.05}));
+        doc.addImage(logoImgToUse, 'PNG', 45, 80, 120, 120);
+        doc.setGState(new (doc.GState as any)({opacity: 1}));
+        
+        const logoSize = 25;
+        doc.addImage(logoImgToUse, 'PNG', 14, 10, logoSize, logoSize);
+    }
+
     // --- Header ---
-    doc.setFontSize(16);
+    doc.setFont("times", "bold");
+    doc.setFontSize(18);
     doc.setTextColor(197, 160, 89); // #C5A059
     doc.text('ZAHRAH LUXURY', 45, 20);
+
+    doc.setFont("helvetica", "normal");
 
     doc.setFontSize(10);
     doc.setTextColor(100);
@@ -480,28 +542,58 @@ export const exportCustomerInvoiceToPDF = async (order: Order) => {
         <text x="100" y="166" text-anchor="middle" fill="white" style="font-size:7px;font-weight:900;letter-spacing:1px;font-family:sans-serif;">COLLECTIONS</text>
       </svg>
     `;
+    let logoImgToUse: string | null = null;
     try {
         const svgBase64 = `data:image/svg+xml;base64,${btoa(GOLD_LOGO_SVG)}`;
-        const logoImg = await toBase64(svgBase64);
-        doc.addImage(logoImg, 'PNG', 14, 10, 25, 25);
+        const logoImg = await toBase64(svgBase64, 'image/png');
+        logoImgToUse = logoImg;
     } catch (e) {
         console.warn("Logo load failed", e);
     }
 
+    // Hook into addPage
+    const addPageOrig = doc.addPage;
+    doc.addPage = function() {
+        addPageOrig.apply(this, arguments as any);
+        doc.setFillColor(250, 249, 246);
+        doc.rect(0, 0, doc.internal.pageSize.width, doc.internal.pageSize.height, 'F');
+        if (logoImgToUse) {
+            doc.setGState(new (doc.GState as any)({opacity: 0.05}));
+            doc.addImage(logoImgToUse, 'PNG', 45, 80, 120, 120);
+            doc.setGState(new (doc.GState as any)({opacity: 1}));
+        }
+        return this;
+    };
+
+    // First page
+    doc.setFillColor(250, 249, 246);
+    doc.rect(0, 0, doc.internal.pageSize.width, doc.internal.pageSize.height, 'F');
+    if (logoImgToUse) {
+        doc.setGState(new (doc.GState as any)({opacity: 0.05}));
+        doc.addImage(logoImgToUse, 'PNG', 45, 80, 120, 120);
+        doc.setGState(new (doc.GState as any)({opacity: 1}));
+        doc.addImage(logoImgToUse, 'PNG', 14, 10, 25, 25);
+    }
+
     // Invoice Header
+    doc.setFont("times", "bold");
     doc.setFontSize(22);
     doc.setTextColor(28, 25, 23); // Stone 900
     doc.text('INVOICE', 196, 20, { align: 'right' });
 
+    doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
     doc.setTextColor(150); // Stone 500
     doc.text(`Reference: ${order.id.slice(-8).toUpperCase()}`, 196, 28, { align: 'right' });
     doc.text(`Date: ${new Date(order.date).toLocaleDateString()}`, 196, 34, { align: 'right' });
 
     // Brand Details
-    doc.setFontSize(12);
+    doc.setFont("times", "bold");
+    doc.setFontSize(14);
     doc.setTextColor(197, 160, 89); // Gold
     doc.text('ZARHRAH LUXURY COLLECTIONS', 45, 20);
+    
+    doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     doc.setTextColor(100);
     doc.text('alerts@zarhrahluxurycollections.com', 45, 26);

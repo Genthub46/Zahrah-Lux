@@ -30,6 +30,7 @@ const Lookbook = React.lazy(() => import('./pages/Lookbook'));
 const Orders = React.lazy(() => import('./pages/Orders'));
 const PrivacyPolicy = React.lazy(() => import('./pages/PrivacyPolicy'));
 const NotFound = React.lazy(() => import('./pages/NotFound'));
+const StressTest = React.lazy(() => import('./pages/StressTest'));
 
 // Helper to wrap lazy components with Suspense
 const SuspenseWrapper = ({ children }: { children: React.ReactNode }) => (
@@ -75,10 +76,16 @@ import {
 
 import { useToast } from './contexts/ToastContext';
 import { getStaffRole } from './services/staffService';
+import { trackPageView, trackAddToCart } from './services/analytics';
 
 const FloatingFeatures = () => {
   const location = useLocation();
   const isAdmin = location.pathname.startsWith('/admin');
+
+  useEffect(() => {
+    trackPageView(location.pathname + location.search, document.title);
+  }, [location]);
+
   return (
     <>
       {!isAdmin && <WhatsAppBot />}
@@ -108,6 +115,10 @@ const normalizeAndConsolidateCart = (items: CartItem[], onCapped?: (itemName: st
       c.selectedSize === finalSize
     );
 
+    const effectivePrice = (item.sizePrices && finalSize && item.sizePrices[finalSize])
+      ? item.sizePrices[finalSize]
+      : (item.basePrice || item.price);
+
     if (existingIdx > -1) {
       const currentQty = consolidated[existingIdx].quantity;
       const newQty = currentQty + item.quantity;
@@ -116,6 +127,8 @@ const normalizeAndConsolidateCart = (items: CartItem[], onCapped?: (itemName: st
       if (newQty > maxStock) {
         consolidated[existingIdx] = {
           ...consolidated[existingIdx],
+          price: effectivePrice,
+          basePrice: item.basePrice || item.price,
           quantity: maxStock
         };
         cappedAny = true;
@@ -124,6 +137,8 @@ const normalizeAndConsolidateCart = (items: CartItem[], onCapped?: (itemName: st
       } else {
         consolidated[existingIdx] = {
           ...consolidated[existingIdx],
+          price: effectivePrice,
+          basePrice: item.basePrice || item.price,
           quantity: newQty
         };
       }
@@ -131,6 +146,8 @@ const normalizeAndConsolidateCart = (items: CartItem[], onCapped?: (itemName: st
       if (item.quantity > item.stock) {
         consolidated.push({
           ...item,
+          price: effectivePrice,
+          basePrice: item.basePrice || item.price,
           selectedColor: finalColor,
           selectedSize: finalSize,
           quantity: item.stock
@@ -141,6 +158,8 @@ const normalizeAndConsolidateCart = (items: CartItem[], onCapped?: (itemName: st
       } else {
         consolidated.push({
           ...item,
+          price: effectivePrice,
+          basePrice: item.basePrice || item.price,
           selectedColor: finalColor,
           selectedSize: finalSize,
           quantity: item.quantity
@@ -376,8 +395,14 @@ const App: React.FC = () => {
       });
     }
 
+    const effectivePrice = (product.sizePrices && finalSize && product.sizePrices[finalSize])
+      ? product.sizePrices[finalSize]
+      : (product.price);
+
+    trackAddToCart(product, addedQty, finalSize, finalColor, effectivePrice);
+
     setCart((prev) => {
-      const newItems = [...prev, { ...product, quantity: addedQty, selectedColor: finalColor, selectedSize: finalSize }];
+      const newItems = [...prev, { ...product, price: effectivePrice, basePrice: product.price, quantity: addedQty, selectedColor: finalColor, selectedSize: finalSize }];
       const consolidated = normalizeAndConsolidateCart(newItems);
       // Update synchronous ref instantly to prevent race conditions on spammed clicks
       cartStateRef.current = consolidated;
@@ -402,7 +427,21 @@ const App: React.FC = () => {
 
     // 1. Create a tentative updated cart list
     const newCart = [...currentCart];
-    newCart[index] = { ...newCart[index], quantity, selectedColor: color, selectedSize: size };
+    const targetItem = newCart[index];
+    const newSize = size !== undefined ? size : targetItem.selectedSize;
+    const basePrice = targetItem.basePrice || targetItem.price;
+    const effectivePrice = (targetItem.sizePrices && newSize && targetItem.sizePrices[newSize])
+      ? targetItem.sizePrices[newSize]
+      : basePrice;
+
+    newCart[index] = { 
+      ...targetItem, 
+      quantity, 
+      selectedColor: color, 
+      selectedSize: size,
+      price: effectivePrice,
+      basePrice
+    };
 
     // 2. Consolidate variations
     const consolidated = normalizeAndConsolidateCart(newCart, (cappedName, cappedStock) => {
@@ -490,8 +529,8 @@ const App: React.FC = () => {
             />
             <Route path="/admin"
               element={
-                <React.Suspense fallback={<div className="min-h-screen bg-stone-50 flex items-center justify-center text-stone-400 text-xs uppercase tracking-widest">Loading Executive Panel...</div>}>
-                  <ErrorBoundary>
+                <ErrorBoundary>
+                  <React.Suspense fallback={<div className="min-h-screen bg-stone-50 flex items-center justify-center text-stone-400 text-xs uppercase tracking-widest">Loading Executive Panel...</div>}>
                     <Admin
                       products={products}
                       layoutConfig={layoutConfig}
@@ -500,11 +539,12 @@ const App: React.FC = () => {
                       setLayoutConfig={setLayoutConfig}
                       setFooterPages={setFooterPages}
                     />
-                  </ErrorBoundary>
-                </React.Suspense>
+                  </React.Suspense>
+                </ErrorBoundary>
               }
             />
             <Route path="/lookbook" element={<SuspenseWrapper><Lookbook onAddToCart={addToCart} /></SuspenseWrapper>} />
+            <Route path="/stress-test" element={<SuspenseWrapper><StressTest /></SuspenseWrapper>} />
             <Route path="*" element={<SuspenseWrapper><NotFound /></SuspenseWrapper>} />
           </Routes>
         </main>

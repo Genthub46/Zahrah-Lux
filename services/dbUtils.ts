@@ -381,24 +381,63 @@ export const seedInitialData = async (products: Product[], config: HomeLayoutCon
 };
 
 export const wipeDatabase = async () => {
-    console.log("Wiping database collections...");
+    console.log("Wiping database collections with backup...");
     const collectionsToWipe = [
-        PRODUCTS_COL, ORDERS_COL, LOGS_COL, REQUESTS_COL,
-        REVIEWS_COL, USERS_COL, ADMIN_LOGS_COL, NEWSLETTER_COL
+        ORDERS_COL, LOGS_COL, REQUESTS_COL, 
+        ADMIN_LOGS_COL, ABANDONED_COL
     ];
 
     for (const colName of collectionsToWipe) {
         try {
             const snapshot = await getDocs(collection(db, colName));
             if (!snapshot.empty) {
+                const batch = writeBatch(db);
+                // 1. Copy to backup collection
+                snapshot.docs.forEach(docSnapshot => {
+                    const backupRef = doc(db, `_backup_${colName}`, docSnapshot.id);
+                    batch.set(backupRef, docSnapshot.data());
+                });
+                await batch.commit();
+
+                // 2. Delete original collection
                 const deletePromises = snapshot.docs.map(docSnapshot => deleteDoc(docSnapshot.ref));
                 await Promise.all(deletePromises);
             }
         } catch (error) {
-            console.error(`Error wiping collection ${colName}:`, error);
+            console.error(`Error wiping/backing up collection ${colName}:`, error);
         }
     }
-    console.log("Database wipe complete.");
+    console.log("Database wipe and backup complete.");
+};
+
+export const restoreDatabase = async () => {
+    console.log("Restoring wiped database collections...");
+    const collectionsToRestore = [
+        ORDERS_COL, LOGS_COL, REQUESTS_COL, 
+        ADMIN_LOGS_COL, ABANDONED_COL
+    ];
+
+    for (const colName of collectionsToRestore) {
+        try {
+            const backupSnapshot = await getDocs(collection(db, `_backup_${colName}`));
+            if (!backupSnapshot.empty) {
+                const batch = writeBatch(db);
+                // 1. Restore from backup
+                backupSnapshot.docs.forEach(docSnapshot => {
+                    const liveRef = doc(db, colName, docSnapshot.id);
+                    batch.set(liveRef, docSnapshot.data());
+                });
+                await batch.commit();
+
+                // 2. Clear backup collection
+                const deletePromises = backupSnapshot.docs.map(docSnapshot => deleteDoc(docSnapshot.ref));
+                await Promise.all(deletePromises);
+            }
+        } catch (error) {
+            console.error(`Error restoring collection ${colName}:`, error);
+        }
+    }
+    console.log("Database restore complete.");
 };
 
 // --- User Data Persistence ---

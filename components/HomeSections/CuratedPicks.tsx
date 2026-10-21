@@ -134,7 +134,7 @@ const CuratedSection: React.FC<CuratedSectionProps> = ({
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.9 }}
                             transition={{ duration: 0.3 }}
-                            className="w-[280px] md:w-[320px] flex-shrink-0 snap-start"
+                            className="w-[180px] md:w-[260px] lg:w-[280px] flex-shrink-0 snap-start"
                         >
                             <ProductCard
                                 product={product}
@@ -178,7 +178,7 @@ const CuratedPicks: React.FC<CuratedPicksProps> = (props) => {
     }
 
     return (
-        <section className="py-12 bg-stone-50/50 border-t border-stone-100">
+        <section className="py-8 md:py-10 bg-stone-50/50 border-t border-stone-100">
             <div className="px-4 sm:px-6 lg:px-12 max-w-[1800px] mx-auto">
                 {categoryGroups.map((group, idx) => (
                     <CuratedSection

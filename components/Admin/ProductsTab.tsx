@@ -91,6 +91,7 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ products, brands, orders, ini
     const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
     const [sizeInput, setSizeInput] = useState('');
     const [hasSizes, setHasSizes] = useState(false);
+    const [sizePrices, setSizePrices] = useState<Record<string, number>>({});
 
     // Toggles
     const [hasColors, setHasColors] = useState(false);
@@ -232,8 +233,9 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ products, brands, orders, ini
             costPrice: numericCost,
             id: editingId || `p-${Date.now()}`,
             brand: formData.brand === 'CUSTOM' ? customBrand.toUpperCase() : formData.brand,
-            tags: [...selectedDepartments, ...tagInput.split(',').map(t => t.trim().toLowerCase()).filter(t => t)],
-            sizes: sizeInput.split(',').map(s => s.trim()).filter(s => s),
+            tags: Array.from(new Set([...selectedDepartments, ...tagInput.split(',').map(t => t.trim().toLowerCase()).filter(t => t)])),
+            sizes: Array.from(new Set(sizeInput.split(',').map(s => s.trim()).filter(s => s))),
+            sizePrices: Object.keys(sizePrices).length > 0 ? sizePrices : undefined,
         } as Product;
 
         console.log("Saving Product:", finalProduct); // Debug log
@@ -275,6 +277,7 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ products, brands, orders, ini
         setTagInput(otherTags.join(', '));
         
         setSizeInput(product.sizes?.join(', ') || '');
+        setSizePrices(product.sizePrices || {});
         setHasSizes(!!product.sizes && product.sizes.length > 0);
         setHasColors(!!product.colors && product.colors.length > 0);
 
@@ -305,6 +308,7 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ products, brands, orders, ini
         setCostPriceInput('');
         setTagInput('');
         setSizeInput('');
+        setSizePrices({});
         setCustomBrand('');
         setHasSizes(false);
         setHasColors(false);
@@ -622,6 +626,11 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ products, brands, orders, ini
                             <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-5 py-4 bg-white border border-stone-200 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[#C5A059]/20 focus:border-[#C5A059] transition-all shadow-sm" placeholder="e.g. 'Oversized Silk Shirt'" />
                         </div>
 
+                        <div className="relative group">
+                            <label className="absolute -top-2 left-4 px-1 bg-white text-[8px] font-black text-[#C5A059] uppercase tracking-widest z-10 transition-all group-focus-within:text-[#C5A059]">Description</label>
+                            <textarea value={formData.description || ''} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full px-5 py-4 bg-white border border-stone-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#C5A059]/20 focus:border-[#C5A059] transition-all shadow-sm min-h-[100px] resize-y" placeholder="Describe the item, fabric, fit, etc." />
+                        </div>
+
                         <div className="grid grid-cols-2 gap-5">
                             <div className="relative group">
                                 <label className="absolute -top-2 left-4 px-1 bg-white text-[8px] font-black text-stone-400 uppercase tracking-widest z-10 group-focus-within:text-[#C5A059] transition-colors">Price (NGN)</label>
@@ -743,9 +752,53 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ products, brands, orders, ini
                         </div>
 
                         {hasSizes && (
-                            <div className="animate-in slide-in-from-top-2">
-                                <label className="text-[9px] font-black text-stone-400 uppercase tracking-widest ml-1 mb-1 block">Size Range</label>
-                                <input type="text" value={sizeInput} onChange={(e) => setSizeInput(e.target.value)} placeholder="S, M, L, XL" className="w-full px-5 py-3 bg-stone-50 border border-stone-100 rounded-xl text-[10px] font-bold focus:outline-none focus:border-[#C5A059]" />
+                            <div className="animate-in slide-in-from-top-2 space-y-3">
+                                <div>
+                                    <label className="text-[9px] font-black text-stone-400 uppercase tracking-widest ml-1 mb-1 block">Size Range</label>
+                                    <input type="text" value={sizeInput} onChange={(e) => setSizeInput(e.target.value)} placeholder="S, M, L, XL" className="w-full px-5 py-3 bg-stone-50 border border-stone-100 rounded-xl text-[10px] font-bold focus:outline-none focus:border-[#C5A059]" />
+                                    <p className="text-[8px] text-stone-400 mt-1 ml-1">Comma-separated list (e.g. S, M, L, XL, XXL)</p>
+                                </div>
+
+                                {(() => {
+                                    const parsedSizes = Array.from(new Set(sizeInput.split(',').map(s => s.trim()).filter(Boolean)));
+                                    if (parsedSizes.length === 0) return null;
+                                    return (
+                                        <div className="bg-stone-50 p-4 rounded-2xl border border-stone-100 space-y-2">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-[9px] font-black text-stone-500 uppercase tracking-widest">Custom Size Prices (Optional)</span>
+                                                <span className="text-[8px] text-stone-400">Default: ₦{parseFloat(priceInput || '0').toLocaleString()}</span>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-2 pt-1">
+                                                {parsedSizes.map(size => (
+                                                    <div key={size} className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-stone-200">
+                                                        <span className="text-[10px] font-black text-stone-900 w-12 truncate">{size}</span>
+                                                        <div className="flex-1 flex items-center gap-1">
+                                                            <span className="text-[9px] text-stone-400 font-bold">₦</span>
+                                                            <input
+                                                                type="number"
+                                                                placeholder={priceInput || "Base Price"}
+                                                                value={sizePrices[size] !== undefined ? sizePrices[size] : ''}
+                                                                onChange={e => {
+                                                                    const val = e.target.value ? parseFloat(e.target.value) : undefined;
+                                                                    setSizePrices(prev => {
+                                                                        const next = { ...prev };
+                                                                        if (val !== undefined && !isNaN(val) && val > 0) {
+                                                                            next[size] = val;
+                                                                        } else {
+                                                                            delete next[size];
+                                                                        }
+                                                                        return next;
+                                                                    });
+                                                                }}
+                                                                className="w-full text-[10px] font-bold text-stone-900 focus:outline-none"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
                             </div>
                         )}
 

@@ -185,6 +185,9 @@ const marked = require('marked');
             </html>
         `;
         
+        fs.writeFileSync('Zahrah_Luxury_Boutique_Executive_Guide.html', htmlContent, 'utf8');
+        console.log('HTML file saved successfully at: Zahrah_Luxury_Boutique_Executive_Guide.html');
+        
         console.log('Launching browser and printing PDF...');
         const browser = await puppeteer.launch({
             headless: 'new',

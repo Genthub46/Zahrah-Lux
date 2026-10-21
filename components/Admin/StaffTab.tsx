@@ -3,6 +3,7 @@ import { Shield, Trash2, UserPlus, Mail, Calendar } from 'lucide-react';
 import { StaffMember, getAllStaffMembers, addStaffMember, removeStaffMember } from '../../services/staffService';
 import { AdminRole } from '../../services/adminPermissions';
 import { useToast } from '../../contexts/ToastContext';
+import { sendAutomatedEmail } from '../../services/emailUtils';
 
 const StaffTab: React.FC = () => {
     const [staff, setStaff] = useState<StaffMember[]>([]);
@@ -33,13 +34,45 @@ const StaffTab: React.FC = () => {
         }
         
         try {
+            const emailAddress = newEmail.toLowerCase().trim();
+            const displayName = newName.trim();
+            
             await addStaffMember({
-                email: newEmail.toLowerCase().trim(),
-                name: newName.trim(),
+                email: emailAddress,
+                name: displayName,
                 role: newRole,
                 addedAt: new Date().toISOString()
             });
-            showToast('Staff member invited successfully!', { type: 'success' });
+
+            // Send automated invitation email
+            try {
+                const inviteHtml = `
+                    <div style="font-family:'Georgia',serif;max-width:600px;margin:0 auto;background:#fff;padding:40px;text-align:center;border:1px solid #e7e5e4;">
+                        <h1 style="font-size:20px;color:#1c1917;letter-spacing:3px;text-transform:uppercase;margin-bottom:24px;">Executive Access Granted</h1>
+                        <p style="color:#78716c;font-size:14px;margin-bottom:28px;">Dear ${displayName || 'Colleague'},</p>
+                        <p style="color:#292524;font-size:14px;line-height:1.8;margin-bottom:32px;">You have been invited to join the executive administration panel of <strong>Zarhrah Luxury Collections</strong>.</p>
+                        
+                        <div style="background:#fafaf9;border:1px solid #e7e5e4;border-radius:4px;padding:24px;margin:32px 0;">
+                            <p style="font-size:11px;color:#a8a29e;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;">Authorized Identity</p>
+                            <p style="font-size:16px;color:#1c1917;font-weight:bold;">${emailAddress}</p>
+                            <p style="font-size:11px;color:#a8a29e;letter-spacing:2px;text-transform:uppercase;margin-top:16px;margin-bottom:8px;">Assigned Role</p>
+                            <p style="font-size:13px;color:#C5A059;font-weight:bold;text-transform:uppercase;letter-spacing:1px;">${newRole.replace('_', ' ')}</p>
+                        </div>
+
+                        <a href="${window.location.origin}/admin" style="display:inline-block;background:#1c1917;color:#fff;padding:14px 32px;font-size:11px;letter-spacing:3px;text-transform:uppercase;text-decoration:none;margin:16px 0;">Enter The Panel</a>
+                        
+                        <p style="color:#78716c;font-size:12px;margin-top:40px;line-height:1.6;">If you believe this invitation was sent in error, please disregard this email.</p>
+                        <p style="color:#a8a29e;font-size:11px;margin-top:24px;letter-spacing:1px;">— Zarhrah Luxury Collections</p>
+                    </div>
+                `;
+                
+                await sendAutomatedEmail(emailAddress, 'Executive Access Invitation | Zarhrah Luxury', inviteHtml);
+                showToast('Staff member invited & email sent successfully!', { type: 'success' });
+            } catch (emailErr) {
+                console.error("Staff added, but email failed:", emailErr);
+                showToast('Staff added, but failed to send the email.', { type: 'error' });
+            }
+
             setNewEmail('');
             setNewName('');
             setNewRole('viewer');
