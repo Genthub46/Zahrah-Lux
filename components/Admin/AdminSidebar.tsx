@@ -125,45 +125,51 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                             animate={{ x: 0 }}
                             exit={{ x: "-100%" }}
                             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                            className="fixed top-0 left-0 bottom-0 w-[280px] bg-white z-[210] lg:hidden flex flex-col shadow-2xl"
+                            className="fixed top-0 left-0 bottom-0 w-[290px] max-w-[85vw] bg-white z-[210] lg:hidden flex flex-col shadow-2xl pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)]"
                         >
-                            <div className="p-6 flex justify-between items-center border-b border-stone-100">
-                                <span className="text-xs font-black uppercase tracking-widest text-stone-900">Menu</span>
-                                <button onClick={onClose} className="p-2 hover:bg-stone-100 rounded-full">
+                            <div className="p-5 sm:p-6 flex justify-between items-center border-b border-stone-100">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full bg-[#C5A059]" />
+                                    <span className="text-xs font-black uppercase tracking-widest text-stone-900">Control Panel</span>
+                                </div>
+                                <button onClick={onClose} className="p-2 hover:bg-stone-100 active:bg-stone-200 rounded-full min-h-[44px] min-w-[44px] flex items-center justify-center" aria-label="Close Menu">
                                     <X size={20} className="text-stone-500" />
                                 </button>
                             </div>
 
-                            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                            <div className="flex-1 overflow-y-auto p-4 space-y-1.5 scrollbar-hide">
                                 {tabs.map((tab) => (
                                     <button
                                         key={tab.id}
                                         onClick={() => { setActiveTab(tab.id); onClose?.(); }}
-                                        className={`flex items-center space-x-4 w-full px-6 py-4 rounded-xl text-[10px] font-bold tracking-widest uppercase transition-all duration-300 group
+                                        className={`flex items-center space-x-3.5 w-full px-4 py-3.5 rounded-xl text-[10px] font-bold tracking-widest uppercase transition-all duration-200 active:scale-[0.98] min-h-[44px]
                                         ${activeTab === tab.id
-                                                ? 'bg-stone-900 text-white shadow-lg shadow-stone-900/10'
-                                                : 'text-stone-400 hover:text-stone-900 hover:bg-stone-50'
+                                                ? 'bg-stone-900 text-white shadow-md shadow-stone-900/10'
+                                                : 'text-stone-500 hover:text-stone-900 hover:bg-stone-50 active:bg-stone-100'
                                             }`}
                                     >
-                                        <tab.icon size={16} className={`${activeTab === tab.id ? 'text-[#C5A059]' : 'text-stone-300 group-hover:text-stone-900'} transition-colors`} />
-                                        <span>{tab.label}</span>
+                                        <tab.icon size={16} className={`${activeTab === tab.id ? 'text-[#C5A059]' : 'text-stone-400'} shrink-0`} />
+                                        <span className="truncate">{tab.label}</span>
+                                        {activeTab === tab.id && (
+                                            <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#C5A059] shrink-0" />
+                                        )}
                                     </button>
                                 ))}
                             </div>
 
-                            <div className="p-6 border-t border-stone-100 bg-stone-50 space-y-3">
+                            <div className="p-4 sm:p-6 border-t border-stone-100 bg-stone-50 space-y-2.5 shrink-0">
                                 <Link
                                     to="/"
-                                    className="w-full px-4 py-3 text-[10px] font-bold tracking-widest uppercase text-stone-500 bg-white border border-stone-200 hover:text-stone-900 hover:bg-stone-50 rounded-xl flex items-center justify-center space-x-3 transition-all"
+                                    className="w-full px-4 py-3 text-[10px] font-bold tracking-widest uppercase text-stone-600 bg-white border border-stone-200 hover:text-stone-900 hover:bg-stone-50 active:bg-stone-100 rounded-xl flex items-center justify-center space-x-2 transition-all min-h-[44px]"
                                 >
-                                    <Store size={16} />
+                                    <Store size={15} />
                                     <span>Return to Boutique</span>
                                 </Link>
                                 <button
                                     onClick={onLogout}
-                                    className="w-full px-4 py-3 text-[10px] font-bold tracking-widest uppercase text-red-500 bg-white border border-stone-200 hover:bg-red-50 rounded-xl flex items-center justify-center space-x-3 transition-all"
+                                    className="w-full px-4 py-3 text-[10px] font-bold tracking-widest uppercase text-red-600 bg-white border border-red-200 hover:bg-red-50 active:bg-red-100 rounded-xl flex items-center justify-center space-x-2 transition-all min-h-[44px]"
                                 >
-                                    <LogOut size={16} />
+                                    <LogOut size={15} />
                                     <span>Sign Out</span>
                                 </button>
                             </div>

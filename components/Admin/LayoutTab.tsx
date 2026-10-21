@@ -67,7 +67,7 @@ const SearchableProductSelector: React.FC<SearchableProductSelectorProps> = ({
         <div className="space-y-4">
             {/* Control Bar: Search + Category Pills + Selected Only */}
             <div className="space-y-2.5 bg-stone-50/80 p-3 rounded-2xl border border-stone-100">
-                <div className="flex flex-col sm:flex-row gap-2 items-center justify-between">
+                <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center justify-between">
                     <div className="relative flex-1 w-full">
                         <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
                         <input
@@ -75,7 +75,7 @@ const SearchableProductSelector: React.FC<SearchableProductSelectorProps> = ({
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
                             placeholder={placeholder}
-                            className="w-full pl-9 pr-8 py-2 bg-white border border-stone-200 rounded-xl text-[11px] font-medium text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-stone-900 transition-colors"
+                            className="w-full pl-9 pr-8 py-2.5 sm:py-2 bg-white border border-stone-200 rounded-xl text-xs sm:text-[11px] font-medium text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-stone-900 transition-colors"
                         />
                         {searchQuery && (
                             <button
@@ -92,7 +92,7 @@ const SearchableProductSelector: React.FC<SearchableProductSelectorProps> = ({
                     <button
                         type="button"
                         onClick={() => setShowSelectedOnly(prev => !prev)}
-                        className={`px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all whitespace-nowrap ${
+                        className={`w-full sm:w-auto justify-center px-3.5 py-2.5 sm:py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all whitespace-nowrap min-h-[38px] sm:min-h-0 ${
                             showSelectedOnly
                                 ? 'bg-stone-900 text-white shadow-sm'
                                 : 'bg-white border border-stone-200 text-stone-600 hover:border-stone-400'
@@ -262,37 +262,44 @@ const StaticSectionControl: React.FC<{
         const canExpand = Boolean(productKey && isVisible);
 
         return (
-            <div className="bg-white border border-stone-100 rounded-3xl p-5 sm:p-6 shadow-sm">
+            <div className="bg-white border border-stone-100 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm">
                 <div 
                     onClick={() => {
                         if (canExpand) setIsExpanded(!isExpanded);
                     }}
-                    className={`flex flex-wrap justify-between items-center gap-4 ${canExpand ? 'cursor-pointer group select-none' : ''}`}
+                    className={`flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 ${canExpand ? 'cursor-pointer group select-none' : ''}`}
                 >
-                    <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                        <button
-                            type="button"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                toggleVisibility();
-                            }}
-                            className={`p-2 rounded-full transition-all duration-300 shrink-0 ${isVisible ? 'bg-stone-900 text-white shadow-md' : 'bg-stone-100 text-stone-400'}`}
-                            title={isVisible ? `Hide ${title}` : `Show ${title}`}
-                        >
-                            {isVisible ? <Eye size={16} /> : <EyeOff size={16} />}
-                        </button>
-                        <div className="min-w-0">
-                            <h4 className={`font-bold text-stone-900 text-sm truncate ${canExpand ? 'group-hover:text-[#C5A059] transition-colors' : ''}`}>{title}</h4>
-                            {productKey && (
-                                <p className="text-[9px] font-black text-[#C5A059] uppercase tracking-widest mt-0.5">
-                                    {selectedIds.length} Products Selected {canExpand && `• Click to ${isExpanded ? 'Close' : 'Select'}`}
-                                </p>
-                            )}
+                    <div className="flex items-center gap-3 sm:gap-4 min-w-0 w-full sm:w-auto justify-between sm:justify-start">
+                        <div className="flex items-center gap-3 min-w-0">
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleVisibility();
+                                }}
+                                className={`p-2.5 sm:p-2 rounded-full transition-all duration-300 shrink-0 min-h-[38px] min-w-[38px] flex items-center justify-center ${isVisible ? 'bg-stone-900 text-white shadow-md' : 'bg-stone-100 text-stone-400'}`}
+                                title={isVisible ? `Hide ${title}` : `Show ${title}`}
+                            >
+                                {isVisible ? <Eye size={16} /> : <EyeOff size={16} />}
+                            </button>
+                            <div className="min-w-0">
+                                <h4 className={`font-bold text-stone-900 text-sm truncate ${canExpand ? 'group-hover:text-[#C5A059] transition-colors' : ''}`}>{title}</h4>
+                                {productKey && (
+                                    <p className="text-[9px] font-black text-[#C5A059] uppercase tracking-widest mt-0.5 truncate">
+                                        {selectedIds.length} Selected {canExpand && `• Click to ${isExpanded ? 'Close' : 'Select'}`}
+                                    </p>
+                                )}
+                            </div>
                         </div>
+                        {canExpand && (
+                            <div className="sm:hidden text-stone-400 p-1">
+                                <ChevronDown size={16} className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                            </div>
+                        )}
                     </div>
 
                     {/* Action Controls & Inputs */}
-                    <div onClick={(e) => e.stopPropagation()} className="flex flex-wrap items-center gap-2 sm:gap-3 justify-end min-w-0">
+                    <div onClick={(e) => e.stopPropagation()} className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end min-w-0">
                         {bannerImageKey && isVisible && (
                             <div className="flex items-center gap-2 min-w-[140px] sm:min-w-[180px]">
                                 <div className="relative flex-1">
@@ -333,7 +340,7 @@ const StaticSectionControl: React.FC<{
                                     e.stopPropagation();
                                     setIsExpanded(!isExpanded);
                                 }}
-                                className={`shrink-0 px-3.5 sm:px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all flex items-center gap-2 ${isExpanded ? 'bg-stone-900 text-white border-stone-900 shadow-md' : 'bg-stone-50 border-stone-200 text-stone-800 hover:border-[#C5A059] hover:text-[#C5A059]'}`}
+                                className={`w-full sm:w-auto justify-center px-4 py-2.5 sm:py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all flex items-center gap-2 min-h-[40px] sm:min-h-0 ${isExpanded ? 'bg-stone-900 text-white border-stone-900 shadow-md' : 'bg-stone-50 border-stone-200 text-stone-800 hover:border-[#C5A059] hover:text-[#C5A059] active:bg-stone-100'}`}
                             >
                                 <span>{isExpanded ? 'Close' : 'Select Products'}</span>
                                 <ChevronDown size={13} className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
@@ -432,10 +439,10 @@ const LifestyleEditor: React.FC<EditorProps> = ({ layoutConfig, onUpdate }) => {
                         e.stopPropagation();
                         setIsExpanded(!isExpanded);
                     }} 
-                    className={`shrink-0 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all flex items-center gap-2 ${
+                    className={`w-full sm:w-auto justify-center px-4 py-2.5 sm:py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all flex items-center gap-2 min-h-[40px] sm:min-h-0 ${
                         isExpanded 
                             ? 'bg-stone-900 text-white border-stone-900 shadow-md' 
-                            : 'bg-stone-50 border-stone-200 text-stone-800 hover:border-[#C5A059] hover:text-[#C5A059]'
+                            : 'bg-stone-50 border-stone-200 text-stone-800 hover:border-[#C5A059] hover:text-[#C5A059] active:bg-stone-100'
                     }`}
                 >
                     <span>{isExpanded ? 'Close Editor' : 'Edit Muses'}</span>
@@ -515,10 +522,10 @@ const CuratedPicksEditor: React.FC<EditorProps> = ({ layoutConfig, products, onU
     };
 
     return (
-        <div className="bg-white border border-stone-100 rounded-3xl p-6 shadow-sm">
+        <div className="bg-white border border-stone-100 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm">
             <div 
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="flex flex-wrap sm:flex-nowrap justify-between items-center gap-4 cursor-pointer group select-none"
+                className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 cursor-pointer group select-none"
             >
                 <div className="min-w-0">
                     <h4 className="font-bold text-stone-900 text-sm group-hover:text-[#C5A059] transition-colors truncate">
@@ -528,14 +535,14 @@ const CuratedPicksEditor: React.FC<EditorProps> = ({ layoutConfig, products, onU
                         {categories.filter(c => c.isVisible !== false).length} Tabs Active &bull; Click to {isExpanded ? 'Close' : 'Assign Products'}
                     </p>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end shrink-0">
                     <button 
                         type="button"
                         onClick={(e) => {
                             e.stopPropagation();
                             setIsManagingCats(!isManagingCats);
                         }} 
-                        className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all ${isManagingCats ? 'bg-stone-900 text-white border-stone-900' : 'bg-white border-stone-200 text-stone-600 hover:border-stone-400'}`}
+                        className={`flex-1 sm:flex-initial px-4 py-2.5 sm:py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all text-center min-h-[40px] sm:min-h-0 ${isManagingCats ? 'bg-stone-900 text-white border-stone-900' : 'bg-white border-stone-200 text-stone-600 hover:border-stone-400 active:bg-stone-100'}`}
                     >
                         {isManagingCats ? 'Done' : 'Edit Tabs'}
                     </button>
@@ -545,7 +552,7 @@ const CuratedPicksEditor: React.FC<EditorProps> = ({ layoutConfig, products, onU
                             e.stopPropagation();
                             setIsExpanded(!isExpanded);
                         }} 
-                        className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all flex items-center gap-2 ${isExpanded ? 'bg-stone-900 text-white border-stone-900 shadow-md' : 'bg-stone-50 border-stone-200 text-stone-800 hover:border-[#C5A059] hover:text-[#C5A059]'}`}
+                        className={`flex-1 sm:flex-initial px-4 py-2.5 sm:py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all flex items-center justify-center gap-2 min-h-[40px] sm:min-h-0 ${isExpanded ? 'bg-stone-900 text-white border-stone-900 shadow-md' : 'bg-stone-50 border-stone-200 text-stone-800 hover:border-[#C5A059] hover:text-[#C5A059] active:bg-stone-100'}`}
                     >
                         <span>{isExpanded ? 'Close' : 'Assign Products'}</span>
                         <ChevronDown size={14} className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
@@ -697,35 +704,40 @@ const StylingLooksEditor: React.FC<EditorProps> = ({ layoutConfig, products, onU
     if (!isVisible) return <StaticSectionControl title="Styling Ideas" visibilityKey="showStyling" layoutConfig={layoutConfig} products={[]} onUpdate={onUpdate} />;
 
     return (
-        <div className="bg-white border border-stone-100 rounded-3xl p-6 shadow-sm">
+        <div className="bg-white border border-stone-100 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm">
             <div 
                 onClick={() => setIsExpanded(!isExpanded)} 
-                className="flex flex-wrap sm:flex-nowrap justify-between items-center gap-4 cursor-pointer group select-none"
+                className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 cursor-pointer group select-none"
             >
-                <div className="flex items-center gap-4 min-w-0">
-                    <button 
-                        type="button"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onUpdate({ showStyling: !isVisible }, `Toggled visibility of Styling Ideas`);
-                        }} 
-                        className="p-2 rounded-full bg-stone-900 text-white shadow-md shrink-0 hover:scale-105 transition-transform"
-                        title={isVisible ? "Hide Styling Ideas" : "Show Styling Ideas"}
-                    >
-                        <Eye size={16} />
-                    </button>
-                    <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                            <h4 className="font-bold text-stone-900 text-sm group-hover:text-[#C5A059] transition-colors truncate">
-                                Styling Ideas
-                            </h4>
-                            <span className="px-2 py-0.5 rounded-full bg-stone-100 text-stone-600 text-[10px] font-bold">
-                                {looks.length} {looks.length === 1 ? 'Look' : 'Looks'}
-                            </span>
+                <div className="flex items-center gap-3 sm:gap-4 min-w-0 w-full sm:w-auto justify-between sm:justify-start">
+                    <div className="flex items-center gap-3 min-w-0">
+                        <button 
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onUpdate({ showStyling: !isVisible }, `Toggled visibility of Styling Ideas`);
+                            }} 
+                            className="p-2.5 sm:p-2 rounded-full bg-stone-900 text-white shadow-md shrink-0 hover:scale-105 active:scale-95 transition-transform min-h-[38px] min-w-[38px] flex items-center justify-center"
+                            title={isVisible ? "Hide Styling Ideas" : "Show Styling Ideas"}
+                        >
+                            <Eye size={16} />
+                        </button>
+                        <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                                <h4 className="font-bold text-stone-900 text-sm group-hover:text-[#C5A059] transition-colors truncate">
+                                    Styling Ideas
+                                </h4>
+                                <span className="px-2 py-0.5 rounded-full bg-stone-100 text-stone-600 text-[10px] font-bold shrink-0">
+                                    {looks.length} {looks.length === 1 ? 'Look' : 'Looks'}
+                                </span>
+                            </div>
+                            <p className="text-[9px] font-black text-[#C5A059] uppercase tracking-widest mt-0.5 truncate">
+                                Curated Outfits & Lookbooks &bull; Click to {isExpanded ? 'Collapse' : 'Manage Looks'}
+                            </p>
                         </div>
-                        <p className="text-[9px] font-black text-[#C5A059] uppercase tracking-widest mt-0.5">
-                            Curated Outfits & Lookbooks &bull; Click to {isExpanded ? 'Collapse' : 'Manage Looks'}
-                        </p>
+                    </div>
+                    <div className="sm:hidden text-stone-400 p-1">
+                        <ChevronDown size={16} className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
                     </div>
                 </div>
                 <button 
