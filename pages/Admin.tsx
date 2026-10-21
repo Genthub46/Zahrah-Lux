@@ -243,7 +243,7 @@ const Admin: React.FC<AdminProps> = ({
   }
 
   return (
-    <div className="min-h-screen bg-[#FDFDFD] flex flex-col lg:flex-row font-sans selection:bg-[#C5A059] selection:text-white">
+    <div className="min-h-screen bg-[#FDFDFD] flex flex-col lg:flex-row font-sans selection:bg-[#C5A059] selection:text-white overflow-x-hidden">
 
       {/* Session Timeout Warning Modal */}
       <AnimatePresence>
@@ -313,7 +313,7 @@ const Admin: React.FC<AdminProps> = ({
         role={adminRole}
       />
 
-      <main className="flex-1 lg:ml-72 p-6 lg:p-20 pt-[100px] lg:pt-32">
+      <main className="flex-1 lg:ml-72 p-4 sm:p-6 lg:p-10 xl:p-12 pt-[90px] lg:pt-28 min-w-0 max-w-full overflow-x-hidden">
         <header className="mb-12 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 animate-in slide-in-from-top-4 duration-700">
           <div>
             <h1 className="text-4xl md:text-6xl font-serif font-black text-stone-900 tracking-tighter uppercase mb-2">

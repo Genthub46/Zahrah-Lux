@@ -139,8 +139,8 @@ const SearchableProductSelector: React.FC<SearchableProductSelectorProps> = ({
                 </div>
             ) : (
                 <div className={compact 
-                    ? "grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 max-h-48 overflow-y-auto p-1"
-                    : "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 max-h-[460px] overflow-y-auto p-1"
+                    ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-52 overflow-y-auto p-1"
+                    : "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-3 max-h-[460px] overflow-y-auto p-1"
                 }>
                     {filteredProducts.map(p => {
                         const isActive = selectedIds.includes(p.id);
@@ -262,14 +262,14 @@ const StaticSectionControl: React.FC<{
         const canExpand = Boolean(productKey && isVisible);
 
         return (
-            <div className="bg-white border border-stone-100 rounded-3xl p-6 shadow-sm">
+            <div className="bg-white border border-stone-100 rounded-3xl p-5 sm:p-6 shadow-sm">
                 <div 
                     onClick={() => {
                         if (canExpand) setIsExpanded(!isExpanded);
                     }}
-                    className={`flex flex-wrap sm:flex-nowrap justify-between items-center gap-4 ${canExpand ? 'cursor-pointer group select-none' : ''}`}
+                    className={`flex flex-wrap justify-between items-center gap-4 ${canExpand ? 'cursor-pointer group select-none' : ''}`}
                 >
-                    <div className="flex items-center gap-4 min-w-0">
+                    <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                         <button
                             type="button"
                             onClick={(e) => {
@@ -291,52 +291,55 @@ const StaticSectionControl: React.FC<{
                         </div>
                     </div>
 
-                    {bannerImageKey && isVisible && (
-                        <div onClick={(e) => e.stopPropagation()} className="flex-1 ml-0 sm:ml-4 flex items-center gap-2 min-w-[180px]">
-                            <div className="relative flex-1">
-                                <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" size={14} />
+                    {/* Action Controls & Inputs */}
+                    <div onClick={(e) => e.stopPropagation()} className="flex flex-wrap items-center gap-2 sm:gap-3 justify-end min-w-0">
+                        {bannerImageKey && isVisible && (
+                            <div className="flex items-center gap-2 min-w-[140px] sm:min-w-[180px]">
+                                <div className="relative flex-1">
+                                    <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" size={14} />
+                                    <input
+                                        type="text"
+                                        placeholder="Paste URL..."
+                                        defaultValue={bannerImage}
+                                        onBlur={(e) => handleBannerChange(e.target.value)}
+                                        key={bannerImage as string}
+                                        className="w-full pl-9 pr-3 py-2 text-[10px] bg-stone-50 border border-stone-100 rounded-lg focus:outline-none focus:border-[#C5A059]"
+                                    />
+                                </div>
+
+                                <label className={`flex items-center justify-center p-2 rounded-lg border border-stone-200 cursor-pointer hover:bg-stone-50 transition-colors shrink-0 ${isUploading ? 'opacity-50 cursor-wait' : ''}`}>
+                                    <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={isUploading} />
+                                    {isUploading ? <Loader2 size={16} className="animate-spin text-[#C5A059]" /> : <Upload size={16} className="text-stone-500" />}
+                                </label>
+                            </div>
+                        )}
+
+                        {textInputKey && isVisible && (
+                            <div className="min-w-[120px] sm:min-w-[140px]">
                                 <input
                                     type="text"
-                                    placeholder="Paste URL..."
-                                    defaultValue={bannerImage}
-                                    onBlur={(e) => handleBannerChange(e.target.value)}
-                                    key={bannerImage as string}
-                                    className="w-full pl-9 pr-3 py-2 text-[10px] bg-stone-50 border border-stone-100 rounded-lg focus:outline-none focus:border-[#C5A059]"
+                                    placeholder="BANNER TITLE"
+                                    value={bannerTitle as string}
+                                    onChange={(e) => handleTitleChange(e.target.value)}
+                                    className="w-full px-3 sm:px-4 py-2 text-[10px] bg-stone-50 border border-stone-100 rounded-lg focus:outline-none focus:border-[#C5A059] font-bold tracking-widest uppercase"
                                 />
                             </div>
+                        )}
 
-                            <label className={`flex items-center justify-center p-2 rounded-lg border border-stone-200 cursor-pointer hover:bg-stone-50 transition-colors ${isUploading ? 'opacity-50 cursor-wait' : ''}`}>
-                                <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={isUploading} />
-                                {isUploading ? <Loader2 size={16} className="animate-spin text-[#C5A059]" /> : <Upload size={16} className="text-stone-500" />}
-                            </label>
-                        </div>
-                    )}
-
-                    {textInputKey && isVisible && (
-                        <div onClick={(e) => e.stopPropagation()} className="flex-1 ml-0 sm:ml-4 min-w-[140px]">
-                            <input
-                                type="text"
-                                placeholder="BANNER TITLE"
-                                value={bannerTitle as string}
-                                onChange={(e) => handleTitleChange(e.target.value)}
-                                className="w-full px-4 py-2 text-[10px] bg-stone-50 border border-stone-100 rounded-lg focus:outline-none focus:border-[#C5A059] font-bold tracking-widest uppercase"
-                            />
-                        </div>
-                    )}
-
-                    {productKey && isVisible && (
-                        <button
-                            type="button"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setIsExpanded(!isExpanded);
-                            }}
-                            className={`shrink-0 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all flex items-center gap-2 ${isExpanded ? 'bg-stone-900 text-white border-stone-900 shadow-md' : 'bg-stone-50 border-stone-200 text-stone-800 hover:border-[#C5A059] hover:text-[#C5A059]'}`}
-                        >
-                            <span>{isExpanded ? 'Close Selector' : 'Select Products'}</span>
-                            <ChevronDown size={13} className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
-                        </button>
-                    )}
+                        {productKey && isVisible && (
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setIsExpanded(!isExpanded);
+                                }}
+                                className={`shrink-0 px-3.5 sm:px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all flex items-center gap-2 ${isExpanded ? 'bg-stone-900 text-white border-stone-900 shadow-md' : 'bg-stone-50 border-stone-200 text-stone-800 hover:border-[#C5A059] hover:text-[#C5A059]'}`}
+                            >
+                                <span>{isExpanded ? 'Close' : 'Select Products'}</span>
+                                <ChevronDown size={13} className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 <AnimatePresence>
@@ -400,7 +403,7 @@ const LifestyleEditor: React.FC<EditorProps> = ({ layoutConfig, onUpdate }) => {
         <div className="bg-white border border-stone-100 rounded-3xl p-6 shadow-sm">
             <div 
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="flex flex-wrap sm:flex-nowrap justify-between items-center gap-4 cursor-pointer group select-none"
+                className="flex flex-wrap justify-between items-center gap-4 cursor-pointer group select-none"
             >
                 <div className="flex items-center gap-4 min-w-0">
                     <button 
@@ -443,7 +446,7 @@ const LifestyleEditor: React.FC<EditorProps> = ({ layoutConfig, onUpdate }) => {
             <AnimatePresence>
                 {isExpanded && (
                     <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                        <div className="pt-6 border-t border-stone-100 mt-6 grid grid-cols-2 gap-4">
+                        <div className="pt-6 border-t border-stone-100 mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {[0, 1].map((idx) => (
                                 <div key={idx} className="space-y-3">
                                     <p className="text-[9px] font-black uppercase tracking-widest text-[#C5A059]">{idx === 0 ? 'Left: Accessories' : 'Right: Streetwear'}</p>
@@ -474,7 +477,7 @@ const LifestyleEditor: React.FC<EditorProps> = ({ layoutConfig, onUpdate }) => {
 };
 
 const CuratedPicksEditor: React.FC<EditorProps> = ({ layoutConfig, products, onUpdate }) => {
-    const categories = layoutConfig.curatedCategories || [
+    const categories = (layoutConfig.curatedCategories && layoutConfig.curatedCategories.length > 0) ? layoutConfig.curatedCategories : [
         { id: 't-shirts', label: 'T-Shirts', isVisible: true },
         { id: 'pants', label: 'Pants', isVisible: true },
         { id: 'jackets', label: 'Jackets', isVisible: true },
@@ -483,11 +486,11 @@ const CuratedPicksEditor: React.FC<EditorProps> = ({ layoutConfig, products, onU
         { id: 'bags', label: 'Bags', isVisible: true }
     ];
     // Default active to first visible or just first
-    const [activeTabId, setActiveTabId] = useState(categories[0].id);
+    const [activeTabId, setActiveTabId] = useState(categories[0]?.id || "t-shirts");
     const [isExpanded, setIsExpanded] = useState(false);
     const [isManagingCats, setIsManagingCats] = useState(false);
 
-    const activeCategory = categories.find(c => c.id === activeTabId) || categories[0];
+    const activeCategory = categories.find(c => c.id === activeTabId) || categories[0] || { id: "t-shirts", label: "T-Shirts" };
     const currentIds = layoutConfig.curatedPicks?.[activeTabId] || [];
 
     const toggleProduct = async (productId: string) => {
@@ -748,7 +751,7 @@ const StylingLooksEditor: React.FC<EditorProps> = ({ layoutConfig, products, onU
                         <div className="pt-6 border-t border-stone-100 mt-6 space-y-6">
                             {looks.map((look, idx) => (
                                 <div key={look.id} className="bg-stone-50 rounded-2xl p-4 border border-stone-200">
-                                    <div className="flex gap-4 items-start">
+                                    <div className="flex flex-col sm:flex-row gap-4 items-start">
                                         {/* Look Order Controls */}
                                         <div className="flex flex-col gap-1 pt-2">
                                             <button
@@ -1054,12 +1057,12 @@ const LayoutTab: React.FC<LayoutTabProps> = ({ layoutConfig, setLayoutConfig, pr
     });
 
     return (
-        <div className="space-y-12 animate-in fade-in duration-500">
+        <div className="space-y-10 sm:space-y-12 w-full min-w-0 max-w-full animate-in fade-in duration-500">
 
             {/* --- CONTROL PANEL --- */}
             <div className="space-y-6">
                 {/* Global Settings */}
-                <div className="bg-white border border-stone-100 p-8 rounded-[2.5rem] shadow-xl shadow-stone-200/50 flex flex-col md:flex-row justify-between items-center gap-6">
+                <div className="bg-white border border-stone-100 p-6 sm:p-8 rounded-3xl shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-6">
                     <div>
                         <h3 className="text-lg font-serif font-bold text-stone-900 tracking-tight">Home Page Configuration</h3>
                         <p className="text-xs text-stone-400 mt-1">Manage global settings for the landing page.</p>
@@ -1067,7 +1070,7 @@ const LayoutTab: React.FC<LayoutTabProps> = ({ layoutConfig, setLayoutConfig, pr
 
                     <button
                         onClick={toggleShowCatalog}
-                        className={`flex items-center gap-4 px-6 py-4 rounded-2xl border transition-all duration-300 ${showCatalog ? 'bg-stone-900 text-white border-stone-900' : 'bg-stone-50 text-stone-400 border-stone-200'}`}
+                        className={`flex items-center gap-3 sm:gap-4 px-5 py-3.5 sm:px-6 sm:py-4 rounded-2xl border transition-all duration-300 shrink-0 w-full sm:w-auto justify-between sm:justify-start ${showCatalog ? 'bg-stone-900 text-white border-stone-900' : 'bg-stone-50 text-stone-400 border-stone-200'}`}
                     >
                         <div className={`w-3 h-3 rounded-full ${showCatalog ? 'bg-[#C5A059]' : 'bg-stone-300'}`} />
                         <span className="text-xs font-bold uppercase tracking-widest">
@@ -1077,7 +1080,7 @@ const LayoutTab: React.FC<LayoutTabProps> = ({ layoutConfig, setLayoutConfig, pr
                 </div>
 
                 {/* Core Sections Visibility Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                     <HeroCarouselEditor
                         layoutConfig={layoutConfig}
                         products={products}
@@ -1109,7 +1112,7 @@ const LayoutTab: React.FC<LayoutTabProps> = ({ layoutConfig, setLayoutConfig, pr
                         <p className="text-xs text-stone-400">Manage featured collections, lookbook ensembles, and curated category tabs</p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                         <StaticSectionControl
                             title="Manor Collection"
                             visibilityKey="showManor"
@@ -1140,7 +1143,7 @@ const LayoutTab: React.FC<LayoutTabProps> = ({ layoutConfig, setLayoutConfig, pr
                 </div>
 
                 {/* Add Section */}
-                <div className="bg-white border border-stone-100 p-8 rounded-[2.5rem] shadow-xl shadow-stone-200/50 flex flex-col md:flex-row gap-6 items-center">
+                <div className="bg-white border border-stone-100 p-6 sm:p-8 rounded-3xl shadow-sm flex flex-col sm:flex-row gap-4 sm:gap-6 items-stretch sm:items-center">
                     <div className="flex-1 w-full relative">
                         <LayoutTemplate className="absolute left-6 top-1/2 -translate-y-1/2 text-stone-400" size={20} />
                         <input
@@ -1163,7 +1166,7 @@ const LayoutTab: React.FC<LayoutTabProps> = ({ layoutConfig, setLayoutConfig, pr
             </div>
 
             {/* --- SECTIONS LIST --- */}
-            <div className="space-y-8">
+            <div className="space-y-6 sm:space-y-8">
                 <AnimatePresence>
                     {sections.map((section, idx) => (
                         <motion.div
@@ -1171,11 +1174,11 @@ const LayoutTab: React.FC<LayoutTabProps> = ({ layoutConfig, setLayoutConfig, pr
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: idx * 0.1 }}
                             key={section.id}
-                            className="bg-white border border-stone-100 rounded-[3rem] shadow-sm overflow-hidden"
+                            className="bg-white border border-stone-100 rounded-3xl shadow-sm overflow-hidden"
                         >
                             {/* Header */}
-                            <div className="p-8 bg-stone-50/50 flex flex-col md:flex-row items-start md:items-center justify-between border-b border-stone-100 gap-4">
-                                <div className="flex items-center gap-6">
+                            <div className="p-5 sm:p-8 bg-stone-50/50 flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-stone-100 gap-4">
+                                <div className="flex items-center gap-4 sm:gap-6 min-w-0">
                                     <button
                                         onClick={() => toggleSectionVisibility(section.id)}
                                         className={`p-3 rounded-full transition-all duration-300 ${section.isVisible ? 'bg-stone-900 text-white shadow-lg' : 'bg-stone-200 text-stone-400 opacity-60'}`}
@@ -1184,7 +1187,7 @@ const LayoutTab: React.FC<LayoutTabProps> = ({ layoutConfig, setLayoutConfig, pr
                                         {section.isVisible ? <Eye size={18} /> : <EyeOff size={18} />}
                                     </button>
                                     <div>
-                                        <h4 className="text-xl font-bold text-stone-900 tracking-tight">{section.title}</h4>
+                                        <h4 className="text-lg sm:text-xl font-bold text-stone-900 tracking-tight truncate">{section.title}</h4>
                                         <p className="text-[9px] font-black text-[#C5A059] uppercase tracking-widest mt-1 opacity-80">{(section.productIds || []).length} Linked Artifacts</p>
                                     </div>
                                 </div>
@@ -1199,7 +1202,7 @@ const LayoutTab: React.FC<LayoutTabProps> = ({ layoutConfig, setLayoutConfig, pr
                             </div>
 
                             {/* Product Grid Selector */}
-                            <div className="p-8 bg-white border-t border-stone-100">
+                            <div className="p-4 sm:p-8 bg-white border-t border-stone-100">
                                 <SearchableProductSelector
                                     products={products}
                                     selectedIds={section.productIds || []}
