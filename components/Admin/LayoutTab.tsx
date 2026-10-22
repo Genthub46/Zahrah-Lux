@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { uploadImageToCloudinary } from '../../services/cloudinary';
-import { Eye, EyeOff, Trash2, CheckCircle2, LayoutTemplate, Plus, Upload, Loader2, Image as ImageIcon, ArrowUp, ArrowDown, ChevronRight, ChevronLeft, ChevronDown, Search, X } from 'lucide-react';
+import { Eye, EyeOff, Trash2, CheckCircle2, LayoutTemplate, Plus, Upload, Loader2, Image as ImageIcon, ArrowUp, ArrowDown, ChevronRight, ChevronLeft, ChevronDown, Search, X, List, LayoutGrid } from 'lucide-react';
 import { HomeLayoutConfig, SectionConfig, Product } from '../../types';
 import { saveLayoutConfig, logAdminAction } from '../../services/dbUtils';
 import { auth } from '../../services/firebaseConfig';
@@ -21,6 +21,7 @@ interface SearchableProductSelectorProps {
     onToggle: (productId: string) => void;
     placeholder?: string;
     compact?: boolean;
+    defaultView?: 'list' | 'grid';
 }
 
 const SearchableProductSelector: React.FC<SearchableProductSelectorProps> = ({
@@ -28,19 +29,30 @@ const SearchableProductSelector: React.FC<SearchableProductSelectorProps> = ({
     selectedIds,
     onToggle,
     placeholder = "Search by name, brand, or tag...",
-    compact = false
+    compact = false,
+    defaultView
 }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
     const [showSelectedOnly, setShowSelectedOnly] = useState(false);
+    const [viewMode, setViewMode] = useState<'list' | 'grid'>(compact ? 'list' : (defaultView || 'list'));
 
-    // Extract unique categories
+    // Category counts for quick numbers in dropdown
+    const categoryCounts = useMemo(() => {
+        const counts: Record<string, number> = {};
+        products.forEach(p => {
+            if (p.category) counts[p.category] = (counts[p.category] || 0) + 1;
+        });
+        return counts;
+    }, [products]);
+
+    // Extract sorted unique categories
     const categories = useMemo(() => {
         const cats = new Set<string>();
         products.forEach(p => {
             if (p.category) cats.add(p.category);
         });
-        return ['ALL', ...Array.from(cats)];
+        return ['ALL', ...Array.from(cats).sort()];
     }, [products]);
 
     // Filter products
@@ -64,84 +76,174 @@ const SearchableProductSelector: React.FC<SearchableProductSelectorProps> = ({
     }, [products, searchQuery, selectedCategory, showSelectedOnly, selectedIds]);
 
     return (
-        <div className="space-y-4">
-            {/* Control Bar: Search + Category Pills + Selected Only */}
-            <div className="space-y-2.5 bg-stone-50/80 p-3 rounded-2xl border border-stone-100">
-                <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center justify-between">
-                    <div className="relative flex-1 w-full">
-                        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
-                        <input
-                            type="text"
-                            value={searchQuery}
-                            onChange={e => setSearchQuery(e.target.value)}
-                            placeholder={placeholder}
-                            className="w-full pl-9 pr-8 py-2.5 sm:py-2 bg-white border border-stone-200 rounded-xl text-xs sm:text-[11px] font-medium text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-stone-900 transition-colors"
-                        />
-                        {searchQuery && (
-                            <button
-                                type="button"
-                                onClick={() => setSearchQuery('')}
-                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 p-0.5"
-                            >
-                                <X size={12} />
-                            </button>
-                        )}
-                    </div>
-
-                    {/* Show Selected Only Toggle */}
-                    <button
-                        type="button"
-                        onClick={() => setShowSelectedOnly(prev => !prev)}
-                        className={`w-full sm:w-auto justify-center px-3.5 py-2.5 sm:py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all whitespace-nowrap min-h-[38px] sm:min-h-0 ${
-                            showSelectedOnly
-                                ? 'bg-stone-900 text-white shadow-sm'
-                                : 'bg-white border border-stone-200 text-stone-600 hover:border-stone-400'
-                        }`}
-                    >
-                        <CheckCircle2 size={12} className={showSelectedOnly ? 'text-[#C5A059]' : 'text-stone-400'} />
-                        <span>Selected ({selectedIds.length})</span>
-                    </button>
+        <div className="space-y-3 w-full">
+            {/* Sleek, Single-Tier Control Bar */}
+            <div className="bg-stone-50/90 p-2.5 sm:p-3 rounded-2xl border border-stone-200/80 flex flex-wrap sm:flex-nowrap gap-2 items-center">
+                {/* Search Input */}
+                <div className="relative flex-1 min-w-[160px] w-full sm:w-auto">
+                    <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+                    <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={e => setSearchQuery(e.target.value)}
+                        placeholder={placeholder}
+                        className="w-full pl-8 pr-7 py-2 bg-white border border-stone-200 rounded-xl text-xs font-medium text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-stone-900 transition-colors"
+                    />
+                    {searchQuery && (
+                        <button
+                            type="button"
+                            onClick={() => setSearchQuery('')}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 p-0.5"
+                        >
+                            <X size={12} />
+                        </button>
+                    )}
                 </div>
 
-                {/* Category Pills */}
-                {categories.length > 2 && (
-                    <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none items-center text-[9px]">
-                        <span className="text-stone-400 font-bold uppercase tracking-widest text-[8px] mr-1">Filter:</span>
-                        {categories.map(cat => (
-                            <button
-                                key={cat}
-                                type="button"
-                                onClick={() => setSelectedCategory(cat)}
-                                className={`px-2.5 py-1 rounded-lg font-bold uppercase tracking-wider transition-colors whitespace-nowrap ${
-                                    selectedCategory === cat
-                                        ? 'bg-stone-900 text-white'
-                                        : 'bg-white border border-stone-200 text-stone-500 hover:bg-stone-100'
-                                }`}
-                            >
-                                {cat}
-                            </button>
-                        ))}
-                    </div>
-                )}
+                {/* Category Dropdown */}
+                <select
+                    value={selectedCategory}
+                    onChange={e => setSelectedCategory(e.target.value)}
+                    className="px-2.5 py-2 bg-white border border-stone-200 rounded-xl text-xs font-medium text-stone-700 focus:outline-none focus:border-stone-900 transition-colors cursor-pointer shrink-0 max-w-[150px] truncate"
+                    title="Filter by department"
+                >
+                    <option value="ALL">All Categories ({products.length})</option>
+                    {categories.filter(c => c !== 'ALL').map(cat => (
+                        <option key={cat} value={cat}>
+                            {cat} ({categoryCounts[cat] || 0})
+                        </option>
+                    ))}
+                </select>
+
+                {/* Show Selected Only Toggle */}
+                <button
+                    type="button"
+                    onClick={() => setShowSelectedOnly(prev => !prev)}
+                    className={`px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all whitespace-nowrap shrink-0 ${
+                        showSelectedOnly
+                            ? 'bg-stone-900 text-white shadow-sm'
+                            : 'bg-white border border-stone-200 text-stone-600 hover:border-stone-400'
+                    }`}
+                >
+                    <CheckCircle2 size={12} className={showSelectedOnly ? 'text-[#C5A059]' : 'text-stone-400'} />
+                    <span>Selected ({selectedIds.length})</span>
+                </button>
+
+                {/* View Mode Toggle: List vs Grid */}
+                <div className="flex items-center bg-white border border-stone-200 rounded-xl p-0.5 shrink-0">
+                    <button
+                        type="button"
+                        onClick={() => setViewMode('list')}
+                        className={`p-1.5 rounded-lg transition-colors ${viewMode === 'list' ? 'bg-stone-900 text-white shadow-sm' : 'text-stone-400 hover:text-stone-700'}`}
+                        title="Compact List View"
+                    >
+                        <List size={13} />
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setViewMode('grid')}
+                        className={`p-1.5 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-stone-900 text-white shadow-sm' : 'text-stone-400 hover:text-stone-700'}`}
+                        title="Tile Grid View"
+                    >
+                        <LayoutGrid size={13} />
+                    </button>
+                </div>
             </div>
 
-            {/* Empty state vs Grid */}
+            {/* Empty state vs Content */}
             {filteredProducts.length === 0 ? (
-                <div className="text-center py-8 bg-stone-50/50 rounded-2xl border border-dashed border-stone-200">
+                <div className="text-center py-6 bg-stone-50/50 rounded-2xl border border-dashed border-stone-200">
                     <p className="text-xs text-stone-500 font-bold">No products match your search or filter.</p>
                     <button
                         type="button"
                         onClick={() => { setSearchQuery(''); setSelectedCategory('ALL'); setShowSelectedOnly(false); }}
-                        className="mt-2 text-[10px] text-[#C5A059] font-bold uppercase tracking-widest hover:underline"
+                        className="mt-1.5 text-[10px] text-[#C5A059] font-bold uppercase tracking-widest hover:underline"
                     >
-                        Clear Filters
+                        Reset Filters
                     </button>
                 </div>
+            ) : viewMode === 'list' ? (
+                /* Compact List View */
+                <div className={`overflow-y-auto space-y-1.5 p-1 scrollbar-thin ${compact ? 'max-h-56' : 'max-h-80'}`}>
+                    {filteredProducts.map(p => {
+                        const isActive = selectedIds.includes(p.id);
+                        return (
+                            <div
+                                key={p.id}
+                                onClick={() => onToggle(p.id)}
+                                className={`flex items-center gap-3 p-2 sm:p-2.5 rounded-xl border transition-all cursor-pointer select-none group ${
+                                    isActive
+                                        ? 'bg-stone-900/5 border-[#C5A059]/60 shadow-sm'
+                                        : 'bg-white border-stone-100 hover:border-stone-300 hover:bg-stone-50'
+                                }`}
+                            >
+                                {/* Thumbnail */}
+                                <div className="w-10 h-10 rounded-lg overflow-hidden bg-stone-100 flex-shrink-0 relative border border-stone-200">
+                                    {p.images?.[0] ? (
+                                        <img src={p.images[0]} alt={p.name} className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105" />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-[8px] text-stone-400">N/A</div>
+                                    )}
+                                    {isActive && (
+                                        <div className="absolute inset-0 bg-stone-900/40 flex items-center justify-center">
+                                            <CheckCircle2 size={14} className="text-[#C5A059]" />
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Details */}
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-1.5">
+                                        <h5 className="text-xs font-bold text-stone-900 truncate">{p.name}</h5>
+                                        {p.category && (
+                                            <span className="text-[8px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded bg-stone-100 text-stone-600 shrink-0">
+                                                {p.category}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-2.5 mt-0.5">
+                                        <span className="text-[10px] font-bold text-[#C5A059]">₦{p.price.toLocaleString()}</span>
+                                        {p.brand && <span className="text-[9px] text-stone-400 truncate max-w-[120px]">{p.brand}</span>}
+                                        {p.stock !== undefined && (
+                                            <span className={`text-[8px] font-semibold ${p.stock > 0 ? 'text-emerald-600' : 'text-stone-400'}`}>
+                                                {p.stock > 0 ? `${p.stock} in stock` : 'Out of stock'}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Toggle Action Button */}
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onToggle(p.id);
+                                    }}
+                                    className={`shrink-0 px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider flex items-center gap-1 transition-all ${
+                                        isActive
+                                            ? 'bg-stone-900 text-white shadow-sm ring-1 ring-[#C5A059]/50'
+                                            : 'bg-stone-100 text-stone-600 group-hover:bg-stone-200 group-hover:text-stone-900'
+                                    }`}
+                                >
+                                    {isActive ? (
+                                        <>
+                                            <CheckCircle2 size={11} className="text-[#C5A059]" />
+                                            <span>Selected</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Plus size={11} />
+                                            <span>Add</span>
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        );
+                    })}
+                </div>
             ) : (
-                <div className={compact 
-                    ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-52 overflow-y-auto p-1"
-                    : "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-3 max-h-[460px] overflow-y-auto p-1"
-                }>
+                /* Compact Mini-Grid View */
+                <div className={`grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 overflow-y-auto p-1 scrollbar-thin ${compact ? 'max-h-56' : 'max-h-80'}`}>
                     {filteredProducts.map(p => {
                         const isActive = selectedIds.includes(p.id);
                         return (
@@ -149,31 +251,29 @@ const SearchableProductSelector: React.FC<SearchableProductSelectorProps> = ({
                                 key={p.id}
                                 type="button"
                                 onClick={() => onToggle(p.id)}
-                                className={`relative group aspect-[3/4] rounded-xl border-2 transition-all duration-200 p-1 overflow-hidden flex flex-col text-left ${
+                                className={`relative group rounded-xl border-2 transition-all p-1 overflow-hidden flex flex-col text-left ${
                                     isActive
                                         ? 'border-stone-900 bg-stone-50 ring-2 ring-stone-900/10 shadow-sm'
-                                        : 'border-stone-100 bg-white opacity-70 hover:opacity-100 hover:border-stone-300'
+                                        : 'border-stone-100 bg-white opacity-80 hover:opacity-100 hover:border-stone-300'
                                 }`}
                                 title={p.name}
                             >
-                                <div className="w-full h-full rounded-lg overflow-hidden relative bg-stone-100">
+                                <div className="w-full h-20 sm:h-24 rounded-lg overflow-hidden relative bg-stone-100">
                                     {p.images?.[0] ? (
-                                        <img src={p.images[0]} alt={p.name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                                        <img src={p.images[0]} alt={p.name} className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105" />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-[10px] text-stone-300">No Image</div>
+                                        <div className="w-full h-full flex items-center justify-center text-[9px] text-stone-400">No Image</div>
                                     )}
 
-                                    {/* Selection Checkmark */}
                                     {isActive && (
-                                        <div className="absolute top-1.5 right-1.5 bg-stone-900 text-white p-1 rounded-full shadow-md z-10">
+                                        <div className="absolute top-1 right-1 bg-stone-900 text-white p-1 rounded-full shadow-md z-10">
                                             <CheckCircle2 size={10} className="text-[#C5A059]" />
                                         </div>
                                     )}
 
-                                    {/* Info Overlay at bottom */}
-                                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-stone-950/90 via-stone-950/60 to-transparent p-1.5 pt-4 text-white">
-                                        <p className="text-[9px] font-bold truncate leading-tight">{p.name}</p>
-                                        <p className="text-[8px] text-[#C5A059] font-black tracking-wider">₦{p.price.toLocaleString()}</p>
+                                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-stone-950/90 via-stone-950/60 to-transparent p-1 pt-3 text-white">
+                                        <p className="text-[8px] font-bold truncate leading-tight">{p.name}</p>
+                                        <p className="text-[7.5px] text-[#C5A059] font-black">₦{p.price.toLocaleString()}</p>
                                     </div>
                                 </div>
                             </button>
@@ -184,6 +284,7 @@ const SearchableProductSelector: React.FC<SearchableProductSelectorProps> = ({
         </div>
     );
 };
+
 
 // --- Extracted Components ---
 
@@ -797,8 +898,10 @@ const StylingLooksEditor: React.FC<EditorProps> = ({ layoutConfig, products, onU
                                                 <span className="text-[10px] font-black text-stone-300 uppercase">Look 0{idx + 1}</span>
                                                 <button onClick={() => deleteLook(look.id)} className="text-stone-400 hover:text-red-500"><Trash2 size={14} /></button>
                                             </div>
-                                            <input type="text" value={look.title} onChange={e => updateLook(look.id, { title: e.target.value })} className="w-full bg-white px-3 py-2 rounded-lg text-xs font-serif font-bold border border-stone-200" placeholder="Look Title" />
-                                            <input type="text" value={look.price || ''} onChange={e => updateLook(look.id, { price: e.target.value })} className="w-full bg-white px-3 py-2 rounded-lg text-xs border border-stone-200" placeholder="Total Price" />
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                <input type="text" value={look.title} onChange={e => updateLook(look.id, { title: e.target.value })} className="w-full bg-white px-3 py-2 rounded-lg text-xs font-serif font-bold border border-stone-200 focus:outline-none focus:border-[#C5A059]" placeholder="Look Title" />
+                                                <input type="text" value={look.price || ''} onChange={e => updateLook(look.id, { price: e.target.value })} className="w-full bg-white px-3 py-2 rounded-lg text-xs border border-stone-200 focus:outline-none focus:border-[#C5A059]" placeholder="Total Price (e.g. ₦150,000)" />
+                                            </div>
 
                                             <div className="pt-2">
                                                 <p className="text-[9px] uppercase font-bold text-stone-400 mb-2">Matched Products ({look.productIds.length})</p>
