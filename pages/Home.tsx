@@ -21,6 +21,7 @@ const ManorCollection = React.lazy(() => import('../components/HomeSections/Mano
 const StylingIdeas = React.lazy(() => import('../components/HomeSections/StylingIdeas'));
 const BundlesDeals = React.lazy(() => import('../components/HomeSections/BundlesDeals'));
 const LifestyleShowcase = React.lazy(() => import('../components/HomeSections/LifestyleShowcase'));
+const TrendingCollection = React.lazy(() => import('../components/HomeSections/TrendingCollection'));
 
 const SectionLoader = () => (
   <div className="w-full h-96 flex items-center justify-center bg-stone-50">
@@ -531,6 +532,21 @@ const Home: React.FC<HomeProps> = ({ products, setProducts, layoutConfig, footer
       {(layoutConfig.showLifestyle ?? true) && !brandFilter && tagFilters.length === 0 && !categoryFilter && (
         <React.Suspense fallback={<SectionLoader />}>
           <LifestyleShowcase images={layoutConfig.lifestyleImages} />
+        </React.Suspense>
+      )}
+
+      {/* Trending / Curated Edit Section (Directly Below Lifestyle Showcase) */}
+      {(layoutConfig.showTrending ?? true) && !brandFilter && tagFilters.length === 0 && !categoryFilter && (
+        <React.Suspense fallback={<SectionLoader />}>
+          <TrendingCollection
+            title={layoutConfig.trendingTitle}
+            products={products}
+            onAddToCart={onAddToCart}
+            onLogView={onLogView}
+            onToggleWishlist={onToggleWishlist}
+            isWishlisted={isWishlisted}
+            selectedProductIds={layoutConfig.trendingProductIds}
+          />
         </React.Suspense>
       )}
 

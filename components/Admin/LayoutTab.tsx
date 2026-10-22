@@ -292,9 +292,9 @@ const StaticSectionControl: React.FC<{
     title: string;
     subtitle?: string;
     visibilityKey: keyof HomeLayoutConfig;
-    productKey?: 'manorProductIds' | 'stylingProductIds' | 'bundlesProductIds';
+    productKey?: 'manorProductIds' | 'stylingProductIds' | 'bundlesProductIds' | 'trendingProductIds';
     bannerImageKey?: 'boutiqueBannerImage' | 'heroImage';
-    textInputKey?: 'boutiqueBannerTitle';
+    textInputKey?: 'boutiqueBannerTitle' | 'trendingTitle';
     limit?: number;
 } & EditorProps> = ({
     title,
@@ -314,7 +314,7 @@ const StaticSectionControl: React.FC<{
         const selectedIds = productKey ? (layoutConfig[productKey] || []) : [];
         const validSelectedIds = useMemo(() => selectedIds.filter(id => products.some(p => p.id === id)), [selectedIds, products]);
         const bannerImage = bannerImageKey ? (layoutConfig[bannerImageKey] || '') : '';
-        const bannerTitle = textInputKey ? (layoutConfig[textInputKey] || '') : '';
+        const bannerTitle = textInputKey ? (layoutConfig[textInputKey] || (textInputKey === 'trendingTitle' ? 'Trending' : '')) : '';
 
         const toggleVisibility = async () => {
             await onUpdate(
@@ -1379,9 +1379,10 @@ const LayoutTab: React.FC<LayoutTabProps> = ({ layoutConfig, setLayoutConfig, pr
                         <p className="text-xs text-stone-400">Manage featured collections, lookbook ensembles, and curated category tabs</p>
                     </div>
 
-                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                         <StaticSectionControl
                             title="Manor Collection"
+                            subtitle="Top curated luxury gowns & bespoke suits"
                             visibilityKey="showManor"
                             productKey="manorProductIds"
                             layoutConfig={layoutConfig}
@@ -1390,8 +1391,19 @@ const LayoutTab: React.FC<LayoutTabProps> = ({ layoutConfig, setLayoutConfig, pr
                         />
                         <StaticSectionControl
                             title="Bundles & Deals"
+                            subtitle="Sale packages and bundle offerings"
                             visibilityKey="showBundles"
                             productKey="bundlesProductIds"
+                            layoutConfig={layoutConfig}
+                            products={products}
+                            onUpdate={handleUpdate}
+                        />
+                        <StaticSectionControl
+                            title="Trending Collection"
+                            subtitle="Showcase directly below Lifestyle Showcase"
+                            visibilityKey="showTrending"
+                            productKey="trendingProductIds"
+                            textInputKey="trendingTitle"
                             layoutConfig={layoutConfig}
                             products={products}
                             onUpdate={handleUpdate}

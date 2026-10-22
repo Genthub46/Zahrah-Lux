@@ -101,6 +101,9 @@ export interface HomeLayoutConfig {
   showBundles?: boolean;
   bundlesProductIds?: string[];
   showLifestyle?: boolean;
+  showTrending?: boolean;
+  trendingTitle?: string;
+  trendingProductIds?: string[];
 
   // Dynamic Content
   heroImage?: string;
