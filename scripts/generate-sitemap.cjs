@@ -205,6 +205,8 @@ Disallow: /admin/
 Disallow: /checkout
 Disallow: /orders
 Disallow: /stress-test
+Disallow: /Zarhrah_Admin_Guide.html
+Disallow: /*Admin_Guide*
 
 # Sitemaps
 Sitemap: ${DOMAIN}/sitemap.xml

@@ -81,6 +81,16 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                     <span>Return to Boutique</span>
                 </Link>
 
+                <a
+                    href="/Zarhrah_Admin_Guide.html?access=zarhrah2026"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full px-4 py-3 text-[10px] font-bold tracking-widest uppercase text-amber-700 hover:text-amber-900 bg-amber-500/5 hover:bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center space-x-3 transition-all group"
+                >
+                    <FileText size={16} className="text-[#C5A059] group-hover:scale-110 transition-transform" />
+                    <span>Executive Staff Guide</span>
+                </a>
+
                 <button
                     onClick={() => {
                         onRepairDatabase();
@@ -178,6 +188,16 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                                     <Store size={15} />
                                     <span>Return to Boutique</span>
                                 </Link>
+
+                                <a
+                                    href="/Zarhrah_Admin_Guide.html?access=zarhrah2026"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="w-full px-4 py-3 text-[10px] font-bold tracking-widest uppercase text-amber-700 bg-amber-50 border border-amber-200 hover:bg-amber-100 active:bg-amber-200 rounded-xl flex items-center justify-center space-x-2 transition-all min-h-[44px]"
+                                >
+                                    <FileText size={15} className="text-[#C5A059]" />
+                                    <span>Staff Guide</span>
+                                </a>
                                 <button
                                     onClick={onLogout}
                                     className="w-full px-4 py-3 text-[10px] font-bold tracking-widest uppercase text-red-600 bg-white border border-red-200 hover:bg-red-50 active:bg-red-100 rounded-xl flex items-center justify-center space-x-2 transition-all min-h-[44px]"

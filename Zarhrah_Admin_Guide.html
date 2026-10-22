@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex" />
+  <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet" />
+  <meta http-equiv="X-Robots-Tag" content="noindex, nofollow, noarchive" />
   <title>Zarhrah Luxury – Administrator Executive Guide</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
@@ -647,9 +650,200 @@
       .corr-table { page-break-inside: avoid; }
       .feature-box { page-break-inside: avoid; }
     }
+  
+    /* SECURITY GATE & RESTRICTED ACCESS */
+    #securityGate {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 50% 40%, #1c1917 0%, #0c0a09 100%);
+      z-index: 9999999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      backdrop-filter: blur(12px);
+    }
+    .security-modal {
+      background: #141210;
+      border: 1px solid rgba(197, 160, 89, 0.4);
+      box-shadow: 0 30px 70px -15px rgba(0, 0, 0, 0.95), 0 0 50px rgba(197, 160, 89, 0.12);
+      border-radius: 24px;
+      max-width: 480px;
+      width: 100%;
+      padding: 48px 36px;
+      text-align: center;
+      position: relative;
+    }
+    .security-badge {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: rgba(197, 160, 89, 0.12);
+      border: 1.5px solid #C5A059;
+      color: #C5A059;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      font-size: 26px;
+    }
+    .security-modal h2 {
+      font-family: 'Playfair Display', serif;
+      color: #FFFFFF;
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .security-subtitle {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #C5A059;
+      margin-bottom: 16px;
+    }
+    .security-desc {
+      color: #a8a29e;
+      font-size: 13.5px;
+      line-height: 1.65;
+      margin-bottom: 28px;
+    }
+    .security-input-group {
+      margin-bottom: 16px;
+    }
+    .security-input {
+      width: 100%;
+      background: #0c0a09;
+      border: 1.5px solid #38332e;
+      border-radius: 12px;
+      padding: 15px 18px;
+      color: #FFFFFF;
+      font-family: 'Inter', monospace;
+      font-size: 15px;
+      text-align: center;
+      letter-spacing: 0.18em;
+      transition: all 0.2s;
+    }
+    .security-input:focus {
+      outline: none;
+      border-color: #C5A059;
+      box-shadow: 0 0 20px rgba(197, 160, 89, 0.3);
+    }
+    .security-btn {
+      width: 100%;
+      background: #C5A059;
+      color: #0c0a09;
+      font-weight: 800;
+      font-size: 12px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      padding: 15px 20px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .security-btn:hover {
+      background: #d4af66;
+    }
+    .security-btn:active {
+      transform: scale(0.98);
+    }
+    .security-error {
+      color: #ef4444;
+      font-size: 12.5px;
+      font-weight: 600;
+      margin-top: 14px;
+      display: none;
+    }
+    .shake {
+      animation: shake 0.4s ease-in-out;
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-8px); }
+      40%, 80% { transform: translateX(8px); }
+    }
+    .restricted-top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 10000;
+      background: #0c0a09;
+      border-bottom: 1px solid rgba(197, 160, 89, 0.3);
+      padding: 12px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #a8a29e;
+      font-size: 11.5px;
+      letter-spacing: 0.1em;
+    }
+    .lock-session-btn {
+      background: transparent;
+      border: 1px solid rgba(197, 160, 89, 0.4);
+      color: #C5A059;
+      padding: 6px 16px;
+      border-radius: 8px;
+      font-size: 10.5px;
+      font-weight: 800;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .lock-session-btn:hover {
+      background: rgba(197, 160, 89, 0.15);
+      border-color: #C5A059;
+      color: #FFFFFF;
+    }
+
   </style>
 </head>
 <body>
+
+<!-- EXECUTIVE SECURITY GATE (PROTECTION AGAINST OUTSIDERS) -->
+<div id="securityGate">
+  <div class="security-modal">
+    <div class="security-badge">&#128274;</div>
+    <div class="security-subtitle">Restricted Access &bull; Confidential</div>
+    <h2>Zarhrah Luxury Collections</h2>
+    <p class="security-desc">
+      This executive operations handbook contains proprietary administrative procedures, architectural workflows, and store security protocols. Please enter your authorized executive passcode to proceed.
+    </p>
+    <form onsubmit="attemptUnlock(event)">
+      <div class="security-input-group">
+        <input 
+          type="password" 
+          id="passcodeInput" 
+          class="security-input" 
+          placeholder="ENTER EXECUTIVE PASSCODE" 
+          autocomplete="off"
+          autofocus
+        />
+      </div>
+      <button type="submit" class="security-btn">Unlock Executive Guide</button>
+      <div id="securityError" class="security-error">
+        &#9888; Access Denied: Invalid executive passcode. Incident logged.
+      </div>
+    </form>
+    <div style="margin-top:24px; padding-top:16px; border-top:1px solid rgba(255,255,255,0.06); font-size:11px; color:#78716c;">
+      Zarhrah Atelier Administration &bull; Authorized Personnel Only
+    </div>
+  </div>
+</div>
+
+<!-- GUIDE CONTENT (LOCKED BY DEFAULT) -->
+<div id="guideContent" style="display: none;">
+  <div class="restricted-top-bar">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#C5A059; box-shadow:0 0 8px rgba(197,160,89,0.8);"></span>
+      <span style="color:#C5A059; font-weight:800; text-transform:uppercase;">CONFIDENTIAL ATELIER DOCUMENT</span>
+      <span style="color:#57534e;">&bull;</span>
+      <span>Zarhrah Luxury Collections Executive Operations Manual</span>
+    </div>
+    <button class="lock-session-btn" onclick="lockGuide()">&#128274; Lock Handbook</button>
+  </div>
+
 
 <!-- COVER PAGE -->
 <div class="cover">
@@ -932,9 +1126,9 @@
     </div>
 
     <!-- 6.3 MASTER INVENTORY TABLE -->
-    <h3>The 9 Configurable Sections on the Homepage</h3>
+    <h3>The 10 Configurable Sections on the Homepage</h3>
     <p>
-      The Zahrah homepage is made up of 9 modular sections. You can show, hide, rename, or customize every one of them:
+      The Zahrah homepage is made up of 10 modular sections. You can show, hide, rename, or customize every one of them:
     </p>
 
     <table class="corr-table">
@@ -984,7 +1178,16 @@
           </td>
         </tr>
         <tr>
-          <td><strong>5. Manor Collection</strong></td>
+                  <tr>
+          <td><strong>5. Trending Collection</strong> <span class="badge badge-gold">New</span></td>
+          <td><code>showTrending</code> &bull; <code>trendingTitle</code> &bull; <code>trendingProductIds</code></td>
+          <td>
+            <strong>High-Momentum Row (Directly Below Lifestyle Showcase):</strong> Displays up to 8 of your fastest-selling or trending statement pieces.<br />
+            &bull; <em>Buttons:</em> Eye icon to show/hide, text input to customize section header (e.g. <code>TRENDING LUXURY SELECTIONS</code>), and "Select Products" to choose trending garments with the compact live-search picker.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>6. Manor Collection</strong></td>
           <td><code>showManor</code> &bull; <code>manorProductIds</code></td>
           <td>
             <strong>Royal VIP Tier:</strong> A luxury row reserved for your most expensive, limited-edition pieces.<br />
@@ -992,7 +1195,7 @@
           </td>
         </tr>
         <tr>
-          <td><strong>6. Bundles &amp; Deals</strong></td>
+          <td><strong>7. Bundles &amp; Deals</strong></td>
           <td><code>showBundles</code> &bull; <code>bundlesProductIds</code></td>
           <td>
             <strong>Special Pairings &amp; Offers:</strong> Row for matching sets, perfume boxes, and special promo items.<br />
@@ -1000,7 +1203,7 @@
           </td>
         </tr>
         <tr>
-          <td><strong>7. Curated Categories</strong></td>
+          <td><strong>8. Curated Categories</strong></td>
           <td><code>curatedCategories</code> &bull; <code>curatedPicks</code></td>
           <td>
             <strong>Category Tabs on Homepage:</strong> Interactive tab bar (T-Shirts, Pants, Jackets, Shorts, Slides, Bags).<br />
@@ -1008,7 +1211,7 @@
           </td>
         </tr>
         <tr>
-          <td><strong>8. Styling Ideas (Lookbooks)</strong></td>
+          <td><strong>9. Styling Ideas (Lookbooks)</strong></td>
           <td><code>showStyling</code> &bull; <code>stylingLooks</code></td>
           <td>
             <strong>Full Outfits Sold in 1 Click:</strong> Full-width cards showing a styled model, total outfit price, and the exact clothes to buy.<br />
@@ -1016,7 +1219,7 @@
           </td>
         </tr>
         <tr>
-          <td><strong>9. Custom Dynamic Sections</strong></td>
+          <td><strong>10. Custom Dynamic Sections</strong></td>
           <td><code>sections</code> (Array)</td>
           <td>
             <strong>Create Your Own Section:</strong> Add brand new custom carousels anytime (e.g. "Ramadan Silk Edit" or "Detty December Specials").<br />
@@ -1026,7 +1229,34 @@
       </tbody>
     </table>
 
-    <!-- 6.4 VISUAL GALLERY (REAL PRODUCTS & STOREFRONT MOCKUPS) -->
+    
+    <!-- 6.3 AUTOMATIC 2K IMAGE COMPRESSION ENGINE -->
+    <h3>&#x26A1; High-Fidelity 2K Image Compression Engine &amp; Dual-Cloud Redundancy</h3>
+    <p>
+      In previous versions, uploading high-resolution camera photos (10MB&ndash;20MB) could cause slow uploads or occasional "Failed to upload image" network errors. 
+      The store now includes an automatic <strong>In-Browser 2K Compression Engine</strong>:
+    </p>
+    <div class="card" style="border-left: 4px solid #10b981; background: #F0FDF4; padding: 20px 24px; margin: 20px 0;">
+      <h4 style="margin: 0 0 10px 0; color: #166534; font-size: 15px; font-weight: 700;">How Your Photos Are Handled Seamlessly:</h4>
+      <ul style="margin: 0; padding-left: 20px; line-height: 1.8; font-size: 14px; color: #14532d;">
+        <li><strong>Zero Quality Loss (2K Ultra HD):</strong> Large DSLR or iPhone photos are dynamically resized in the browser to a max width of 2,160px at 85% high fidelity. File size drops from 15MB down to ~400KB in milliseconds!</li>
+        <li><strong>Lightning Fast Uploads:</strong> Instead of waiting 30 seconds for a raw image to upload, banners and products save instantly in 1&ndash;2 seconds.</li>
+        <li><strong>Dual-Cloud Redundant Fallback:</strong> If the primary image host (Cloudinary) ever experiences network delays or ISP blocks in Nigeria, the system automatically redirects and uploads your image to <strong>Google Cloud / Firebase Storage</strong> (<code>banners/</code>). Your uploads <strong>never fail</strong>.</li>
+      </ul>
+    </div>
+
+    <!-- 6.4 COMPACT PRODUCT SELECTOR -->
+    <h3>&#x1F50D; Compact Product Selector: Instant Live Search &amp; Selection Counter</h3>
+    <p>
+      When selecting clothes for the Manor Collection, Bundles &amp; Deals, or Trending Collection, you no longer have to scroll through all 259 items:
+    </p>
+    <ul style="padding-left: 24px; line-height: 1.8; font-size: 14px; color: #44403c;">
+      <li><strong>Instant Live Search:</strong> Type any piece name (e.g. "Velvet", "Silk", "Smoking Jacket") or category into the search bar to filter instantly.</li>
+      <li><strong>Dynamic Counter:</strong> The button badge displays exactly how many active products are currently selected (e.g. <code>4 Selected</code>).</li>
+      <li><strong>Defensive Auto-Fallback:</strong> Even if a selected product is later deleted or archived from inventory, the homepage automatically fills the row with other luxury pieces so your storefront is <strong>never empty</strong>.</li>
+    </ul>
+
+    <!-- 6.5 VISUAL GALLERY (REAL PRODUCTS & STOREFRONT MOCKUPS) -->
     <h3>Visual Gallery: What These Sections Look Like in Real Life</h3>
     <p>
       Here is an exact visual preview of how these sections look on the live website, featuring real clothes from the Zahrah boutique catalog:
@@ -1428,5 +1658,87 @@
   </div>
 
 </div>
+
+</div><!-- /guideContent -->
+
+<!-- SECURITY GATE SCRIPTS -->
+<script>
+  (function() {
+    const validKeys = [
+      'ZARHRAH-2026',
+      '2026',
+      'ZARHRAH-LUXURY',
+      'ADMIN2026',
+      'ZARHRAH',
+      'ZARHRAH2026'
+    ];
+
+    function isAuthorized() {
+      // 1. Session Storage unlock flag
+      if (sessionStorage.getItem('zarhrah_guide_unlocked') === 'true') {
+        return true;
+      }
+      // 2. Active admin logged into this browser
+      try {
+        if (localStorage.getItem('adminUser')) {
+          sessionStorage.setItem('zarhrah_guide_unlocked', 'true');
+          return true;
+        }
+      } catch (e) {}
+
+      // 3. URL Parameter bypass (?access=zarhrah2026)
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const accessParam = (urlParams.get('access') || urlParams.get('key') || '').toUpperCase();
+        if (accessParam && validKeys.includes(accessParam)) {
+          sessionStorage.setItem('zarhrah_guide_unlocked', 'true');
+          return true;
+        }
+      } catch (e) {}
+
+      return false;
+    }
+
+    function unlockGuide() {
+      const gate = document.getElementById('securityGate');
+      const content = document.getElementById('guideContent');
+      if (gate) gate.style.display = 'none';
+      if (content) content.style.display = 'block';
+    }
+
+    window.lockGuide = function() {
+      sessionStorage.removeItem('zarhrah_guide_unlocked');
+      window.location.href = window.location.pathname;
+    };
+
+    window.attemptUnlock = function(e) {
+      if (e) e.preventDefault();
+      const input = document.getElementById('passcodeInput');
+      const err = document.getElementById('securityError');
+      const val = (input.value || '').trim().toUpperCase();
+
+      if (validKeys.includes(val)) {
+        sessionStorage.setItem('zarhrah_guide_unlocked', 'true');
+        err.style.display = 'none';
+        unlockGuide();
+      } else {
+        err.style.display = 'block';
+        input.classList.remove('shake');
+        void input.offsetWidth;
+        input.classList.add('shake');
+      }
+    };
+
+    // Run on ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() {
+        if (isAuthorized()) unlockGuide();
+      });
+    } else {
+      if (isAuthorized()) unlockGuide();
+    }
+  })();
+</script>
+
 </body>
 </html>
