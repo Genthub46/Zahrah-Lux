@@ -3,6 +3,7 @@ import { LogOut, Activity, X, LucideIcon, Store, FileText, Users, AlertTriangle 
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import Logo from '../Logo';
+import { isSandboxMode } from '../../services/dbUtils';
 
 interface Tab {
     id: string;
@@ -39,6 +40,12 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
             <Link to="/" className="h-24 flex items-center justify-center border-b border-stone-100 hover:bg-stone-50 transition-colors">
                 <Logo size={70} className="text-stone-900" />
             </Link>
+            {isSandboxMode() && (
+                <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 flex items-center justify-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-amber-700">Sandbox Playground</span>
+                </div>
+            )}
             <div className="flex-1 overflow-y-auto px-6 py-6 scrollbar-hide">
                 <nav className="space-y-1">
                     {tabs.map((tab) => (
@@ -136,6 +143,12 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                                     <X size={20} className="text-stone-500" />
                                 </button>
                             </div>
+                            {isSandboxMode() && (
+                                <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 flex items-center justify-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-amber-700">Sandbox Playground</span>
+                                </div>
+                            )}
 
                             <div className="flex-1 overflow-y-auto p-4 space-y-1.5 scrollbar-hide">
                                 {tabs.map((tab) => (

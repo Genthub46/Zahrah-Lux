@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense, useCallback } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Link } from 'react-router-dom';
 import { Product, CartItem, Order, ViewLog, RestockRequest, HomeLayoutConfig, SectionConfig, FooterPage } from './types';
 import {
   APP_STORAGE_KEY,
@@ -63,6 +63,7 @@ import {
   subscribeToRequests,
   subscribeToPages,
   subscribeToLayout,
+  isSandboxMode,
   seedInitialData,
   saveOrder,
   placeOrderWithStockCheck,
@@ -550,6 +551,18 @@ const App: React.FC = () => {
         </main>
 
         <FloatingFeatures />
+
+        {isSandboxMode() && (
+          <aside
+            aria-label="Sandbox Mode Preview"
+            className="fixed bottom-4 left-4 z-[999] bg-stone-900/90 hover:bg-stone-900 text-white backdrop-blur-md px-3.5 py-2 rounded-full border border-amber-400/60 shadow-xl flex items-center gap-2.5 text-[11px] font-sans transition-all group"
+          >
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+            <span className="text-amber-300 font-bold uppercase tracking-wider text-[10px]">Sandbox Preview</span>
+            <span className="text-stone-400 hidden sm:inline text-[10px]">| Live store safe</span>
+            <Link to="/admin" className="ml-1 text-[#C5A059] group-hover:underline font-bold text-[10px]">Open Admin</Link>
+          </aside>
+        )}
       </div>
     </Router>
   );

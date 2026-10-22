@@ -91,11 +91,69 @@ export const subscribeToPages = (callback: (data: FooterPage[]) => void) => {
     });
 };
 
-export const subscribeToLayout = (callback: (data: HomeLayoutConfig | null) => void) => {
-    return onSnapshot(doc(db, CONFIG_COL, "homeLayout"), (doc) => {
-        if (doc.exists()) {
-            callback(doc.data() as HomeLayoutConfig);
+// --- Sandbox Playground Utilities ---
+export const isSandboxMode = (): boolean => {
+    if (import.meta.env.VITE_SANDBOX_MODE === 'true') return true;
+    if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem('zahrah_sandbox_mode');
+        if (stored !== null) return stored === 'true';
+    }
+    return false;
+};
+
+export const setSandboxMode = (enabled: boolean): void => {
+    if (typeof window !== 'undefined') {
+        if (enabled) {
+            localStorage.setItem('zahrah_sandbox_mode', 'true');
         } else {
+            localStorage.setItem('zahrah_sandbox_mode', 'false');
+        }
+        window.location.reload();
+    }
+};
+
+export const getLayoutDocName = (): string => {
+    return isSandboxMode() ? "homeLayout_sandbox" : "homeLayout";
+};
+
+export const resetSandboxFromLive = async (): Promise<void> => {
+    const liveDocRef = doc(db, CONFIG_COL, "homeLayout");
+    const liveSnap = await getDoc(liveDocRef);
+    if (liveSnap.exists()) {
+        await setDoc(doc(db, CONFIG_COL, "homeLayout_sandbox"), liveSnap.data());
+    }
+};
+
+export const publishSandboxToLive = async (): Promise<void> => {
+    const sandboxDocRef = doc(db, CONFIG_COL, "homeLayout_sandbox");
+    const sandboxSnap = await getDoc(sandboxDocRef);
+    if (sandboxSnap.exists()) {
+        await setDoc(doc(db, CONFIG_COL, "homeLayout"), sandboxSnap.data());
+    }
+};
+
+export const subscribeToLayout = (callback: (data: HomeLayoutConfig | null) => void) => {
+    const docName = getLayoutDocName();
+    const targetRef = doc(db, CONFIG_COL, docName);
+
+    return onSnapshot(targetRef, async (snapshot) => {
+        if (snapshot.exists()) {
+            callback(snapshot.data() as HomeLayoutConfig);
+        } else {
+            // If in sandbox mode and sandbox doc doesn't exist yet, seed it from live homeLayout
+            if (isSandboxMode()) {
+                try {
+                    const liveSnap = await getDoc(doc(db, CONFIG_COL, "homeLayout"));
+                    if (liveSnap.exists()) {
+                        const liveData = liveSnap.data() as HomeLayoutConfig;
+                        await setDoc(targetRef, liveData);
+                        callback(liveData);
+                        return;
+                    }
+                } catch (e) {
+                    console.warn("Could not auto-seed sandbox layout from live:", e);
+                }
+            }
             callback(null);
         }
     });
@@ -311,7 +369,8 @@ export const deleteReview = async (id: string) => {
 };
 
 export const saveLayoutConfig = async (config: Partial<HomeLayoutConfig>) => {
-    await setDoc(doc(db, CONFIG_COL, "homeLayout"), config, { merge: true });
+    const docName = getLayoutDocName();
+    await setDoc(doc(db, CONFIG_COL, docName), config, { merge: true });
 };
 
 // --- Categories ---

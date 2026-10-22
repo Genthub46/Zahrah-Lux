@@ -27,3 +27,5 @@ dist-ssr
 key.json
 .env
 .env.*
+
+!.env.example

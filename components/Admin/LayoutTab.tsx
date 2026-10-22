@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { uploadImageToCloudinary } from '../../services/cloudinary';
-import { Eye, EyeOff, Trash2, CheckCircle2, LayoutTemplate, Plus, Upload, Loader2, Image as ImageIcon, ArrowUp, ArrowDown, ChevronRight, ChevronLeft, ChevronDown, Search, X, List, LayoutGrid } from 'lucide-react';
+import { Eye, EyeOff, Trash2, CheckCircle2, LayoutTemplate, Plus, Upload, Loader2, Image as ImageIcon, ArrowUp, ArrowDown, ChevronRight, ChevronLeft, ChevronDown, Search, X, List, LayoutGrid, Sparkles, ShieldCheck, RefreshCw, UploadCloud } from 'lucide-react';
 import { HomeLayoutConfig, SectionConfig, Product } from '../../types';
-import { saveLayoutConfig, logAdminAction } from '../../services/dbUtils';
+import { saveLayoutConfig, logAdminAction, isSandboxMode, setSandboxMode, resetSandboxFromLive, publishSandboxToLive } from '../../services/dbUtils';
 import { auth } from '../../services/firebaseConfig';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '../../contexts/ToastContext';
@@ -1093,6 +1093,62 @@ interface LayoutTabProps {
 const LayoutTab: React.FC<LayoutTabProps> = ({ layoutConfig, setLayoutConfig, products }) => {
     const { showToast } = useToast();
     const [newSectionTitle, setNewSectionTitle] = useState('');
+    const [isPublishingLive, setIsPublishingLive] = useState(false);
+    const [isRefreshingLive, setIsRefreshingLive] = useState(false);
+    const sandboxActive = isSandboxMode();
+
+    const handlePublishToLive = async () => {
+        const ok = window.confirm(
+            "Are you sure you want to PUBLISH this sandbox layout directly to the LIVE boutique?\n\nThis will immediately update the homepage for all customers on zahrah-boutique.web.app."
+        );
+        if (!ok) return;
+
+        setIsPublishingLive(true);
+        try {
+            await publishSandboxToLive();
+            await logAdminAction(
+                "Promote Sandbox to Live",
+                "Published sandbox layout configuration live to store",
+                auth.currentUser?.email || "Admin"
+            );
+            showToast("Live Store Updated!", {
+                type: "success",
+                description: "The sandbox layout is now live on zahrah-boutique.web.app."
+            });
+        } catch (e) {
+            console.error(e);
+            showToast("Publish Failed", {
+                type: "error",
+                description: "Could not publish sandbox layout to live store."
+            });
+        } finally {
+            setIsPublishingLive(false);
+        }
+    };
+
+    const handleResetFromLive = async () => {
+        const ok = window.confirm(
+            "Reset sandbox from live store?\n\nThis will replace your current sandbox layout with a fresh copy of what is currently live."
+        );
+        if (!ok) return;
+
+        setIsRefreshingLive(true);
+        try {
+            await resetSandboxFromLive();
+            showToast("Sandbox Refreshed", {
+                type: "info",
+                description: "Sandbox now matches the current live store layout."
+            });
+        } catch (e) {
+            console.error(e);
+            showToast("Reset Failed", {
+                type: "error",
+                description: "Could not copy live store layout into sandbox."
+            });
+        } finally {
+            setIsRefreshingLive(false);
+        }
+    };
 
     const sections = layoutConfig?.sections || [];
     const showCatalog = layoutConfig?.showCatalog ?? true;
@@ -1173,6 +1229,85 @@ const LayoutTab: React.FC<LayoutTabProps> = ({ layoutConfig, setLayoutConfig, pr
 
     return (
         <div className="space-y-10 sm:space-y-12 w-full min-w-0 max-w-full animate-in fade-in duration-500">
+
+            {/* --- SANDBOX / LIVE STATUS CONTROL BAR --- */}
+            <div className={`p-5 sm:p-6 rounded-3xl border transition-all duration-300 ${
+                sandboxActive
+                    ? 'bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-amber-500/10 border-amber-300/80 shadow-md shadow-amber-500/5'
+                    : 'bg-stone-50 border-stone-200'
+            }`}>
+                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 sm:gap-6">
+                    <div className="flex items-start gap-3.5">
+                        <div className={`p-2.5 rounded-2xl shrink-0 mt-0.5 ${
+                            sandboxActive ? 'bg-amber-500 text-white shadow-sm' : 'bg-stone-200 text-stone-700'
+                        }`}>
+                            {sandboxActive ? <Sparkles size={20} /> : <ShieldCheck size={20} />}
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-2.5 flex-wrap">
+                                <h3 className="text-base sm:text-lg font-serif font-bold text-stone-900 tracking-tight">
+                                    {sandboxActive ? '🧪 Safe Sandbox Playground' : '🟢 Live Store Mode'}
+                                </h3>
+                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                                    sandboxActive ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                }`}>
+                                    {sandboxActive ? 'Sandbox Active • Live Store Safe' : 'Live Mode • Real Shoppers'}
+                                </span>
+                            </div>
+                            <p className="text-xs text-stone-600 mt-1 max-w-2xl leading-relaxed">
+                                {sandboxActive
+                                    ? 'You can freely test layouts, reorder sections, and adjust lookbooks without affecting the live store. Real customers on zahrah-boutique.web.app will NOT see these changes until you publish them.'
+                                    : 'Any layout changes saved here will immediately show up on the live website. Switch to Sandbox Playground to test risk-free.'}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto shrink-0">
+                        {sandboxActive ? (
+                            <>
+                                <button
+                                    type="button"
+                                    onClick={handleResetFromLive}
+                                    disabled={isRefreshingLive}
+                                    className="px-4 py-2.5 bg-white hover:bg-stone-100 border border-stone-200 rounded-xl text-stone-700 text-xs font-bold tracking-wider uppercase transition-all shadow-sm flex items-center gap-2 min-h-[44px]"
+                                    title="Discard current sandbox edits and copy current live layout into sandbox"
+                                >
+                                    <RefreshCw size={14} className={isRefreshingLive ? 'animate-spin' : ''} />
+                                    <span>Refresh From Live</span>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={handlePublishToLive}
+                                    disabled={isPublishingLive}
+                                    className="px-4 py-2.5 bg-stone-900 hover:bg-[#C5A059] text-white rounded-xl text-xs font-bold tracking-wider uppercase transition-all shadow-sm flex items-center gap-2 min-h-[44px]"
+                                    title="Apply this sandbox layout directly to the live store"
+                                >
+                                    <UploadCloud size={14} className={isPublishingLive ? 'animate-spin' : ''} />
+                                    <span>Publish to Live Store</span>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setSandboxMode(false)}
+                                    className="px-3.5 py-2.5 bg-amber-100 hover:bg-amber-200 border border-amber-300 text-amber-900 rounded-xl text-xs font-bold tracking-wider uppercase transition-all min-h-[44px]"
+                                >
+                                    Exit Sandbox
+                                </button>
+                            </>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={() => setSandboxMode(true)}
+                                className="px-4 py-2.5 bg-[#C5A059] hover:bg-[#b08e4d] text-white rounded-xl text-xs font-bold tracking-wider uppercase transition-all shadow-md shadow-[#C5A059]/20 flex items-center gap-2 min-h-[44px] w-full sm:w-auto justify-center"
+                            >
+                                <Sparkles size={14} />
+                                <span>Enter Safe Sandbox Playground</span>
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </div>
 
             {/* --- CONTROL PANEL --- */}
             <div className="space-y-6">

@@ -2,6 +2,7 @@ import React from "react";
 import { Menu, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import Logo from "../Logo";
+import { isSandboxMode } from "../../services/dbUtils";
 
 interface AdminMobileHeaderProps {
     activeTab: string;
@@ -27,6 +28,11 @@ const AdminMobileHeader: React.FC<AdminMobileHeaderProps> = ({ activeTab, onMenu
             </div>
 
             <div className="flex items-center gap-2">
+                {isSandboxMode() && (
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-300">
+                        Sandbox
+                    </span>
+                )}
                 <div className="flex flex-col items-end mr-1">
                     <span className="text-[8px] font-black uppercase tracking-widest text-[#C5A059]">Executive</span>
                     <span className="text-[10px] font-bold text-stone-800 max-w-[120px] truncate">{userEmail?.split("@")[0]}</span>
