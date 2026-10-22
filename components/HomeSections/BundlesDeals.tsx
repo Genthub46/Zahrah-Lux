@@ -29,9 +29,20 @@ const BundlesDeals: React.FC<BundlesDealsProps> = ({
     // Mocking specific products for this section
     // In a real app, you might filter by a 'bundle' tag or 'sale' category
 
-    const bundleProducts = selectedProductIds && selectedProductIds.length > 0
+    // Filter relevant products with senior-dev grade defensive fallback:
+    // 1. Look for valid products in selectedProductIds
+    const explicitlySelected = selectedProductIds && selectedProductIds.length > 0
         ? products.filter(p => selectedProductIds.includes(p.id))
         : [];
+
+    // 2. Fall back to products on sale or tagged bundle/deal/sale
+    const fallbackBundles = products
+        .filter(p => p.tags?.some(t => /bundle|deal|set|pack|sale/i.test(t)))
+        .slice(0, 8);
+
+    const bundleProducts = explicitlySelected.length > 0
+        ? explicitlySelected
+        : (fallbackBundles.length > 0 ? fallbackBundles : products.slice(0, 8));
 
     if (bundleProducts.length === 0) {
         return null;
@@ -46,10 +57,10 @@ const BundlesDeals: React.FC<BundlesDealsProps> = ({
     };
 
     return (
-        <section className="py-8 md:py-10 bg-white border-t border-stone-100">
-            <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12">
-                <div className="flex flex-row justify-between items-center mb-10">
-                    <div>
+        <section className="py-8 md:py-10 bg-white border-t border-stone-100 overflow-hidden w-full">
+            <div className="max-w-[1800px] mx-auto px-6 sm:px-8 lg:px-12 w-full min-w-0">
+                <div className="flex flex-row justify-between items-center mb-8 sm:mb-10 gap-4">
+                    <div className="min-w-0">
                         <span className="text-[#C5A059] font-bold text-xs uppercase tracking-[0.3em] mb-3 block">
                             Last Chance To Buy
                         </span>

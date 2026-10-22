@@ -68,12 +68,12 @@ const StylingIdeas: React.FC<StylingIdeasProps> = ({
     };
 
     return (
-        <section className="py-10 md:py-12 bg-[#FCFCFC] overflow-hidden">
-            <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12">
+        <section className="py-10 md:py-12 bg-[#FCFCFC] overflow-hidden w-full">
+            <div className="max-w-[1800px] mx-auto px-6 sm:px-8 lg:px-12 w-full min-w-0">
 
                 {/* Section Header */}
-                <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-6">
-                    <div>
+                <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-6 min-w-0">
+                    <div className="min-w-0">
                         <span className="text-[#C5A059] font-bold text-xs uppercase tracking-[0.3em] mb-4 block">
                             Curated Ensembles
                         </span>

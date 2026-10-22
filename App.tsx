@@ -486,10 +486,10 @@ const App: React.FC = () => {
   return (
     <Router>
       <LuxuryLoader />
-      <div className="min-h-screen bg-stone-50 flex flex-col font-sans text-stone-900 selection:bg-[#C5A059] selection:text-white">
+      <div className="min-h-screen bg-stone-50 flex flex-col font-sans text-stone-900 selection:bg-[#C5A059] selection:text-white overflow-x-hidden max-w-full">
         <Navbar cartCount={cartCount} wishlistCount={wishlist.length} user={user} />
 
-        <main className="flex-grow w-full">
+        <main className="flex-grow w-full min-w-0 max-w-full overflow-x-hidden">
           <Routes>
             <Route path="/" element={<Home products={products} setProducts={setProducts} layoutConfig={layoutConfig} footerPages={footerPages} onAddToCart={addToCart} onLogView={logView} onToggleWishlist={toggleWishlist} wishlist={wishlist} />} />
             <Route path="/wishlist" element={<SuspenseWrapper><Wishlist wishlist={wishlist} onToggleWishlist={toggleWishlist} onAddToCart={addToCart} /></SuspenseWrapper>} />

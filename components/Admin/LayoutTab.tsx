@@ -306,9 +306,11 @@ const StaticSectionControl: React.FC<{
     onUpdate
 }) => {
         const isVisible = layoutConfig[visibilityKey] ?? true;
+        const { showToast } = useToast();
         const [isExpanded, setIsExpanded] = useState(false);
         const [isUploading, setIsUploading] = useState(false);
         const selectedIds = productKey ? (layoutConfig[productKey] || []) : [];
+        const validSelectedIds = useMemo(() => selectedIds.filter(id => products.some(p => p.id === id)), [selectedIds, products]);
         const bannerImage = bannerImageKey ? (layoutConfig[bannerImageKey] || '') : '';
         const bannerTitle = textInputKey ? (layoutConfig[textInputKey] || '') : '';
 
@@ -335,9 +337,10 @@ const StaticSectionControl: React.FC<{
 
         const toggleProduct = async (productId: string) => {
             if (!productKey) return;
-            const currentIds = layoutConfig[productKey] || [];
+            // Filter current IDs to only keep active products in the store
+            const currentIds = (layoutConfig[productKey] || []).filter((id: string) => products.some(p => p.id === id));
             const exists = currentIds.includes(productId);
-            const newIds = exists ? currentIds.filter(id => id !== productId) : [...currentIds, productId];
+            const newIds = exists ? currentIds.filter((id: string) => id !== productId) : [...currentIds, productId];
             await onUpdate(
                 { [productKey]: newIds },
                 `Updated products for ${title}. New count: ${newIds.length}`
@@ -352,9 +355,16 @@ const StaticSectionControl: React.FC<{
                 setIsUploading(true);
                 const url = await uploadImageToCloudinary(file);
                 await handleBannerChange(url);
-            } catch (error) {
+                showToast("Image Uploaded", {
+                    type: "success",
+                    description: `Updated banner for ${title}`
+                });
+            } catch (error: any) {
                 console.error("Upload failed", error);
-                alert("Failed to upload image.");
+                showToast("Upload Failed", {
+                    type: "error",
+                    description: error?.message || "Please check your network or paste an image URL directly into the input."
+                });
             } finally {
                 setIsUploading(false);
             }
@@ -387,7 +397,7 @@ const StaticSectionControl: React.FC<{
                                 <h4 className={`font-bold text-stone-900 text-sm truncate ${canExpand ? 'group-hover:text-[#C5A059] transition-colors' : ''}`}>{title}</h4>
                                 {productKey && (
                                     <p className="text-[9px] font-black text-[#C5A059] uppercase tracking-widest mt-0.5 truncate">
-                                        {selectedIds.length} Selected {canExpand && `• Click to ${isExpanded ? 'Close' : 'Select'}`}
+                                        {validSelectedIds.length} Selected {canExpand && `• Click to ${isExpanded ? 'Close' : 'Select'}`}
                                     </p>
                                 )}
                             </div>
@@ -464,7 +474,7 @@ const StaticSectionControl: React.FC<{
                                 </p>
                                 <SearchableProductSelector
                                     products={products}
-                                    selectedIds={selectedIds}
+                                    selectedIds={validSelectedIds}
                                     onToggle={toggleProduct}
                                     placeholder={`Filter products for ${title}...`}
                                 />
@@ -497,9 +507,9 @@ const LifestyleEditor: React.FC<EditorProps> = ({ layoutConfig, onUpdate }) => {
             setUploadingIndex(index);
             const url = await uploadImageToCloudinary(file);
             await updateLifestyleImage(index, url);
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            alert("Upload failed");
+            alert(`Upload Failed: ${error?.message || "Please check your connection"}`);
         } finally {
             setUploadingIndex(null);
         }
@@ -987,9 +997,9 @@ const HeroCarouselEditor: React.FC<EditorProps> = ({ layoutConfig, onUpdate }) =
             setUploadingIndex(images.length);
             const url = await uploadImageToCloudinary(file);
             await updateImages([...images, url]);
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            alert("Upload failed");
+            alert(`Upload Failed: ${error?.message || "Please check your connection"}`);
         } finally {
             setUploadingIndex(null);
         }

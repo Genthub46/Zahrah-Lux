@@ -26,13 +26,20 @@ const ManorCollection: React.FC<ManorCollectionProps> = ({
     const scrollRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
 
-    // Filter relevant products - for now taking the most expensive ones or 'Premium' tagged
-    // In a real app this would be a specific collection fetch
-    const manorProducts = selectedProductIds && selectedProductIds.length > 0
+    // Filter relevant products with senior-dev grade defensive fallback:
+    // 1. Look for valid products in selectedProductIds
+    const explicitlySelected = selectedProductIds && selectedProductIds.length > 0
         ? products.filter(p => selectedProductIds.includes(p.id))
-        : products
-            .filter(p => p.price > 100000 || p.tags.includes('Manor'))
-            .slice(0, 8);
+        : [];
+
+    // 2. If no valid products match (e.g. stale/deleted IDs in DB or empty), fall back to luxury dresses/suits/manor
+    const fallbackProducts = products
+        .filter(p => (p.price && p.price > 80000) || p.tags?.some(t => /manor|luxury|premium|bespoke/i.test(t)) || p.category === 'DRESSES' || p.category === 'SUITS')
+        .slice(0, 8);
+
+    const manorProducts = explicitlySelected.length > 0
+        ? explicitlySelected
+        : (fallbackProducts.length > 0 ? fallbackProducts : products.slice(0, 8));
 
     const scroll = (direction: 'left' | 'right') => {
         if (scrollRef.current) {
@@ -43,10 +50,10 @@ const ManorCollection: React.FC<ManorCollectionProps> = ({
     };
 
     return (
-        <section className="py-8 md:py-10 bg-stone-50">
-            <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12">
-                <div className="flex flex-row justify-between items-end mb-12">
-                    <div>
+        <section className="py-8 md:py-10 bg-stone-50 overflow-hidden w-full">
+            <div className="max-w-[1800px] mx-auto px-6 sm:px-8 lg:px-12 w-full min-w-0">
+                <div className="flex flex-row justify-between items-end mb-8 sm:mb-12 gap-4">
+                    <div className="min-w-0">
                         <span className="text-[#C5A059] font-bold text-xs uppercase tracking-[0.3em] mb-3 block">
                             Exclusive Selection
                         </span>
