@@ -102,7 +102,7 @@
 
     /* CONTENT WRAPPER */
     .content {
-      max-width: 860px;
+      max-width: 960px;
       margin: 0 auto;
       padding: 80px 40px;
     }
@@ -331,36 +331,262 @@
     .badge-purple { background: #F3E8FF; color: #6B21A8; border: 1px solid #D8B4FE; }
     .badge-dark { background: #1C1917; color: #C5A059; border: 1px solid #44403C; }
 
-    /* CORRELATION TABLE */
+    /* CORRELATION & SPECIFICATION TABLES */
     .corr-table {
       width: 100%;
+      table-layout: fixed;
       border-collapse: collapse;
-      margin: 24px 0 36px;
-      font-size: 13px;
-      border-radius: 12px;
+      margin: 28px 0 36px;
+      font-size: 13.5px;
+      line-height: 1.65;
+      border-radius: 14px;
       overflow: hidden;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
       border: 1px solid #e7e5e4;
+      background: #FFFFFF;
     }
     .corr-table th {
       background: #0c0a09;
       color: #C5A059;
-      padding: 14px 18px;
+      padding: 16px 20px;
       text-align: left;
-      font-size: 10.5px;
+      font-size: 11px;
       font-weight: 800;
-      letter-spacing: 0.18em;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
+      border-bottom: 2px solid #292524;
+      vertical-align: middle;
     }
     .corr-table td {
-      padding: 13px 18px;
+      padding: 18px 20px;
       border-bottom: 1px solid #f0ece6;
       vertical-align: top;
       color: #44403c;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      white-space: normal;
     }
-    .corr-table tr:nth-child(even) td { background: #FAFAF9; }
-    .corr-table td:first-child { font-weight: 700; color: #0c0a09; white-space: nowrap; }
-    .corr-table td:nth-child(2) { color: #C5A059; font-weight: 700; white-space: nowrap; }
+    .corr-table tr:nth-child(even) td { background: #FAF9F7; }
+    .corr-table tr:hover td { background: #F5F4F0; }
+    .corr-table td:first-child { font-weight: 700; color: #0c0a09; white-space: normal; }
+    .corr-table td:nth-child(2) { color: #854d0e; font-weight: 600; white-space: normal; }
+    .corr-table code {
+      display: inline-block;
+      margin: 2px 2px 2px 0;
+      font-size: 11.5px;
+      padding: 3px 7px;
+      background: #f5f5f4;
+      border: 1px solid #e7e5e4;
+      border-radius: 6px;
+      color: #1c1917;
+      word-break: break-all;
+    }
+
+    /* VISUAL GALLERY & STOREFRONT PREVIEWS */
+    .visual-gallery {
+      margin: 32px 0 48px;
+    }
+    .preview-browser {
+      background: #FFFFFF;
+      border: 1px solid #e7e5e4;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.06);
+      margin-bottom: 32px;
+    }
+    .preview-browser-header {
+      background: #1c1917;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #292524;
+    }
+    .preview-browser-dots {
+      display: flex;
+      gap: 6px;
+    }
+    .preview-browser-dots span {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #44403c;
+    }
+    .preview-browser-dots span:first-child { background: #ef4444; }
+    .preview-browser-dots span:nth-child(2) { background: #f59e0b; }
+    .preview-browser-dots span:nth-child(3) { background: #10b981; }
+    .preview-browser-title {
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #C5A059;
+    }
+    .preview-body {
+      padding: 24px;
+      background: #fafaf9;
+    }
+    .preview-grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+    @media (max-width: 768px) {
+      .preview-grid-4 { grid-template-columns: repeat(2, 1fr); }
+    }
+    .product-mini-card {
+      background: #FFFFFF;
+      border: 1px solid #e7e5e4;
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .product-mini-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+    }
+    .product-mini-card img {
+      width: 100%;
+      aspect-ratio: 3/4;
+      object-fit: cover;
+      display: block;
+      background: #f5f5f4;
+    }
+    .product-mini-card-info {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+    .product-mini-card-brand {
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #a8a29e;
+      margin-bottom: 2px;
+    }
+    .product-mini-card-title {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #1c1917;
+      line-height: 1.35;
+      margin-bottom: 8px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .product-mini-card-price {
+      font-size: 12.5px;
+      font-weight: 800;
+      color: #C5A059;
+      margin-top: auto;
+    }
+    .preview-split-muses {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 640px) {
+      .preview-split-muses { grid-template-columns: 1fr; }
+    }
+    .muse-card {
+      position: relative;
+      border-radius: 14px;
+      overflow: hidden;
+      aspect-ratio: 4/5;
+      background: #1c1917;
+    }
+    .muse-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      opacity: 0.88;
+    }
+    .muse-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(12,10,9,0.88) 0%, rgba(12,10,9,0.2) 60%, transparent 100%);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      color: #FFFFFF;
+    }
+    .muse-tag {
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #C5A059;
+      margin-bottom: 4px;
+    }
+    .muse-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+    .lookbook-mockup {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 22px;
+      background: #FFFFFF;
+      border: 1px solid #e7e5e4;
+      border-radius: 14px;
+      padding: 18px;
+      align-items: center;
+    }
+    @media (max-width: 640px) {
+      .lookbook-mockup { grid-template-columns: 1fr; }
+    }
+    .lookbook-mockup img.model-pic {
+      width: 100%;
+      aspect-ratio: 3/4;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+    .lookbook-content h4 {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      color: #1c1917;
+      margin-bottom: 6px;
+    }
+    .lookbook-price-tag {
+      display: inline-block;
+      font-size: 13px;
+      font-weight: 800;
+      color: #C5A059;
+      background: rgba(197, 160, 89, 0.1);
+      padding: 5px 14px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    .lookbook-items-strip {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-top: 12px;
+    }
+    .lookbook-item-thumb {
+      width: 52px;
+      height: 52px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #e7e5e4;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .lookbook-item-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
 
     /* FEATURE HIGHLIGHT BOX */
     .feature-box {
@@ -631,6 +857,11 @@
 
     <h3>Exporting Accounting Reports</h3>
     <table class="corr-table">
+      <colgroup>
+        <col style="width: 25%;">
+        <col style="width: 22%;">
+        <col style="width: 53%;">
+      </colgroup>
       <thead>
         <tr><th>Export Type</th><th>File Format</th><th>Primary Executive Purpose</th></tr>
       </thead>
@@ -697,6 +928,11 @@
     </p>
 
     <table class="corr-table">
+      <colgroup>
+        <col style="width: 22%;">
+        <col style="width: 24%;">
+        <col style="width: 54%;">
+      </colgroup>
       <thead>
         <tr>
           <th>Section Name</th>
@@ -780,7 +1016,166 @@
       </tbody>
     </table>
 
-    <!-- 6.4 INTELLIGENT SEARCHABLE PRODUCT SELECTOR -->
+
+    <!-- 6.4 VISUAL MERCHANDISING GALLERY (REAL PRODUCTS & STOREFRONT MOCKUPS) -->
+    <h3>Visual Gallery: Storefront Architecture in Action</h3>
+    <p>
+      To help boutique managers and merchandising teams visualize exactly how the Admin controls map to live storefront experiences, review the following authentic luxury component mockups featuring real Zahrah catalog inventory:
+    </p>
+
+    <div class="visual-gallery">
+      <!-- 1. HERO CAROUSEL PREVIEW -->
+      <div class="preview-browser">
+        <div class="preview-browser-header">
+          <div class="preview-browser-dots"><span></span><span></span><span></span></div>
+          <div class="preview-browser-title">Component 1: Flagship Above-The-Fold Hero Carousel</div>
+          <span class="badge badge-gold" style="font-size:9px;">Live Showcase</span>
+        </div>
+        <div style="position:relative; height: 320px; overflow:hidden; background:#0c0a09;">
+          <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80" style="width:100%; height:100%; object-fit:cover; opacity:0.85;" alt="Hero Campaign Banner" />
+          <div style="position:absolute; inset:0; background:linear-gradient(to right, rgba(12,10,9,0.92) 0%, rgba(12,10,9,0.45) 55%, transparent 100%); display:flex; flex-direction:column; justify-content:center; padding: 40px;">
+            <span style="font-size:10px; font-weight:800; letter-spacing:0.3em; text-transform:uppercase; color:#C5A059; margin-bottom:8px;">Autumn / Winter 2026 Archive</span>
+            <h2 style="font-family:'Playfair Display', serif; font-size:32px; color:#ffffff; line-height:1.15; max-width:440px; margin-bottom:16px;">THE MAJESTY OF BESPOKE LUXURY</h2>
+            <div style="display:flex; gap:12px; align-items:center;">
+              <span style="background:#C5A059; color:#ffffff; font-size:10px; font-weight:800; letter-spacing:0.18em; text-transform:uppercase; padding:10px 22px; border-radius:9999px;">Explore The Drop</span>
+              <span style="border:1px solid rgba(255,255,255,0.4); color:#ffffff; font-size:10px; font-weight:800; letter-spacing:0.18em; text-transform:uppercase; padding:10px 22px; border-radius:9999px;">Atelier Notes</span>
+            </div>
+          </div>
+        </div>
+        <div style="padding:14px 20px; background:#fafaf9; border-top:1px solid #e7e5e4; font-size:12px; color:#57534e;">
+          <strong>Admin Control:</strong> Managed in the <code>Hero Carousel</code> drawer. Upload multi-slide Cloudinary imagery (3:4 portrait or 16:9 panoramic). Automatically advances or allows touch-swipe navigation.
+        </div>
+      </div>
+
+      <!-- 2. SPLIT LIFESTYLE SHOWCASE (DUAL MUSES) -->
+      <div class="preview-browser">
+        <div class="preview-browser-header">
+          <div class="preview-browser-dots"><span></span><span></span><span></span></div>
+          <div class="preview-browser-title">Component 4: Dual-Muse Lifestyle Showcase</div>
+          <span class="badge badge-dark" style="font-size:9px;">Curated Visuals</span>
+        </div>
+        <div class="preview-body">
+          <div class="preview-split-muses">
+            <div class="muse-card">
+              <img src="https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=80" alt="Accessories Muse" />
+              <div class="muse-overlay">
+                <span class="muse-tag">Left Muse &bull; Accessories &amp; Leather</span>
+                <h4 class="muse-title">Handcrafted Details &amp; Niche Fragrances</h4>
+              </div>
+            </div>
+            <div class="muse-card">
+              <img src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80" alt="Streetwear Muse" />
+              <div class="muse-overlay">
+                <span class="muse-tag">Right Muse &bull; Couture Streetwear</span>
+                <h4 class="muse-title">Monogram Silks &amp; Tailored Silhouettes</h4>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="padding:14px 20px; background:#fafaf9; border-top:1px solid #e7e5e4; font-size:12px; color:#57534e;">
+          <strong>Admin Control:</strong> Click "Edit Muses" in the <code>Lifestyle Showcase</code> card to independently update left and right editorial model photography.
+        </div>
+      </div>
+
+      <!-- 3. REAL BOUTIQUE PRODUCTS CAROUSEL MOCKUP -->
+      <div class="preview-browser">
+        <div class="preview-browser-header">
+          <div class="preview-browser-dots"><span></span><span></span><span></span></div>
+          <div class="preview-browser-title">Components 5 &amp; 6: Curated Product Carousels (Real Catalog Artifacts)</div>
+          <span class="badge badge-green" style="font-size:9px;">Live Catalog Pieces</span>
+        </div>
+        <div class="preview-body">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <div>
+              <span style="font-size:9px; font-weight:800; letter-spacing:0.2em; text-transform:uppercase; color:#C5A059;">Curated Tier</span>
+              <h3 style="margin:0; font-family:'Playfair Display', serif; font-size:22px; color:#1c1917; text-transform:none; letter-spacing:0;">Manor Collection Selections</h3>
+            </div>
+            <span style="font-size:11px; font-weight:700; color:#C5A059; text-transform:uppercase; letter-spacing:0.1em;">View All (259) &rarr;</span>
+          </div>
+
+          <div class="preview-grid-4">
+            <!-- Product 1 -->
+            <div class="product-mini-card">
+              <img src="https://res.cloudinary.com/dmcls36pv/image/upload/v1780586663/drefen4zrd3czs2qyuuh.jpg" alt="Zara Color Block Jacket" />
+              <div class="product-mini-card-info">
+                <span class="product-mini-card-brand">Zara Haute</span>
+                <div class="product-mini-card-title">Zara Color Block Jacket</div>
+                <div class="product-mini-card-price">&#8358;85,000</div>
+              </div>
+            </div>
+            <!-- Product 2 -->
+            <div class="product-mini-card">
+              <img src="https://res.cloudinary.com/dmcls36pv/image/upload/v1780588660/lubdpkvbkbufdtmlul5u.jpg" alt="OPEN KNIT POLO SHIRT" />
+              <div class="product-mini-card-info">
+                <span class="product-mini-card-brand">Zarhrah Atelier</span>
+                <div class="product-mini-card-title">Open Knit Polo Shirt</div>
+                <div class="product-mini-card-price">&#8358;45,000</div>
+              </div>
+            </div>
+            <!-- Product 3 -->
+            <div class="product-mini-card">
+              <img src="https://res.cloudinary.com/dmcls36pv/image/upload/v1780589144/wl8fj70vsyxolbifwcqe.jpg" alt="BLACK FLORAL PRINT UNISEX SHIRT" />
+              <div class="product-mini-card-info">
+                <span class="product-mini-card-brand">Zarhrah Limited</span>
+                <div class="product-mini-card-title">Black Floral Print Shirt</div>
+                <div class="product-mini-card-price">&#8358;42,000</div>
+              </div>
+            </div>
+            <!-- Product 4 -->
+            <div class="product-mini-card">
+              <img src="https://res.cloudinary.com/dmcls36pv/image/upload/v1780590818/yo6etn9tu1wwiyjty1z0.jpg" alt="Bershka Embroidered Shirt" />
+              <div class="product-mini-card-info">
+                <span class="product-mini-card-brand">Bershka</span>
+                <div class="product-mini-card-title">Embroidered Short Sleeve Shirt</div>
+                <div class="product-mini-card-price">&#8358;38,000</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="padding:14px 20px; background:#fafaf9; border-top:1px solid #e7e5e4; font-size:12px; color:#57534e;">
+          <strong>Admin Control:</strong> Curated via the <em>Intelligent Searchable Product Selector</em>. Clicking product cards toggles instant inclusion. Empty carousels automatically fall back to the newest arrivals.
+        </div>
+      </div>
+
+      <!-- 4. STYLING IDEAS LOOKBOOK MOCKUP -->
+      <div class="preview-browser">
+        <div class="preview-browser-header">
+          <div class="preview-browser-dots"><span></span><span></span><span></span></div>
+          <div class="preview-browser-title">Component 8: Styling Ideas (1-Click Head-To-Toe Lookbook)</div>
+          <span class="badge badge-gold" style="font-size:9px;">High-Conversion Ensemble</span>
+        </div>
+        <div class="preview-body">
+          <div class="lookbook-mockup">
+            <div>
+              <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80" class="model-pic" alt="Styled Look 01" />
+            </div>
+            <div class="lookbook-content">
+              <span style="font-size:9px; font-weight:800; letter-spacing:0.2em; text-transform:uppercase; color:#C5A059;">Ensemble 01</span>
+              <h4>The Mayfair Velvet &amp; Knit Coordinated Look</h4>
+              <div class="lookbook-price-tag">Complete Outfit Package: &#8358;130,000</div>
+              <p style="font-size:12px; color:#78716c; margin-bottom:8px;">
+                Holistic luxury styling combining the structured Color Block Jacket with the lightweight Open Knit Polo Shirt. Shoppers can add all items directly to their cart in a single click.
+              </p>
+              <div style="font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.15em; color:#1c1917; margin-top:12px;">Matched Catalog Pieces Linked In Admin:</div>
+              <div class="lookbook-items-strip">
+                <div class="lookbook-item-thumb" title="Zara Color Block Jacket">
+                  <img src="https://res.cloudinary.com/dmcls36pv/image/upload/v1780586663/drefen4zrd3czs2qyuuh.jpg" alt="Item 1" />
+                </div>
+                <div class="lookbook-item-thumb" title="Open Knit Polo Shirt">
+                  <img src="https://res.cloudinary.com/dmcls36pv/image/upload/v1780588660/lubdpkvbkbufdtmlul5u.jpg" alt="Item 2" />
+                </div>
+                <span style="font-size:11px; color:#57534e; font-weight:600;">2 pieces linked &bull; Curated by Boutique Stylist</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="padding:14px 20px; background:#fafaf9; border-top:1px solid #e7e5e4; font-size:12px; color:#57534e;">
+          <strong>Admin Control:</strong> Created via "Add New Look" in the <code>Styling Ideas</code> editor. Upload model photography, enter package pricing, and click pieces in the compact product selector.
+        </div>
+      </div>
+    </div>
+
+    <!-- 6.5 INTELLIGENT SEARCHABLE PRODUCT SELECTOR -->
     <h3>How to Use the Intelligent Searchable Product Selector</h3>
     <p>
       Previously, selecting products for a carousel required scrolling through an unorganized list of hundreds of SKUs. The upgraded <strong>Intelligent Searchable Product Selector</strong> makes curation seamless, fast, and visual:
@@ -1047,6 +1442,11 @@
     </p>
 
     <table class="corr-table">
+      <colgroup>
+        <col style="width: 25%;">
+        <col style="width: 32%;">
+        <col style="width: 43%;">
+      </colgroup>
       <thead>
         <tr>
           <th>Engineering Layer</th>
@@ -1138,6 +1538,11 @@
     </div>
     <p>This reference matrix maps actions in the Admin panel to their live effects on the customer-facing boutique.</p>
     <table class="corr-table">
+      <colgroup>
+        <col style="width: 25%;">
+        <col style="width: 22%;">
+        <col style="width: 53%;">
+      </colgroup>
       <thead>
         <tr>
           <th>Admin Action</th>

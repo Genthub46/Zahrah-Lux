@@ -1,0 +1,1640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zarhrah Luxury – Administrator Executive Guide</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #FFFFFF;
+      color: #1c1917;
+      font-size: 14.5px;
+      line-height: 1.8;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* COVER PAGE */
+    .cover {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0c0a09 0%, #1c1917 50%, #0c0a09 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 80px 40px;
+      page-break-after: always;
+      position: relative;
+      overflow: hidden;
+    }
+    .cover::before {
+      content: "";
+      position: absolute;
+      top: -20%;
+      right: -20%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(197, 160, 89, 0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .cover-accent {
+      width: 70px;
+      height: 3px;
+      background: #C5A059;
+      margin: 0 auto 36px;
+    }
+    .cover-label {
+      color: #C5A059;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.45em;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+    .cover h1 {
+      font-family: 'Playfair Display', serif;
+      color: #ffffff;
+      font-size: 58px;
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 16px;
+      letter-spacing: -0.02em;
+    }
+    .cover h1 em {
+      font-style: italic;
+      color: #C5A059;
+      font-weight: 400;
+    }
+    .cover-subtitle {
+      color: #a8a29e;
+      font-size: 13px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      margin-top: 24px;
+      font-weight: 500;
+    }
+    .cover-version {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 6px 18px;
+      border-radius: 9999px;
+      background: rgba(197, 160, 89, 0.12);
+      border: 1px solid rgba(197, 160, 89, 0.3);
+      color: #C5A059;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+    .cover-footer {
+      position: absolute;
+      bottom: 40px;
+      color: #78716c;
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+    }
+
+    /* CONTENT WRAPPER */
+    .content {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 80px 40px;
+    }
+
+    /* TOC */
+    .toc {
+      background: #FAF9F7;
+      border: 1px solid #e7e5e4;
+      border-left: 5px solid #C5A059;
+      border-radius: 16px;
+      padding: 40px;
+      margin-bottom: 64px;
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03);
+      page-break-after: always;
+    }
+    .toc-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 24px;
+      color: #1c1917;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .toc-title::before {
+      content: "";
+      display: inline-block;
+      width: 16px;
+      height: 2px;
+      background: #C5A059;
+    }
+    .toc ol {
+      padding-left: 24px;
+      color: #44403c;
+    }
+    .toc li {
+      margin-bottom: 12px;
+      font-size: 13.5px;
+      line-height: 1.6;
+    }
+    .toc li strong {
+      color: #0c0a09;
+      font-weight: 700;
+    }
+
+    /* SECTION HEADINGS */
+    .section {
+      margin-bottom: 64px;
+      page-break-inside: avoid;
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid #f5f5f4;
+    }
+    .section-number {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #C5A059;
+      color: #fff;
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(197, 160, 89, 0.3);
+    }
+    h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: #0c0a09;
+      letter-spacing: -0.01em;
+    }
+    h3 {
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: #C5A059;
+      margin: 32px 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    h3::before {
+      content: "•";
+      color: #C5A059;
+      font-size: 16px;
+    }
+    p {
+      color: #44403c;
+      margin-bottom: 14px;
+      font-size: 14.5px;
+    }
+
+    /* INLINE CODE */
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12.5px;
+      background: #f5f5f4;
+      color: #0c0a09;
+      padding: 2px 7px;
+      border-radius: 6px;
+      border: 1px solid #e7e5e4;
+      font-weight: 600;
+    }
+
+    /* LISTS */
+    ul, ol {
+      padding-left: 24px;
+      margin-bottom: 18px;
+      color: #44403c;
+    }
+    li {
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    li strong {
+      color: #1c1917;
+      font-weight: 700;
+    }
+
+    /* CALLOUT BOXES */
+    .callout {
+      border-radius: 14px;
+      padding: 20px 26px;
+      margin: 24px 0;
+      font-size: 13.5px;
+      line-height: 1.7;
+    }
+    .callout-info {
+      background: #F0F9FF;
+      border-left: 4px solid #0284C7;
+      color: #0369A1;
+    }
+    .callout-gold {
+      background: #FAF8F5;
+      border-left: 4px solid #C5A059;
+      color: #785A1D;
+    }
+    .callout-warn {
+      background: #FFFBEB;
+      border-left: 4px solid #D97706;
+      color: #92400E;
+    }
+    .callout-danger {
+      background: #FEF2F2;
+      border-left: 4px solid #DC2626;
+      color: #991B1B;
+    }
+    .callout-title {
+      font-weight: 800;
+      margin-bottom: 6px;
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* FLOW STEPS */
+    .steps {
+      counter-reset: step;
+      margin: 20px 0;
+    }
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 18px;
+      background: #FAF9F7;
+      padding: 16px 20px;
+      border-radius: 12px;
+      border: 1px solid #f0ece6;
+    }
+    .step-num {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #0c0a09;
+      color: #C5A059;
+      font-size: 12px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .step-content strong {
+      display: block;
+      font-size: 14px;
+      color: #0c0a09;
+      margin-bottom: 3px;
+    }
+    .step-content p {
+      font-size: 13px;
+      color: #57534e;
+      margin: 0;
+    }
+
+    /* STATUS BADGES */
+    .badge {
+      display: inline-block;
+      padding: 3px 12px;
+      border-radius: 9999px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin: 2px 4px;
+    }
+    .badge-gold { background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; }
+    .badge-green { background: #DCFCE7; color: #166534; border: 1px solid #86EFAC; }
+    .badge-blue { background: #E0F2FE; color: #075985; border: 1px solid #7DD3FC; }
+    .badge-red { background: #FEE2E2; color: #991B1B; border: 1px solid #FCA5A5; }
+    .badge-purple { background: #F3E8FF; color: #6B21A8; border: 1px solid #D8B4FE; }
+    .badge-dark { background: #1C1917; color: #C5A059; border: 1px solid #44403C; }
+
+    /* CORRELATION & SPECIFICATION TABLES */
+    .corr-table {
+      width: 100%;
+      table-layout: fixed;
+      border-collapse: collapse;
+      margin: 28px 0 36px;
+      font-size: 13.5px;
+      line-height: 1.65;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+      border: 1px solid #e7e5e4;
+      background: #FFFFFF;
+    }
+    .corr-table th {
+      background: #0c0a09;
+      color: #C5A059;
+      padding: 16px 20px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      border-bottom: 2px solid #292524;
+      vertical-align: middle;
+    }
+    .corr-table td {
+      padding: 18px 20px;
+      border-bottom: 1px solid #f0ece6;
+      vertical-align: top;
+      color: #44403c;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      white-space: normal;
+    }
+    .corr-table tr:nth-child(even) td { background: #FAF9F7; }
+    .corr-table tr:hover td { background: #F5F4F0; }
+    .corr-table td:first-child { font-weight: 700; color: #0c0a09; white-space: normal; }
+    .corr-table td:nth-child(2) { color: #854d0e; font-weight: 600; white-space: normal; }
+    .corr-table code {
+      display: inline-block;
+      margin: 2px 2px 2px 0;
+      font-size: 11.5px;
+      padding: 3px 7px;
+      background: #f5f5f4;
+      border: 1px solid #e7e5e4;
+      border-radius: 6px;
+      color: #1c1917;
+      word-break: break-all;
+    }
+
+    /* VISUAL GALLERY & STOREFRONT PREVIEWS */
+    .visual-gallery {
+      margin: 32px 0 48px;
+    }
+    .preview-browser {
+      background: #FFFFFF;
+      border: 1px solid #e7e5e4;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.06);
+      margin-bottom: 32px;
+    }
+    .preview-browser-header {
+      background: #1c1917;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #292524;
+    }
+    .preview-browser-dots {
+      display: flex;
+      gap: 6px;
+    }
+    .preview-browser-dots span {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #44403c;
+    }
+    .preview-browser-dots span:first-child { background: #ef4444; }
+    .preview-browser-dots span:nth-child(2) { background: #f59e0b; }
+    .preview-browser-dots span:nth-child(3) { background: #10b981; }
+    .preview-browser-title {
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #C5A059;
+    }
+    .preview-body {
+      padding: 24px;
+      background: #fafaf9;
+    }
+    .preview-grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+    @media (max-width: 768px) {
+      .preview-grid-4 { grid-template-columns: repeat(2, 1fr); }
+    }
+    .product-mini-card {
+      background: #FFFFFF;
+      border: 1px solid #e7e5e4;
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .product-mini-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+    }
+    .product-mini-card img {
+      width: 100%;
+      aspect-ratio: 3/4;
+      object-fit: cover;
+      display: block;
+      background: #f5f5f4;
+    }
+    .product-mini-card-info {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+    .product-mini-card-brand {
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #a8a29e;
+      margin-bottom: 2px;
+    }
+    .product-mini-card-title {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #1c1917;
+      line-height: 1.35;
+      margin-bottom: 8px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .product-mini-card-price {
+      font-size: 12.5px;
+      font-weight: 800;
+      color: #C5A059;
+      margin-top: auto;
+    }
+    .preview-split-muses {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 640px) {
+      .preview-split-muses { grid-template-columns: 1fr; }
+    }
+    .muse-card {
+      position: relative;
+      border-radius: 14px;
+      overflow: hidden;
+      aspect-ratio: 4/5;
+      background: #1c1917;
+    }
+    .muse-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      opacity: 0.88;
+    }
+    .muse-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(12,10,9,0.88) 0%, rgba(12,10,9,0.2) 60%, transparent 100%);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      color: #FFFFFF;
+    }
+    .muse-tag {
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #C5A059;
+      margin-bottom: 4px;
+    }
+    .muse-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+    .lookbook-mockup {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 22px;
+      background: #FFFFFF;
+      border: 1px solid #e7e5e4;
+      border-radius: 14px;
+      padding: 18px;
+      align-items: center;
+    }
+    @media (max-width: 640px) {
+      .lookbook-mockup { grid-template-columns: 1fr; }
+    }
+    .lookbook-mockup img.model-pic {
+      width: 100%;
+      aspect-ratio: 3/4;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+    .lookbook-content h4 {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      color: #1c1917;
+      margin-bottom: 6px;
+    }
+    .lookbook-price-tag {
+      display: inline-block;
+      font-size: 13px;
+      font-weight: 800;
+      color: #C5A059;
+      background: rgba(197, 160, 89, 0.1);
+      padding: 5px 14px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    .lookbook-items-strip {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-top: 12px;
+    }
+    .lookbook-item-thumb {
+      width: 52px;
+      height: 52px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #e7e5e4;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .lookbook-item-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* FEATURE HIGHLIGHT BOX */
+    .feature-box {
+      background: #0c0a09;
+      border-radius: 16px;
+      padding: 28px 32px;
+      color: #d6d3d1;
+      margin: 28px 0;
+      font-size: 13px;
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.4);
+      border: 1px solid #292524;
+    }
+    .feature-box h4 {
+      color: #C5A059;
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .feature-box ul { color: #a8a29e; margin-bottom: 0; }
+    .feature-box li { margin-bottom: 6px; }
+    .feature-box strong { color: #ffffff; }
+
+    /* DANGER BOX */
+    .danger-box {
+      background: #450a0a;
+      border: 1px solid #991B1B;
+      border-radius: 14px;
+      padding: 22px 28px;
+      color: #fecaca;
+      margin: 24px 0;
+      font-size: 13px;
+    }
+    .danger-box strong { color: #f87171; }
+
+    /* FOOTER */
+    .doc-footer {
+      margin-top: 80px;
+      padding-top: 32px;
+      border-top: 1px solid #e7e5e4;
+      text-align: center;
+      color: #a8a29e;
+      font-size: 11px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+    }
+
+    /* PRINT OPTIMIZATIONS */
+    @media print {
+      body { font-size: 12.5px; }
+      .cover { min-height: 100vh; page-break-after: always; position: relative; }
+      .toc { page-break-after: always; }
+      .section { page-break-inside: avoid; }
+      h2 { page-break-after: avoid; }
+      h3 { page-break-after: avoid; }
+      .corr-table { page-break-inside: avoid; }
+      .feature-box { page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- COVER PAGE -->
+<div class="cover">
+  <div class="cover-accent"></div>
+  <div class="cover-label">Official Executive Documentation</div>
+  <h1>Zarhrah<br><em>Luxury</em></h1>
+  <div style="width:100px;height:1px;background:rgba(255,255,255,0.15);margin:28px auto;"></div>
+  <p class="cover-subtitle">Administrator &amp; Merchant Operations Guide</p>
+  <span class="cover-version">Version 2.5 • Updated October 2026</span>
+  <div class="cover-footer">Confidential &nbsp;•&nbsp; Zarhrah Executive Panel &nbsp;•&nbsp; London &amp; Lagos</div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="content">
+
+  <!-- TABLE OF CONTENTS -->
+  <div class="toc">
+    <p class="toc-title">Table of Contents</p>
+    <ol>
+      <li><strong>Introduction &amp; Security Architecture</strong> — Access, Roles, Session Guards</li>
+      <li><strong>Executive Dashboard</strong> — Live Metrics, Order Counters, Inventory Warnings</li>
+      <li><strong>Google Analytics 4 Live Intelligence Hub</strong> — Real-Time Stream, Telemetry &amp; E-Commerce</li>
+      <li><strong>Managing Artifacts &amp; Dynamic Size Pricing</strong> — Products, Sizing Price Overrides &amp; Stock Velocity</li>
+      <li><strong>Order Fulfillment &amp; Paystack Reconciliation</strong> — Lifecycle, Verification &amp; Exports</li>
+      <li><strong>Theme &amp; Home Layout CMS (Deep Dive)</strong> — Visual Merchandising, Searchable Picker, Manor, Lookbooks &amp; Custom Carousels</li>
+      <li><strong>Client Retention &amp; Abandoned Checkouts</strong> — Automated Luxury Email Engine</li>
+      <li><strong>Restock Requests &amp; Demand Forecasting</strong> — VIP Demand Alerts &amp; Direct Restock Triggers</li>
+      <li><strong>Staff Governance &amp; Multi-Tier Access</strong> — Roles, Permissions &amp; Security Audits</li>
+      <li><strong>Admin → Storefront Correlation Map</strong> — Quick-Reference Architecture Matrix</li>
+      <li><strong>Database Governance, Sitemap &amp; Recovery</strong> — Soft Reset, Restores &amp; Automated SEO</li>
+    </ol>
+  </div>
+
+  <!-- SECTION 1 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">1</div>
+      <h2>Introduction &amp; Security Architecture</h2>
+    </div>
+    <p>
+      The <strong>Zarhrah Executive Panel</strong> is the private control suite for the boutique, accessible at <code>/admin</code>. Every modification made within the panel is immediately dispatched in <strong>real time</strong> to customer storefronts worldwide via Firestore cloud synchronization.
+    </p>
+
+    <h3>Access Protocols</h3>
+    <ul>
+      <li>Navigate to <code>/admin</code> on the boutique domain.</li>
+      <li>Authenticate using authorized staff credentials (Email &amp; Password via Firebase Auth).</li>
+      <li>Accounts not enrolled in the staff roster are immediately blocked with an <strong>Access Denied</strong> gate, and the unauthorized attempt is recorded in the immutable audit log.</li>
+    </ul>
+
+    <h3>Role-Based Access Hierarchy</h3>
+    <ul>
+      <li><strong>Super Admin (Owner):</strong> Unrestricted global permissions across all tabs, Staff management, Database Soft Resets, and Executive Analytics.</li>
+      <li><strong>Manager:</strong> Full management of Catalog, Orders, Customers, Pricing AI, Layout, and Customer Recovery. Restricted from deleting staff or resetting the database.</li>
+      <li><strong>Editor / Associate:</strong> Catalog inventory updates, order status fulfillment, and restock notification monitoring.</li>
+    </ul>
+
+    <div class="callout callout-warn">
+      <div class="callout-title">⚠ 15-Minute Session Inactivity Guard</div>
+      To protect customer transaction records and financial telemetry, the panel enforces an automated <strong>15-minute inactivity timeout</strong>. A visual security modal warns you 60 seconds prior to expiration, allowing you to click <em>"Stay Logged In"</em> or logout safely.
+    </div>
+  </div>
+
+  <!-- SECTION 2 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">2</div>
+      <h2>Executive Dashboard</h2>
+    </div>
+    <p>
+      The <strong>Dashboard</strong> serves as the primary commanding view upon login, calculating commercial performance indicators directly from Firestore collections.
+    </p>
+
+    <h3>Core Commercial Indicators</h3>
+    <ul>
+      <li><strong>Total Revenue:</strong> Formatted accurately with Nigerian Naira currency typography (<code>₦</code>). Reflects total gross payments processed through Paystack.</li>
+      <li><strong>Revenue This Month:</strong> Running sales total for the current calendar month.</li>
+      <li><strong>Active Artifacts:</strong> Count of pieces marked <code>isVisible: true</code> in the public store catalog.</li>
+      <li><strong>Registered VIP Customers:</strong> Accounts created through the boutique client portal.</li>
+      <li><strong>Total Orders:</strong> Cumulative transactions logged across all fulfillment states.</li>
+    </ul>
+
+    <h3>Automated Stockout &amp; Operational Warnings</h3>
+    <p>The top of the dashboard displays dynamic operational badges that link directly to actionable drawers:</p>
+    <p>
+      <span class="badge badge-red">Out of Stock Alert</span>
+      <span class="badge badge-gold">Low Stock Warning</span>
+      <span class="badge badge-blue">Pending Orders</span>
+    </p>
+  </div>
+
+  <!-- SECTION 3 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">3</div>
+      <h2>Google Analytics 4 Live Intelligence Hub</h2>
+    </div>
+    <p>
+      Integrated in October 2026, the <strong>Analytics</strong> tab features a dual-dispatch Google Analytics 4 (GA4) telemetry pipeline (Measurement ID: <code>G-N2CS95WEY2</code>, Property ID: <code>55990544</code>, Stream: <code>ZahrahWeb</code>) combined with Firestore order data.
+    </p>
+
+    <h3>Streamlined 1-Line Control Bar</h3>
+    <p>The Analytics view features a streamlined, non-intrusive control header with direct links to live Google reporting:</p>
+    <ul>
+      <li><strong>🟢 GA4 Live Beacon:</strong> Real-time heartbeat confirming events are streaming from storefront shoppers.</li>
+      <li><strong>⚡ Real-Time ↗:</strong> Opens live visitors currently browsing the storefront.</li>
+      <li><strong>📊 Traffic ↗:</strong> Deep-link to acquisition channels (Instagram campaigns, Google Search, Direct referrals).</li>
+      <li><strong>🛍️ Sales ↗:</strong> Deep-link to Google Analytics E-Commerce monetization and checkout conversion funnels.</li>
+      <li><strong>Time Range Selector:</strong> Segmented pill filter allowing instant toggling between <code>7 Days</code>, <code>14 Days</code>, and <code>30 Days</code>.</li>
+    </ul>
+
+    <h3>Financial &amp; Executive KPI Cards</h3>
+    <ul>
+      <li><strong>Total Revenue:</strong> Formatted cleanly as <code>₦0</code> (resolving the previous letter "No" visual bug) with bold figures.</li>
+      <li><strong>Gross Profit:</strong> Net profit calculated automatically by subtracting inventory Cost Price (COGS) from Revenue.</li>
+      <li><strong>Net Operating Margin (%):</strong> Ratio of Gross Profit to Total Revenue.</li>
+      <li><strong>Completed Orders &amp; AOV:</strong> Volume of processed checkouts alongside the <strong>Average Order Value</strong> (<code>₦{AOV}</code>).</li>
+    </ul>
+
+    <h3>Visual Analytics &amp; Catalog Interest</h3>
+    <ul>
+      <li><strong>Profitability Model vs. Revenue Trend:</strong> Tabbed interactive bar chart tracking daily Revenue, Cost, and Profit in Naira.</li>
+      <li><strong>Engagement vs. Conversion:</strong> Donut chart comparing total product catalog views against completed orders with a live <strong>Conversion Rate (CR %)</strong> indicator.</li>
+      <li><strong>Catalog Performance: Most-Viewed Pieces:</strong> Live leaderboard ranking the top 5 most-viewed luxury pieces based on direct customer view logs, complete with image thumbnails, stock levels, and direct store links.</li>
+    </ul>
+
+    <div class="callout callout-info">
+      <div class="callout-title">ℹ Dual-Dispatch Architecture</div>
+      Events are tracked both through Google's global <code>gtag.js</code> and the Firebase Analytics SDK. This ensures continuous, fault-tolerant telemetry even if an individual customer utilizes strict ad-blocking software.
+    </div>
+  </div>
+
+  <!-- SECTION 4 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">4</div>
+      <h2>Managing Artifacts &amp; Dynamic Size Pricing</h2>
+    </div>
+    <p>
+      The term <em>"Artifacts"</em> reflects the bespoke, luxury nature of each piece in the Zahrah collection. Products are managed in the <strong>Products</strong> tab.
+    </p>
+
+    <h3>Dynamic Size-Based Pricing (New Feature)</h3>
+    <p>
+      Products can now have custom prices assigned to specific sizes (e.g., standard sizes S/M/L remain at ₦50,000, while XXL or plus sizes can be configured at ₦55,000):
+    </p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <strong>Enable Sizing</strong>
+          <p>Toggle the <em>"Sizing"</em> switch inside the product creation or editing drawer, and add your desired size tags.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <strong>Configure Price Overrides</strong>
+          <p>Each size tag displays an optional <em>"Size Price (₦)"</em> override input. Leave blank to inherit the base product price, or enter a custom amount.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <strong>Storefront &amp; Cart Synchronization</strong>
+          <p>When shoppers click different size buttons on the product detail page, the displayed price smoothly animates to the size-specific price. The bag and checkout verify these prices against Firestore to prevent price tampering.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>Inventory Velocity &amp; Stockout Risk Badges</h3>
+    <p>
+      The system calculates a 30-day sales velocity per piece and displays real-time health indicators:
+    </p>
+    <p>
+      <span class="badge badge-green">&gt; 2 Weeks Supply</span>
+      <span class="badge badge-gold">~X Days Left</span>
+      <span class="badge badge-red">&lt; 7 Days Critical</span>
+      <span class="badge badge-dark">Sold Out</span>
+    </p>
+  </div>
+
+  <!-- SECTION 5 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">5</div>
+      <h2>Order Fulfillment &amp; Paystack Reconciliation</h2>
+    </div>
+    <p>
+      The <strong>Orders</strong> tab provides end-to-end management of client purchases, payment verifications, and logistics.
+    </p>
+
+    <h3>Fulfillment Lifecycle</h3>
+    <p>Orders flow through three tracked fulfillment states:</p>
+    <p>
+      <span class="badge badge-gold">Pending / Processing</span>
+      <span style="margin:0 6px;color:#aaa;">→</span>
+      <span class="badge badge-blue">Shipped / Dispatched</span>
+      <span style="margin:0 6px;color:#aaa;">→</span>
+      <span class="badge badge-green">Delivered</span>
+    </p>
+    <p>
+      Updating the status inline instantly syncs to the customer's portal under <code>/orders</code> and dispatches automated email notifications.
+    </p>
+
+    <h3>Exporting Accounting Reports</h3>
+    <table class="corr-table">
+      <colgroup>
+        <col style="width: 25%;">
+        <col style="width: 22%;">
+        <col style="width: 53%;">
+      </colgroup>
+      <thead>
+        <tr><th>Export Type</th><th>File Format</th><th>Primary Executive Purpose</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Financial Ledger</td><td><code>.CSV</code> Spreadsheet</td><td>Account reconciliation, tax auditing, and spreadsheet ingestion.</td></tr>
+        <tr><td>Executive Summary</td><td><code>.PDF</code> Document</td><td>Printable order receipts, manifests, and shipping packing slips.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SECTION 6 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">6</div>
+      <h2>Theme &amp; Home Layout CMS (Deep Dive)</h2>
+    </div>
+
+    <!-- 6.1 CONCEPT & ARCHITECTURE -->
+    <h3>What "Theme &amp; Layout" Means — The Visual Storefront CMS</h3>
+    <p>
+      In standard e-commerce setups, rearranging a storefront landing page requires developer intervention, template code edits, or heavy third-party page builders that degrade site performance. 
+      In Zahrah, the <strong>Theme &amp; Layout</strong> tab is an enterprise-grade, in-house <strong>visual Content Management System (CMS)</strong> that puts complete creative control into the hands of boutique directors, brand stylists, and merchandisers.
+    </p>
+    <p>
+      Every toggle, image upload, and product curation in this tab is backed by Cloud Firestore real-time persistence (<code>layoutConfig</code>). Changes sync <strong>instantly with zero downtime</strong> across all active client browsers—no code deployments, rebuilds, or server restarts are required.
+    </p>
+
+    <div class="callout callout-gold">
+      <div class="callout-title">⚜ Strategic Merchandising Purpose</div>
+      The primary objective of the Theme &amp; Layout tab is <strong>visual storytelling and conversion pacing</strong>. Luxury customers do not simply browse raw database inventories; they respond to curated aesthetics, seasonal drops, editorial model pairings, and narrative hierarchies. This tab allows you to sculpt that journey turn-by-turn.
+    </div>
+
+    <!-- 6.2 GLOBAL CATALOG VISIBILITY -->
+    <h3>Global Storefront Mode: The Catalog Visibility Switch</h3>
+    <p>
+      At the top of the Theme &amp; Layout dashboard sits the master <strong>Home Page Configuration</strong> control. Clicking this switch toggles between two distinct retail presentations:
+    </p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">A</div>
+        <div class="step-content">
+          <strong>Catalog Visible (Standard Retail Mode — Default)</strong>
+          <p>
+            When enabled (<span class="badge badge-green">Catalog Visible</span> with a gold indicator), the full product catalog displays at the bottom of the landing page, complete with category tabs, search filtering, and pagination. Ideal for day-to-day shopping when customers expect broad inventory exploration.
+          </p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">B</div>
+        <div class="step-content">
+          <strong>Catalog Hidden (Exclusive Editorial / Lookbook Mode)</strong>
+          <p>
+            When disabled (<span class="badge badge-dark">Catalog Hidden</span>), the generic product grid is completely suppressed from the home page. The storefront transforms into a minimalist, magazine-style editorial experience consisting exclusively of your curated carousels, muse banners, and styling lookbooks. Ideal for exclusive fashion drops, private atelier events, or campaign launches.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6.3 INVENTORY OF 9 CONFIGURED SECTIONS -->
+    <h3>Master Inventory: All 9 Configurable Storefront Sections</h3>
+    <p>
+      The Zahrah landing page is built from modular, independently toggleable sections. Administrators can show, hide, re-title, or customize every component:
+    </p>
+
+    <table class="corr-table">
+      <colgroup>
+        <col style="width: 22%;">
+        <col style="width: 24%;">
+        <col style="width: 54%;">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Section Name</th>
+          <th>Configuration Key</th>
+          <th>Storefront Visual Role &amp; Available Controls</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>1. Hero Carousel</strong></td>
+          <td><code>showHero</code> &bull; <code>heroImages</code></td>
+          <td>
+            <strong>Flagship Above-the-Fold Showcase:</strong> Rotating multi-slide banner for high-fashion campaigns.<br />
+            &bull; <em>Controls:</em> Eye toggle, "Edit Slides" drawer, Cloudinary image upload, direct URL input, per-slide trash deletion, and "Add Slide" button.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>2. Features Bar</strong></td>
+          <td><code>showFeatures</code></td>
+          <td>
+            <strong>Boutique Service Pillars:</strong> Highlights brand guarantees (100% Authentic Luxury, Complimentary Concierge Delivery, Secure Paystack Checkout).<br />
+            &bull; <em>Controls:</em> One-click visibility toggle.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>3. Boutique Banner</strong></td>
+          <td><code>showBoutique</code> &bull; <code>boutiqueBannerImage</code> &bull; <code>boutiqueBannerTitle</code></td>
+          <td>
+            <strong>Mid-Page Editorial Statement:</strong> Full-width horizontal banner separating carousels.<br />
+            &bull; <em>Controls:</em> Eye toggle, uppercase custom title input (e.g. <code>AUTUMN COUTURE '26</code>), Cloudinary image uploader, direct URL input.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>4. Lifestyle Showcase</strong></td>
+          <td><code>showLifestyle</code> &bull; <code>lifestyleImages</code></td>
+          <td>
+            <strong>Dual-Muse Split Editorial:</strong> Paired visual banners (Left: Accessories / Right: Streetwear) showcasing model styling.<br />
+            &bull; <em>Controls:</em> Eye toggle, "Edit Muses" drawer with independent uploaders and direct URL fields for both left and right muse images.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>5. Manor Collection</strong></td>
+          <td><code>showManor</code> &bull; <code>manorProductIds</code></td>
+          <td>
+            <strong>VIP / Royal Tier Carousel:</strong> Exclusive showcase for the brand's most prestigious, limited-run garments.<br />
+            &bull; <em>Controls:</em> Eye toggle, "Select Products" drawer with Intelligent Searchable Product Selector.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>6. Bundles &amp; Deals</strong></td>
+          <td><code>showBundles</code> &bull; <code>bundlesProductIds</code></td>
+          <td>
+            <strong>Curated Value &amp; Gift Carousel:</strong> Promotional carousel designed for matching sets, accessories pairings, and promotional edits.<br />
+            &bull; <em>Controls:</em> Eye toggle, Searchable Product Selector with live checkmarks.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>7. Curated Categories</strong></td>
+          <td><code>curatedCategories</code> &bull; <code>curatedPicks</code></td>
+          <td>
+            <strong>Interactive Tabbed Collection:</strong> Tabbed carousel supporting T-Shirts, Pants, Jackets, Shorts, Slides, and Bags.<br />
+            &bull; <em>Controls:</em> "Edit Tabs" modal (rename tabs, toggle visibility, customize slug), "Assign Products" drawer to curate pieces per active tab.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>8. Styling Ideas (Lookbooks)</strong></td>
+          <td><code>showStyling</code> &bull; <code>stylingLooks</code></td>
+          <td>
+            <strong>Complete Outfit Ensembles:</strong> Full-width interactive lookbook cards linking styled photography to direct-to-bag catalog pieces.<br />
+            &bull; <em>Controls:</em> Add Look, image upload, title, total price, compact product picker, reorder looks (&uarr;/&darr;), reorder pieces (&larr;/&rarr;), delete look.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>9. Dynamic Custom Sections</strong></td>
+          <td><code>sections</code> (Array)</td>
+          <td>
+            <strong>On-Demand Bespoke Carousels:</strong> Create unlimited seasonal carousels (e.g. "Paris Couture Week", "Ramadan Silk Edit").<br />
+            &bull; <em>Controls:</em> "Deploy Section" creator bar, independent visibility toggle, trash deletion, and Searchable Product Selector.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+
+    <!-- 6.4 VISUAL MERCHANDISING GALLERY (REAL PRODUCTS & STOREFRONT MOCKUPS) -->
+    <h3>Visual Gallery: Storefront Architecture in Action</h3>
+    <p>
+      To help boutique managers and merchandising teams visualize exactly how the Admin controls map to live storefront experiences, review the following authentic luxury component mockups featuring real Zahrah catalog inventory:
+    </p>
+
+    <div class="visual-gallery">
+      <!-- 1. HERO CAROUSEL PREVIEW -->
+      <div class="preview-browser">
+        <div class="preview-browser-header">
+          <div class="preview-browser-dots"><span></span><span></span><span></span></div>
+          <div class="preview-browser-title">Component 1: Flagship Above-The-Fold Hero Carousel</div>
+          <span class="badge badge-gold" style="font-size:9px;">Live Showcase</span>
+        </div>
+        <div style="position:relative; height: 320px; overflow:hidden; background:#0c0a09;">
+          <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80" style="width:100%; height:100%; object-fit:cover; opacity:0.85;" alt="Hero Campaign Banner" />
+          <div style="position:absolute; inset:0; background:linear-gradient(to right, rgba(12,10,9,0.92) 0%, rgba(12,10,9,0.45) 55%, transparent 100%); display:flex; flex-direction:column; justify-content:center; padding: 40px;">
+            <span style="font-size:10px; font-weight:800; letter-spacing:0.3em; text-transform:uppercase; color:#C5A059; margin-bottom:8px;">Autumn / Winter 2026 Archive</span>
+            <h2 style="font-family:'Playfair Display', serif; font-size:32px; color:#ffffff; line-height:1.15; max-width:440px; margin-bottom:16px;">THE MAJESTY OF BESPOKE LUXURY</h2>
+            <div style="display:flex; gap:12px; align-items:center;">
+              <span style="background:#C5A059; color:#ffffff; font-size:10px; font-weight:800; letter-spacing:0.18em; text-transform:uppercase; padding:10px 22px; border-radius:9999px;">Explore The Drop</span>
+              <span style="border:1px solid rgba(255,255,255,0.4); color:#ffffff; font-size:10px; font-weight:800; letter-spacing:0.18em; text-transform:uppercase; padding:10px 22px; border-radius:9999px;">Atelier Notes</span>
+            </div>
+          </div>
+        </div>
+        <div style="padding:14px 20px; background:#fafaf9; border-top:1px solid #e7e5e4; font-size:12px; color:#57534e;">
+          <strong>Admin Control:</strong> Managed in the <code>Hero Carousel</code> drawer. Upload multi-slide Cloudinary imagery (3:4 portrait or 16:9 panoramic). Automatically advances or allows touch-swipe navigation.
+        </div>
+      </div>
+
+      <!-- 2. SPLIT LIFESTYLE SHOWCASE (DUAL MUSES) -->
+      <div class="preview-browser">
+        <div class="preview-browser-header">
+          <div class="preview-browser-dots"><span></span><span></span><span></span></div>
+          <div class="preview-browser-title">Component 4: Dual-Muse Lifestyle Showcase</div>
+          <span class="badge badge-dark" style="font-size:9px;">Curated Visuals</span>
+        </div>
+        <div class="preview-body">
+          <div class="preview-split-muses">
+            <div class="muse-card">
+              <img src="https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=80" alt="Accessories Muse" />
+              <div class="muse-overlay">
+                <span class="muse-tag">Left Muse &bull; Accessories &amp; Leather</span>
+                <h4 class="muse-title">Handcrafted Details &amp; Niche Fragrances</h4>
+              </div>
+            </div>
+            <div class="muse-card">
+              <img src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80" alt="Streetwear Muse" />
+              <div class="muse-overlay">
+                <span class="muse-tag">Right Muse &bull; Couture Streetwear</span>
+                <h4 class="muse-title">Monogram Silks &amp; Tailored Silhouettes</h4>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="padding:14px 20px; background:#fafaf9; border-top:1px solid #e7e5e4; font-size:12px; color:#57534e;">
+          <strong>Admin Control:</strong> Click "Edit Muses" in the <code>Lifestyle Showcase</code> card to independently update left and right editorial model photography.
+        </div>
+      </div>
+
+      <!-- 3. REAL BOUTIQUE PRODUCTS CAROUSEL MOCKUP -->
+      <div class="preview-browser">
+        <div class="preview-browser-header">
+          <div class="preview-browser-dots"><span></span><span></span><span></span></div>
+          <div class="preview-browser-title">Components 5 &amp; 6: Curated Product Carousels (Real Catalog Artifacts)</div>
+          <span class="badge badge-green" style="font-size:9px;">Live Catalog Pieces</span>
+        </div>
+        <div class="preview-body">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <div>
+              <span style="font-size:9px; font-weight:800; letter-spacing:0.2em; text-transform:uppercase; color:#C5A059;">Curated Tier</span>
+              <h3 style="margin:0; font-family:'Playfair Display', serif; font-size:22px; color:#1c1917; text-transform:none; letter-spacing:0;">Manor Collection Selections</h3>
+            </div>
+            <span style="font-size:11px; font-weight:700; color:#C5A059; text-transform:uppercase; letter-spacing:0.1em;">View All (259) &rarr;</span>
+          </div>
+
+          <div class="preview-grid-4">
+            <!-- Product 1 -->
+            <div class="product-mini-card">
+              <img src="https://res.cloudinary.com/dmcls36pv/image/upload/v1780586663/drefen4zrd3czs2qyuuh.jpg" alt="Zara Color Block Jacket" />
+              <div class="product-mini-card-info">
+                <span class="product-mini-card-brand">Zara Haute</span>
+                <div class="product-mini-card-title">Zara Color Block Jacket</div>
+                <div class="product-mini-card-price">&#8358;85,000</div>
+              </div>
+            </div>
+            <!-- Product 2 -->
+            <div class="product-mini-card">
+              <img src="https://res.cloudinary.com/dmcls36pv/image/upload/v1780588660/lubdpkvbkbufdtmlul5u.jpg" alt="OPEN KNIT POLO SHIRT" />
+              <div class="product-mini-card-info">
+                <span class="product-mini-card-brand">Zarhrah Atelier</span>
+                <div class="product-mini-card-title">Open Knit Polo Shirt</div>
+                <div class="product-mini-card-price">&#8358;45,000</div>
+              </div>
+            </div>
+            <!-- Product 3 -->
+            <div class="product-mini-card">
+              <img src="https://res.cloudinary.com/dmcls36pv/image/upload/v1780589144/wl8fj70vsyxolbifwcqe.jpg" alt="BLACK FLORAL PRINT UNISEX SHIRT" />
+              <div class="product-mini-card-info">
+                <span class="product-mini-card-brand">Zarhrah Limited</span>
+                <div class="product-mini-card-title">Black Floral Print Shirt</div>
+                <div class="product-mini-card-price">&#8358;42,000</div>
+              </div>
+            </div>
+            <!-- Product 4 -->
+            <div class="product-mini-card">
+              <img src="https://res.cloudinary.com/dmcls36pv/image/upload/v1780590818/yo6etn9tu1wwiyjty1z0.jpg" alt="Bershka Embroidered Shirt" />
+              <div class="product-mini-card-info">
+                <span class="product-mini-card-brand">Bershka</span>
+                <div class="product-mini-card-title">Embroidered Short Sleeve Shirt</div>
+                <div class="product-mini-card-price">&#8358;38,000</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="padding:14px 20px; background:#fafaf9; border-top:1px solid #e7e5e4; font-size:12px; color:#57534e;">
+          <strong>Admin Control:</strong> Curated via the <em>Intelligent Searchable Product Selector</em>. Clicking product cards toggles instant inclusion. Empty carousels automatically fall back to the newest arrivals.
+        </div>
+      </div>
+
+      <!-- 4. STYLING IDEAS LOOKBOOK MOCKUP -->
+      <div class="preview-browser">
+        <div class="preview-browser-header">
+          <div class="preview-browser-dots"><span></span><span></span><span></span></div>
+          <div class="preview-browser-title">Component 8: Styling Ideas (1-Click Head-To-Toe Lookbook)</div>
+          <span class="badge badge-gold" style="font-size:9px;">High-Conversion Ensemble</span>
+        </div>
+        <div class="preview-body">
+          <div class="lookbook-mockup">
+            <div>
+              <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80" class="model-pic" alt="Styled Look 01" />
+            </div>
+            <div class="lookbook-content">
+              <span style="font-size:9px; font-weight:800; letter-spacing:0.2em; text-transform:uppercase; color:#C5A059;">Ensemble 01</span>
+              <h4>The Mayfair Velvet &amp; Knit Coordinated Look</h4>
+              <div class="lookbook-price-tag">Complete Outfit Package: &#8358;130,000</div>
+              <p style="font-size:12px; color:#78716c; margin-bottom:8px;">
+                Holistic luxury styling combining the structured Color Block Jacket with the lightweight Open Knit Polo Shirt. Shoppers can add all items directly to their cart in a single click.
+              </p>
+              <div style="font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.15em; color:#1c1917; margin-top:12px;">Matched Catalog Pieces Linked In Admin:</div>
+              <div class="lookbook-items-strip">
+                <div class="lookbook-item-thumb" title="Zara Color Block Jacket">
+                  <img src="https://res.cloudinary.com/dmcls36pv/image/upload/v1780586663/drefen4zrd3czs2qyuuh.jpg" alt="Item 1" />
+                </div>
+                <div class="lookbook-item-thumb" title="Open Knit Polo Shirt">
+                  <img src="https://res.cloudinary.com/dmcls36pv/image/upload/v1780588660/lubdpkvbkbufdtmlul5u.jpg" alt="Item 2" />
+                </div>
+                <span style="font-size:11px; color:#57534e; font-weight:600;">2 pieces linked &bull; Curated by Boutique Stylist</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="padding:14px 20px; background:#fafaf9; border-top:1px solid #e7e5e4; font-size:12px; color:#57534e;">
+          <strong>Admin Control:</strong> Created via "Add New Look" in the <code>Styling Ideas</code> editor. Upload model photography, enter package pricing, and click pieces in the compact product selector.
+        </div>
+      </div>
+    </div>
+
+    <!-- 6.5 INTELLIGENT SEARCHABLE PRODUCT SELECTOR -->
+    <h3>How to Use the Intelligent Searchable Product Selector</h3>
+    <p>
+      Previously, selecting products for a carousel required scrolling through an unorganized list of hundreds of SKUs. The upgraded <strong>Intelligent Searchable Product Selector</strong> makes curation seamless, fast, and visual:
+    </p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <strong>Real-Time Live Search</strong>
+          <p>
+            Type any search term into the search bar. The selector instantly filters the catalog across <strong>Product Title</strong>, <strong>Designer Brand</strong>, and <strong>Custom Tags</strong>. Type <code>"silk"</code>, <code>"black"</code>, or a designer name to narrow results immediately. Clear your search instantly with the <code>✕</code> button.
+          </p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <strong>Instant Category Filter Pills</strong>
+          <p>
+            Click any category pill (<span class="badge badge-dark">ALL</span>, <span class="badge badge-gold">Clothing</span>, <span class="badge badge-gold">Shoes</span>, <span class="badge badge-gold">Bags</span>) to restrict the view to that specific department without losing your active selections.
+          </p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <strong>The "Selected (X)" Audit Filter</strong>
+          <p>
+            Click the <span class="badge badge-dark">Selected (X)</span> pill in the top-right corner. The grid instantly collapses to display <strong>only</strong> the pieces currently linked to that section. This provides an immediate, foolproof visual audit of what will appear on the storefront. Click it again to return to the full catalog.
+          </p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <strong>One-Click Checkmark Selection &amp; Auto-Save</strong>
+          <p>
+            Click any product card to toggle it on or off. Selected items immediately illuminate with a high-contrast <strong>gold checkmark badge</strong> (<span style="color:#C5A059; font-weight:bold;">&#10004;</span>) in the top-right corner, a refined dark border ring, and an info overlay showing item title and formatted Naira price (<code>₦XX,XXX</code>). Every click writes straight to Firestore in the background—no "Save All" button required.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6.5 STYLING IDEAS LOOKBOOK TUTORIAL -->
+    <h3>How to Create &amp; Curate "Styling Ideas" (Lookbooks)</h3>
+    <p>
+      The <strong>Styling Ideas</strong> module is one of Zahrah's highest-converting features. Rather than selling standalone garments, it allows merchants to present holistic luxury outfits that shoppers can purchase in a single click:
+    </p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <strong>Expand the Styling Ideas Section</strong>
+          <p>Locate the full-width <em>Styling Ideas</em> card in the Curated Collections area and click <strong>"Manage Looks"</strong> to expand the editor.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <strong>Spawn a New Look</strong>
+          <p>Click the gold <strong>"Add New Look"</strong> button at the bottom. A new ensemble card appears labeled <code>Look 0X</code>.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <strong>Upload the Editorial Photograph</strong>
+          <p>Hover over the image preview box and click the upload icon to upload a high-resolution, full-body styled model photo (3:4 portrait ratio recommended). The image uploads directly to Cloudinary and links to the look.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <strong>Configure Title &amp; Total Ensemble Price</strong>
+          <p>Set an evocative, high-fashion title in the <em>Look Title</em> field (e.g., <code>"Mayfair Evening Velvet Ensemble"</code>) and enter the combined package price in the <em>Total Price</em> field (e.g., <code>₦245,000</code>).</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <strong>Link Matching Catalog Artifacts</strong>
+          <p>
+            Under <em>"Products in Look"</em>, use the embedded compact product selector to search and click the exact items comprising the outfit (e.g. velvet blazer + tailored trousers + leather loafers). Linked pieces appear in the <strong>Matched Products</strong> preview bar.
+          </p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-content">
+          <strong>Sequence &amp; Reorder</strong>
+          <p>
+            &bull; <strong>Reorder Look Priority:</strong> Use the vertical <strong>&uarr;</strong> and <strong>&darr;</strong> buttons on the left of each look card to determine which outfit appears first on the storefront.<br />
+            &bull; <strong>Reorder Garment Sequence:</strong> Hover over any item in the <em>Matched Products</em> bar and click the <strong>&larr;</strong> or <strong>&rarr;</strong> arrows to adjust how pieces are presented in the customer checkout popover.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6.6 DEPLOYING DYNAMIC SECTIONS -->
+    <h3>Deploying On-Demand Dynamic Custom Carousels</h3>
+    <p>
+      Need a special carousel for a flash promotion or fashion week? You do not need developer assistance:
+    </p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <strong>Enter Section Title</strong>
+          <p>Scroll down to the <em>"Deploy Section"</em> card. Type your desired carousel heading into the input bar (e.g., <code>"SUMMER LINEN EDIT"</code> or <code>"PRIVATE VAULT SELECTIONS"</code>).</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <strong>Deploy Instantly</strong>
+          <p>Click the black <strong>"Deploy Section"</strong> button. The section immediately appears in the layout hierarchy and in the admin audit log.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <strong>Curate &amp; Control</strong>
+          <p>Use the section's embedded Searchable Product Selector to pick the items to showcase. Toggle visibility with the eye icon, or permanently remove the section anytime with the trash icon.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6.7 MERCHANDISING BEST PRACTICES -->
+    <div class="callout callout-info">
+      <div class="callout-title">💎 Visual Merchandising Rules of Thumb</div>
+      <ul>
+        <li><strong>Optimal Carousel Density:</strong> Curate between <strong>6 and 12 pieces</strong> per carousel. Fewer than 4 pieces makes the carousel look sparse on large desktop screens; more than 16 pieces causes customer scroll fatigue.</li>
+        <li><strong>Portrait Aspect Ratio (3:4):</strong> Ensure all catalog and lookbook images follow a consistent 3:4 portrait aspect ratio (e.g. 1200 &times; 1600 px) with neutral or studio backgrounds for uniform visual luxury.</li>
+        <li><strong>Graceful Fallback Logic:</strong> If a merchant leaves a section visible but selects 0 products, the storefront automatically falls back to displaying the newest catalog arrivals for that category, ensuring the site never shows a blank void.</li>
+        <li><strong>Pre-Campaign Audit:</strong> Before launching promotional newsletters or influencer links, open each active section in the Theme &amp; Layout tab, click <span class="badge badge-dark">Selected (X)</span>, and verify that all featured items are currently in stock with positive inventory counts.</li>
+      </ul>
+    </div>
+
+    <!-- 6.8 DETAILED CARD-BY-CARD OPERATION MANUAL -->
+    <h3>Card-by-Card Storefront Controls Reference</h3>
+    <p>
+      The Theme &amp; Layout console is structured into distinct functional tiers. Below is the operational procedure for every card on the interface:
+    </p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <strong>Master Control: Home Page Configuration (Catalog Visible / Hidden)</strong>
+          <p>
+            Located at the very top of the page. Clicking this card toggles between <strong>Standard Catalog Mode</strong> (full bottom product catalog with filters) and <strong>Editorial Drop Mode</strong> (only curated lookbooks, muse showcases, and themed carousels are displayed). The indicator dot turns gold when active.
+          </p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <strong>Hero Carousel Card (Top-of-Funnel Flagship Slides)</strong>
+          <p>
+            &bull; <strong>Show/Hide:</strong> Click the eye icon to enable or disable the entire hero banner.<br />
+            &bull; <strong>Edit Slides:</strong> Click the "Edit Slides" button to expand the slide drawer.<br />
+            &bull; <strong>Upload Imagery:</strong> Click "Add Slide" or upload directly to Cloudinary. Recommended dimensions: 1920&times;900px (desktop wide) or 1200&times;1600px (mobile portrait editorial).<br />
+            &bull; <strong>Delete Slide:</strong> Hover over any slide in the manager and click the red trash icon.
+          </p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <strong>Features Bar (Trust &amp; Service Pillars)</strong>
+          <p>
+            Displays the three pillars of Zahrah luxury: <em>100% Authentic Luxury</em>, <em>White-Glove Delivery</em>, and <em>Paystack Escrow Guarantee</em>. Click the eye button to toggle visibility. Keep active during general retail operations to reinforce buyer trust.
+          </p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <strong>Boutique Banner Card (Mid-Page Editorial Statement)</strong>
+          <p>
+            &bull; <strong>Headline:</strong> Enter an uppercase editorial title into the text field (e.g. <code>"PARIS ATELIER '26"</code> or <code>"SILK &amp; VELVET ARCHIVE"</code>).<br />
+            &bull; <strong>Banner Image:</strong> Paste a direct image URL or click the upload icon to upload from your local drive to Cloudinary.<br />
+            &bull; <strong>Storefront Display:</strong> Renders as an immersive full-bleed horizontal divider with subtle parallax typography.
+          </p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <strong>Lifestyle Showcase Card (Dual-Muse Split Photography)</strong>
+          <p>
+            &bull; <strong>Edit Muses:</strong> Click "Edit Muses" to open the dual-photo management drawer.<br />
+            &bull; <strong>Left Muse (Accessories):</strong> Upload a portrait editorial photo highlighting footwear, bags, fragrances, or jewelry.<br />
+            &bull; <strong>Right Muse (Streetwear / Couture):</strong> Upload an editorial photo highlighting tailored fits, blazers, shirts, or tracksuits.<br />
+            &bull; <strong>Storefront Role:</strong> Displays side-by-side on desktop and stacked on mobile, driving category navigation with high aesthetic impact.
+          </p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-content">
+          <strong>Manor Collection vs. Bundles &amp; Deals (Curated Product Rows)</strong>
+          <p>
+            &bull; <strong>Manor Collection (Royal Tier):</strong> Reserved for your highest-ticket luxury artifacts. Click "Select Products" to open the Searchable Product Selector, choose 6–10 premium pieces, and verify them under the "Selected" pill.<br />
+            &bull; <strong>Bundles &amp; Deals:</strong> Highlight promotional pairings, perfume gift boxes, or multi-item sets. Both sections support independent visibility toggles.
+          </p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">7</div>
+        <div class="step-content">
+          <strong>Curated Categories (Tabbed Interactive Collection)</strong>
+          <p>
+            &bull; <strong>Tab Management:</strong> Click "Edit Tabs" to rename tabs (e.g. rename "Slides" to "Footwear"), adjust display order, or hide underperforming categories.<br />
+            &bull; <strong>Assign Pieces:</strong> Click any category tab (T-Shirts, Pants, Jackets, Shorts, Slides, Bags) and pick exactly which products appear when shoppers click that tab on the homepage.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6.9 THREE STRATEGIC MERCHANDISING SCENARIOS -->
+    <h3>Three Strategic Merchandising Workflows</h3>
+    <p>
+      How to configure the Theme &amp; Layout tab for different business events:
+    </p>
+
+    <div class="feature-box">
+      <h4>⚜ Scenario 1: Launching a New Seasonal Collection Drop</h4>
+      <ul>
+        <li><strong>Step 1:</strong> Expand <em>Hero Carousel</em> &rarr; Upload 2–3 new high-resolution seasonal campaign slides.</li>
+        <li><strong>Step 2:</strong> Update <em>Boutique Banner</em> &rarr; Set title to <code>"AUTUMN/WINTER '26 COUTURE"</code> with new backdrop.</li>
+        <li><strong>Step 3:</strong> Open <em>Deploy Section</em> &rarr; Enter <code>"THE NEW ARRIVALS EDIT"</code> and click Deploy.</li>
+        <li><strong>Step 4:</strong> Use the Searchable Product Selector to pick the 8 newest pieces for the new section.</li>
+        <li><strong>Step 5:</strong> Keep <em>Catalog Visible</em> enabled so shoppers can browse full inventory after viewing the new drop.</li>
+      </ul>
+    </div>
+
+    <div class="feature-box">
+      <h4>⚜ Scenario 2: Switching to VIP Private Atelier Lookbook Mode</h4>
+      <ul>
+        <li><strong>Step 1:</strong> Click <em>Home Page Configuration</em> &rarr; Toggle to <span class="badge badge-dark">Catalog Hidden</span>.</li>
+        <li><strong>Step 2:</strong> Open <em>Styling Ideas</em> &rarr; Curate 4–6 complete head-to-toe luxury outfits with editorial imagery and package prices.</li>
+        <li><strong>Step 3:</strong> Open <em>Manor Collection</em> &rarr; Curate exclusively high-margin royal couture pieces.</li>
+        <li><strong>Step 4:</strong> Result: The home page acts like a digital fashion magazine with no clutter, driving maximum perceived brand prestige.</li>
+      </ul>
+    </div>
+
+    <div class="feature-box">
+      <h4>⚜ Scenario 3: 48-Hour Weekend Flash Sale / Bundle Promotion</h4>
+      <ul>
+        <li><strong>Step 1:</strong> Open <em>Bundles &amp; Deals</em> &rarr; Click the eye icon to make it Visible.</li>
+        <li><strong>Step 2:</strong> Click "Select Products" &rarr; Search and check all discounted pairings and gift sets.</li>
+        <li><strong>Step 3:</strong> In <em>Boutique Banner</em> &rarr; Set headline to <code>"48-HOUR ATELIER PRIVILEGE EVENT"</code>.</li>
+        <li><strong>Step 4:</strong> When the event ends, toggle Bundles &amp; Deals off with a single click—all product selections remain saved for the next sale.</li>
+      </ul>
+    </div>
+
+    <!-- 6.10 ARCHITECTURE, ZERO CLIPPING & MOBILE RESPONSIVENESS -->
+    <h3>Technical Architecture: Zero-Clipping Layout &amp; Mobile Engine</h3>
+    <p>
+      The Theme &amp; Layout tab features an enterprise-grade front-end layout engine optimized for all desktop displays and mobile operating systems:
+    </p>
+
+    <table class="corr-table">
+      <colgroup>
+        <col style="width: 25%;">
+        <col style="width: 32%;">
+        <col style="width: 43%;">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Engineering Layer</th>
+          <th>Implementation Specification</th>
+          <th>Merchant &amp; Customer Benefit</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Zero-Clipping Desktop Geometry</strong></td>
+          <td><code>w-full lg:w-[calc(100%-18rem)] lg:max-w-[calc(100%-18rem)] lg:ml-72</code></td>
+          <td>The main content container calculates its width strictly against remaining viewport width minus the 288px fixed sidebar. Cards, buttons, and "Catalog Visible" toggles fit with 100% precision on any monitor (1080p, 1440p, 4K, ultrawide) without horizontal scrolling or card truncation.</td>
+        </tr>
+        <tr>
+          <td><strong>iOS &amp; Android Safe-Area Insets</strong></td>
+          <td><code>pt-[env(safe-area-inset-top)]</code> &bull; <code>pb-[env(safe-area-inset-bottom)]</code> &bull; <code>viewport-fit=cover</code></td>
+          <td>Full hardware awareness for iPhone Dynamic Island, camera notches, and Android gesture navigation bars. Headers, drawers, and modal sheets float outside hardware obstruction zones.</td>
+        </tr>
+        <tr>
+          <td><strong>Anti-Zoom &amp; Touch Standards</strong></td>
+          <td>Font-size &ge; 16px on inputs &bull; 44px+ touch targets &bull; <code>touch-action: manipulation</code></td>
+          <td>Eliminates disruptive iOS Safari auto-zooming when tapping text fields. Every button, toggle pill, and selector checkbox meets Apple Human Interface &amp; Android Material minimum 44px touch targets.</td>
+        </tr>
+        <tr>
+          <td><strong>Real-Time Cloud Persistence</strong></td>
+          <td>Cloud Firestore <code>siteConfig/homeLayout</code> with live listener</td>
+          <td>All updates write atomically to Firestore with zero downtime. Changes sync to live storefront visitors in milliseconds without rebuilding or restarting the website.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SECTION 7 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">7</div>
+      <h2>Client Retention &amp; Abandoned Checkouts</h2>
+    </div>
+    <p>
+      The <strong>Abandoned Carts</strong> tab captures incomplete checkouts in real time to empower sales recovery.
+    </p>
+
+    <h3>Automated Recovery Architecture</h3>
+    <ul>
+      <li><strong>Client Session Tracking:</strong> When a shopper enters their contact details on the checkout page, a recovery session is debounced after 3 seconds of inactivity.</li>
+      <li><strong>Paystack Drop-Off Detection:</strong> If a client closes the payment modal without paying, the session is logged under <em>Abandoned Carts</em>.</li>
+      <li><strong>Automated Luxury HTML Email:</strong> The system automatically sends a branded luxury recovery email showcasing the exact items, sizes, and prices left behind, with a direct 1-click button to resume checkout.</li>
+      <li><strong>Manual Recovery:</strong> Admins can click <em>"Send Recovery Email"</em> or copy the customer's WhatsApp number for personalized concierge outreach.</li>
+    </ul>
+  </div>
+
+  <!-- SECTION 8 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">8</div>
+      <h2>Restock Requests &amp; Demand Forecasting</h2>
+    </div>
+    <p>
+      Under the <strong>Restock Requests</strong> tab, merchants monitor shopper demand for sold-out pieces.
+    </p>
+    <ul>
+      <li>When an item is sold out, visitors can click <em>"Notify Me When Available"</em> and provide their email or WhatsApp.</li>
+      <li>The requests are grouped by product, providing an immediate restocking priority list based on customer volume.</li>
+      <li>Once inventory is replenished in the <strong>Products</strong> tab, clicking <em>"Notify Waitlist"</em> dispatches automated HTML restock emails with product photography to all subscribed shoppers.</li>
+    </ul>
+  </div>
+
+  <!-- SECTION 9 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">9</div>
+      <h2>Staff Governance &amp; Multi-Tier Access</h2>
+    </div>
+    <p>
+      Available to accounts with the <code>super_admin</code> role, the <strong>Staff Access</strong> tab manages employee access permissions.
+    </p>
+    <ul>
+      <li><strong>Inviting Team Members:</strong> Add authorized email addresses and assign role permissions (<code>super_admin</code>, <code>manager</code>, <code>editor</code>).</li>
+      <li><strong>Revoking Access:</strong> Immediately disable login access for departing team members.</li>
+      <li><strong>Activity Audit Trail:</strong> The <strong>Activity Logs</strong> tab records every critical operation (product creation, price edits, deletions, layout adjustments, database resets) with the acting staff member's email and timestamp.</li>
+    </ul>
+  </div>
+
+  <!-- SECTION 10: CORRELATION TABLE -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">10</div>
+      <h2>Admin → Storefront Correlation Map</h2>
+    </div>
+    <p>This reference matrix maps actions in the Admin panel to their live effects on the customer-facing boutique.</p>
+    <table class="corr-table">
+      <colgroup>
+        <col style="width: 25%;">
+        <col style="width: 22%;">
+        <col style="width: 53%;">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Admin Action</th>
+          <th>Tab</th>
+          <th>Storefront Customer Experience</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Add / Edit Product</td>
+          <td>Products</td>
+          <td>Instantly updates in catalog, search, and category grids.</td>
+        </tr>
+        <tr>
+          <td>Configure Size-Based Price</td>
+          <td>Products</td>
+          <td>Price dynamically animates on product page when size is clicked.</td>
+        </tr>
+        <tr>
+          <td>Set Stock to 0</td>
+          <td>Products</td>
+          <td>"Sold Out" badge displayed; "Notify Me" restock modal enabled.</td>
+        </tr>
+        <tr>
+          <td>Update Order Status</td>
+          <td>Orders</td>
+          <td>Real-time update on customer's <code>/orders</code> tracking page.</td>
+        </tr>
+        <tr>
+          <td>Select Manor Products</td>
+          <td>Theme &amp; Layout</td>
+          <td>Updates horizontal "Manor Collection" luxury scroller on homepage.</td>
+        </tr>
+        <tr>
+          <td>Add Styling Ideas Look</td>
+          <td>Theme &amp; Layout</td>
+          <td>Curated outfit card appears in lookbook with linked items.</td>
+        </tr>
+        <tr>
+          <td>Toggle Catalog Visibility</td>
+          <td>Theme &amp; Layout</td>
+          <td>Hides or shows the primary product grid on the home page.</td>
+        </tr>
+        <tr>
+          <td>Edit Footer Pages</td>
+          <td>Pages &amp; Footer</td>
+          <td>Updates policy and informational pages (About, FAQ, Shipping).</td>
+        </tr>
+        <tr>
+          <td>Customer Leaves Checkout</td>
+          <td>Abandoned Carts</td>
+          <td>Client receives automated luxury recovery email with bag items.</td>
+        </tr>
+        <tr>
+          <td>Restock Sold-Out Item</td>
+          <td>Restock Requests</td>
+          <td>Subscribed shoppers receive branded restock alert email.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SECTION 11 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">11</div>
+      <h2>Database Governance, Sitemap &amp; Recovery</h2>
+    </div>
+    <p>
+      The sidebar features emergency database governance tools to protect store data integrity.
+    </p>
+
+    <div class="feature-box">
+      <h4>Sidebar Database Governance Suite</h4>
+      <ul>
+        <li><strong>Soft Reset / Wipe Database:</strong> Clears transactional test data (orders, view logs, abandoned sessions) while preserving catalog products, user accounts, and settings. Automatically creates a restoration backup.</li>
+        <li><strong>Restore Database:</strong> Reverts the last soft reset, restoring orders and abandoned carts instantly from the backup collection.</li>
+        <li><strong>Automated XML Sitemap (<code>/sitemap.xml</code>):</strong> Auto-generated during each build to index 280+ active products and pages in Google and Bing with Google Image Search schemas.</li>
+        <li><strong>Robots Policy (<code>/robots.txt</code>):</strong> Directs web crawlers to public collections while blocking administrative routes (<code>/admin</code>, <code>/checkout</code>, <code>/orders</code>).</li>
+      </ul>
+    </div>
+
+    <div class="danger-box">
+      <strong>⚠ CAUTION ON DATABASE OPERATIONS:</strong> Database resets should only be performed by Super Admins before collection launches or after stress-testing. All database operations are permanently logged in the Activity Log.
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="doc-footer">
+    Zarhrah Luxury Boutique &nbsp;•&nbsp; Administrator Executive Guide &nbsp;•&nbsp; Confidential &nbsp;•&nbsp; Version 2.4 (October 2026)
+  </div>
+
+</div>
+</body>
+</html>
