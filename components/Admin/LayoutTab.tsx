@@ -290,6 +290,7 @@ const SearchableProductSelector: React.FC<SearchableProductSelectorProps> = ({
 
 const StaticSectionControl: React.FC<{
     title: string;
+    subtitle?: string;
     visibilityKey: keyof HomeLayoutConfig;
     productKey?: 'manorProductIds' | 'stylingProductIds' | 'bundlesProductIds';
     bannerImageKey?: 'boutiqueBannerImage' | 'heroImage';
@@ -297,6 +298,7 @@ const StaticSectionControl: React.FC<{
     limit?: number;
 } & EditorProps> = ({
     title,
+    subtitle,
     visibilityKey,
     productKey,
     bannerImageKey,
@@ -395,6 +397,9 @@ const StaticSectionControl: React.FC<{
                             </button>
                             <div className="min-w-0">
                                 <h4 className={`font-bold text-stone-900 text-sm truncate ${canExpand ? 'group-hover:text-[#C5A059] transition-colors' : ''}`}>{title}</h4>
+                                {subtitle && (
+                                    <p className="text-[9px] text-stone-400 mt-0.5 truncate">{subtitle}</p>
+                                )}
                                 {productKey && (
                                     <p className="text-[9px] font-black text-[#C5A059] uppercase tracking-widest mt-0.5 truncate">
                                         {validSelectedIds.length} Selected {canExpand && `• Click to ${isExpanded ? 'Close' : 'Select'}`}
@@ -1348,6 +1353,7 @@ const LayoutTab: React.FC<LayoutTabProps> = ({ layoutConfig, setLayoutConfig, pr
                     />
                     <StaticSectionControl
                         title="Features"
+                        subtitle="Custom Fit, Personal Shopper, 100% Original badges"
                         visibilityKey="showFeatures"
                         layoutConfig={layoutConfig}
                         products={products}
@@ -1355,6 +1361,7 @@ const LayoutTab: React.FC<LayoutTabProps> = ({ layoutConfig, setLayoutConfig, pr
                     />
                     <StaticSectionControl
                         title="Boutique Banner"
+                        subtitle="Full-width mid-page banner ('Zarhrah Manor')"
                         visibilityKey="showBoutique"
                         bannerImageKey="boutiqueBannerImage"
                         textInputKey="boutiqueBannerTitle"
